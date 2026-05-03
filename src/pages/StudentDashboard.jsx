@@ -434,6 +434,24 @@ export default function StudentDashboard() {
                     <p className="text-3xl font-black text-secondary font-display">{bioRecords?.[0]?.weight || '--'} <span className="text-xs font-bold text-slate-300">kg</span></p>
                   </div>
                 </div>
+                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
+                  <div className="w-12 h-12 rounded-[20px] bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <TrendingUp className="w-6 h-6 fill-emerald-200" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Volume (7d)</p>
+                    <p className="text-3xl font-black text-secondary font-display">{weeklyStats.volume.toLocaleString()} <span className="text-xs font-bold text-slate-300">kg</span></p>
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
+                  <div className="w-12 h-12 rounded-[20px] bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                    <Activity className="w-6 h-6 fill-indigo-200" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recordes (7d)</p>
+                    <p className="text-3xl font-black text-secondary font-display">{weeklyStats.prs} <span className="text-xs font-bold text-slate-300">PRs</span></p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-between items-center mb-8">
@@ -1032,17 +1050,9 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                 {d.day}
               </div>
             ))}
-            <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10">
-              <p className="text-[8px] font-black uppercase tracking-widest text-white/60 mb-1">Volume (7d)</p>
-              <p className="text-xl font-black text-white">{weeklyStats.volume.toLocaleString()}<span className="text-[10px] ml-1">kg</span></p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10">
-              <p className="text-[8px] font-black uppercase tracking-widest text-white/60 mb-1">Recordes (7d)</p>
-              <p className="text-xl font-black text-white">{weeklyStats.prs}<span className="text-[10px] ml-1">PRs</span></p>
-            </div>
           </div>
         </div>
-      </header>
+      </section>
 
       {/* Seção de Recordes Pessoais (Troféus) */}
       <section className="space-y-6">
