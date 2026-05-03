@@ -1,0 +1,17 @@
+{
+  "name": "CasalGym",
+  "short_name": "CasalGym",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#FB7185",
+  "description": "Treine em casal, evolua juntos.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2964/2964514.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
