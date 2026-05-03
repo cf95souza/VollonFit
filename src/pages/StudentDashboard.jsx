@@ -268,7 +268,7 @@ export default function StudentDashboard() {
       setCurrentView('workout-detail')
     } catch (err) {
       console.error('Erro ao iniciar treino:', err)
-      alert('Não foi possível carregar o treino.')
+      showToast('Não foi possível carregar o treino.', 'error')
     } finally {
       setLoading(false)
     }

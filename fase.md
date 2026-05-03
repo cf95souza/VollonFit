@@ -85,6 +85,12 @@ Este arquivo acompanha o progresso do projeto CasalGym, dividido por fases de im
 - [x] **Homologação & Deploy:** Código publicado no GitHub e Vercel com suporte SPA.
 - **Status:** Concluído
 
+### Fase 11: Refinamento de UX Administrativa 🛠️✨
+- [x] Substituição de `alert()` e `confirm()` nativos por Toasts e Modais do sistema
+- [x] Padronização das mensagens de feedback no fluxo de criação de treinos
+- [x] Revisão de validações de formulário no Admin
+- **Status:** Concluído
+
 ---
 **Data de Entrega:** 03 de Maio de 2026
 **Responsável:** Antigravity AI

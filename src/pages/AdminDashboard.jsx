@@ -188,9 +188,9 @@ export default function AdminDashboard() {
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} />}
-                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} />}
-                {activeTab === 'workouts' && <WorkoutsTab />}
-                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} />}
+                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} />}
+                {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} />}
+                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} />}
               </div>
             </div>
           )}
@@ -431,7 +431,7 @@ function OverviewTab({ onViewProfile }) {
   )
 }
 
-function ExercisesTab() {
+function ExercisesTab({ showToast }) {
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedGif, setSelectedGif] = useState(null)
@@ -481,9 +481,9 @@ function ExercisesTab() {
         .eq('id', editingId)
 
       if (error) {
-        alert('Erro ao atualizar: ' + error.message)
+        showToast('Erro ao atualizar: ' + error.message, 'error')
       } else {
-        alert('Exercício atualizado!')
+        showToast('Exercício atualizado!')
       }
     } else {
       const { error } = await supabase
@@ -491,7 +491,9 @@ function ExercisesTab() {
         .insert([newExercise])
 
       if (error) {
-        alert('Erro ao cadastrar: ' + error.message)
+        showToast('Erro ao cadastrar: ' + error.message, 'error')
+      } else {
+        showToast('Exercício cadastrado com sucesso!')
       }
     }
 
@@ -701,7 +703,7 @@ function ExercisesTab() {
   )
 }
 
-function WorkoutsTab() {
+function WorkoutsTab({ showToast }) {
   const [students, setStudents] = useState([])
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
@@ -772,7 +774,7 @@ function WorkoutsTab() {
 
   const handleSaveWorkout = async () => {
     if (!selectedStudent || !workoutName || workoutItems.length === 0) {
-      alert('Preencha todos os campos.')
+      showToast('Preencha todos os campos do treino.', 'error')
       return
     }
 
@@ -793,7 +795,11 @@ function WorkoutsTab() {
         .insert([{ name: workoutName, student_id: selectedStudent }])
         .select().single()
       
-      if (error) { alert(error.message); setIsSaving(false); return; }
+      if (error) { 
+        showToast('Erro ao criar treino: ' + error.message, 'error')
+        setIsSaving(false)
+        return
+      }
       workoutId = data.id
     }
 
@@ -810,9 +816,9 @@ function WorkoutsTab() {
     const { error: itemsError } = await supabase.from('gym_workout_items').insert(itemsToInsert)
 
     if (itemsError) {
-      alert('Erro ao salvar exercícios: ' + itemsError.message)
+      showToast('Erro ao salvar exercícios: ' + itemsError.message, 'error')
     } else {
-      alert(editingWorkoutId ? 'Treino atualizado!' : 'Treino criado!')
+      showToast(editingWorkoutId ? 'Treino atualizado com sucesso!' : 'Treino criado com sucesso!')
       resetForm()
       fetchStudentWorkouts()
     }
@@ -991,7 +997,7 @@ function WorkoutsTab() {
   )
 }
 
-function StudentsTab({ onViewProfile }) {
+function StudentsTab({ onViewProfile, showToast }) {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -1028,8 +1034,9 @@ function StudentsTab({ onViewProfile }) {
       .select()
 
     if (error) {
-      alert('Erro ao cadastrar aluno: ' + error.message)
+      showToast('Erro ao cadastrar aluno: ' + error.message, 'error')
     } else {
+      showToast('Aluno cadastrado com sucesso!')
       setIsModalOpen(false)
       setNewStudent({ name: '', username: '', password: '' })
       fetchStudents()
@@ -1191,7 +1198,7 @@ function StudentDetailView({ student, onBack, showToast }) {
 
   const handleSaveGoals = async () => {
     if (!student?.id) {
-      alert('Erro: ID do aluno não encontrado.');
+      showToast('Erro: ID do aluno não encontrado.', 'error');
       return;
     }
 
