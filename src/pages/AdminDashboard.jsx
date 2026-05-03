@@ -37,6 +37,7 @@ import {
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('casalgym_admin_tab') || 'overview')
+  const [searchTerm, setSearchTerm] = useState('')
   const [exercises, setExercises] = useState(MOCK_EXERCISES)
   const [viewingStudent, setViewingStudent] = useState(() => {
     const saved = localStorage.getItem('casalgym_admin_viewing_student')
@@ -141,6 +142,8 @@ export default function AdminDashboard() {
               <input 
                 type="text" 
                 placeholder="Buscar..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64"
               />
             </div>
@@ -177,6 +180,8 @@ export default function AdminDashboard() {
                     <input 
                       type="text" 
                       placeholder="Buscar por nome..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all w-72 shadow-sm"
                     />
                   </div>
@@ -187,10 +192,10 @@ export default function AdminDashboard() {
               </header>
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} />}
-                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} />}
-                {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} />}
-                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} />}
+                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} searchTerm={searchTerm} />}
+                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} searchTerm={searchTerm} />}
+                {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} searchTerm={searchTerm} />}
+                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} searchTerm={searchTerm} />}
               </div>
             </div>
           )}
@@ -231,7 +236,7 @@ function SidebarLink({ icon, label, active, onClick }) {
   )
 }
 
-function OverviewTab({ onViewProfile }) {
+function OverviewTab({ onViewProfile, searchTerm }) {
   const [stats, setStats] = useState({ exercises: 0, workouts: 0, students: 0, sessionsToday: 0 })
   const [recentStudents, setRecentStudents] = useState([])
   const [recentActivities, setRecentActivities] = useState([])
@@ -299,6 +304,14 @@ function OverviewTab({ onViewProfile }) {
     fetchStats()
   }, [])
 
+  const filteredAtRisk = atRiskStudents.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const filteredRecent = recentStudents.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -315,7 +328,7 @@ function OverviewTab({ onViewProfile }) {
             <h3 className="font-bold text-slate-800">Alunos Recentes</h3>
           </div>
           <div className="space-y-4">
-            {recentStudents.map(student => (
+            {filteredRecent.map((student, i) => (
               <div key={student.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary/30 transition-all cursor-pointer group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center font-bold text-slate-400 border border-slate-200 group-hover:border-primary/30">
@@ -384,9 +397,9 @@ function OverviewTab({ onViewProfile }) {
           </span>
         </div>
 
-        {atRiskStudents.length > 0 ? (
+        {filteredAtRisk.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {atRiskStudents.map(student => (
+            {filteredAtRisk.map(student => (
               <div key={student.id} className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 hover:border-rose-200 transition-all group relative overflow-hidden">
                 <div className="flex items-center gap-4 relative z-10">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center font-black text-slate-300 text-xl border border-slate-100 shadow-sm group-hover:border-rose-200 transition-colors">
@@ -431,7 +444,7 @@ function OverviewTab({ onViewProfile }) {
   )
 }
 
-function ExercisesTab({ showToast }) {
+function ExercisesTab({ showToast, searchTerm }) {
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedGif, setSelectedGif] = useState(null)
@@ -504,7 +517,12 @@ function ExercisesTab({ showToast }) {
     setIsSaving(false)
   }
 
-  return (
+    const filteredExercises = exercises.filter(ex => 
+      ex.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ex.category.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
       <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
         <div>
@@ -538,7 +556,7 @@ function ExercisesTab({ showToast }) {
                 </tr>
               ))
             ) : (
-              exercises.map(ex => (
+              filteredExercises.map(ex => (
                 <tr key={ex.id} className="hover:bg-slate-50/80 transition-colors group">
                   <td className="px-6 py-4">
                     <div 
@@ -703,7 +721,7 @@ function ExercisesTab({ showToast }) {
   )
 }
 
-function WorkoutsTab({ showToast }) {
+function WorkoutsTab({ showToast, searchTerm }) {
   const [students, setStudents] = useState([])
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
@@ -847,6 +865,10 @@ function WorkoutsTab({ showToast }) {
 
   if (loading && students.length === 0) return <div className="p-20 text-center animate-pulse text-slate-400">Carregando...</div>
 
+  const filteredStudents = students.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -860,8 +882,8 @@ function WorkoutsTab({ showToast }) {
               onChange={e => { setSelectedStudent(e.target.value); resetForm(); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">Selecione...</option>
-              {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <option value="">Selecione um aluno...</option>
+              {filteredStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
 
@@ -997,7 +1019,7 @@ function WorkoutsTab({ showToast }) {
   )
 }
 
-function StudentsTab({ onViewProfile, showToast }) {
+function StudentsTab({ onViewProfile, showToast, searchTerm }) {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -1044,6 +1066,10 @@ function StudentsTab({ onViewProfile, showToast }) {
     setIsSaving(false)
   }
 
+  const filteredStudents = students.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.username.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -1066,7 +1092,7 @@ function StudentsTab({ onViewProfile, showToast }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {students.map(s => (
+          {filteredStudents.map(s => (
             <div key={s.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-primary/30 transition-all">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl font-bold text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
