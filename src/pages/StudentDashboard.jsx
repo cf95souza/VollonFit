@@ -1959,6 +1959,54 @@ function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partner
   const totalVol = myVol + pVol;
   const myVolPercent = totalVol > 0 ? (myVol / totalVol) * 100 : 50;
 
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const subscribeToPush = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      
+      if (!publicKey) {
+        console.error('VAPID Public Key não encontrada no .env');
+        return;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
+      });
+
+      const { endpoint, keys } = subscription.toJSON();
+      
+      const { error } = await supabase.from('gym_push_subscriptions').upsert({
+        user_id: student.id,
+        endpoint: endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        platform: /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) ? 'ios' : 'android'
+      }, { onConflict: 'endpoint' });
+
+      if (!error) {
+        showToast('Notificações ativadas!');
+        window.location.reload();
+      } else {
+        throw error;
+      }
+    } catch (err) {
+      console.error('Erro ao assinar push:', err);
+      showToast('Erro ao ativar notificações', 'error');
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto p-6 pb-32 animate-in fade-in duration-500">
       <header className="mb-8">
@@ -1987,7 +2035,7 @@ function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partner
                 </div>
               </div>
               <button 
-                onClick={() => Notification.requestPermission().then(() => window.location.reload())}
+                onClick={subscribeToPush}
                 className="bg-primary text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
               >
                 Permitir
