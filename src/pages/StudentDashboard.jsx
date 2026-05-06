@@ -291,7 +291,7 @@ export default function StudentDashboard() {
       setCurrentView('workout-detail')
     } catch (err) {
       console.error('Erro ao iniciar treino:', err)
-      showToast('NÃ£o foi possÃ­vel carregar o treino.', 'error')
+      showToast('Não foi possível carregar o treino.', 'error')
     } finally {
       setLoading(false)
     }
@@ -826,7 +826,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
 
     setIsSaving(true)
     
-    // Salvar log da sÃ©rie no Supabase
+    // Salvar log da série no Supabase
     const { error } = await supabase
       .from('gym_training_logs')
       .insert([{
@@ -871,7 +871,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
           <ChevronLeft className="w-6 h-6" />
         </button>
         <div className="text-center">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">ExercÃ­cio {exerciseIndex + 1} de {exercises.length}</p>
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">Exercício {exerciseIndex + 1} de {exercises.length}</p>
           <h2 className="text-white font-black text-lg font-display leading-tight uppercase tracking-tight">{ex?.name}</h2>
         </div>
         <div className="w-12 h-12" />
@@ -903,7 +903,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
         <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 flex flex-col gap-8 shadow-2xl relative">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">SÃ©rie Atual</p>
+              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Série Atual</p>
               <p className="text-5xl font-black text-white font-display">{currentSet}<span className="text-slate-700 text-2xl font-normal ml-2">/ {item?.target_sets || 1}</span></p>
             </div>
             <div className={`px-6 py-3 rounded-full flex flex-col items-center border transition-all duration-500 ${isTimerActive ? 'bg-primary text-black border-primary' : 'bg-white/5 border-white/10'}`}>
@@ -929,7 +929,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">RepetiÃ§Ãµes</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Repetições</label>
               <input 
                 type="number"
                 inputMode="numeric"
@@ -989,8 +989,8 @@ function WorkoutSummaryView({ summary, workout, onClose }) {
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-3xl font-black text-white font-display">Treino ConcluÃ­do!</h2>
-          <p className="text-slate-400 font-medium">VocÃª esmagou o {workout?.name} hoje.</p>
+          <h2 className="text-3xl font-black text-white font-display">Treino Concluído!</h2>
+          <p className="text-slate-400 font-medium">Você esmagou o {workout?.name} hoje.</p>
         </div>
 
         <div className="w-full bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
@@ -1001,7 +1001,7 @@ function WorkoutSummaryView({ summary, workout, onClose }) {
           
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
             <div>
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">ExercÃ­cios</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Exercícios</p>
               <p className="text-xl font-bold text-white font-display">{(summary?.exerciseLogs || []).length}</p>
             </div>
             <div>
@@ -1051,7 +1051,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         .insert([{
           student_id: studentId,
           photo_url: publicUrl,
-          caption: 'Check-in de EvoluÃ§Ã£o'
+          caption: 'Check-in de Evolução'
         }])
         .select()
         .single()
@@ -1128,14 +1128,14 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
     <div className="space-y-12 animate-in fade-in duration-700 pb-20">
       <header>
         <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Sua Jornada</p>
-        <h1 className="text-4xl font-black text-white font-display">Sua EvoluÃ§Ã£o</h1>
+        <h1 className="text-4xl font-black text-white font-display">Sua Evolução</h1>
       </header>
 
-      {/* CalendÃ¡rio de FrequÃªncia */}
+      {/* Calendário de Frequência */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-xl font-black text-white font-display capitalize">{monthName}</h3>
-          <span className="text-[10px] font-black text-slate-500 uppercase bg-[#1A1A1A] px-4 py-2 rounded-full border border-white/5">FrequÃªncia</span>
+          <span className="text-[10px] font-black text-slate-500 uppercase bg-[#1A1A1A] px-4 py-2 rounded-full border border-white/5">Frequência</span>
         </div>
         
         <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl">
@@ -1192,7 +1192,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       </section>
 
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-xl font-black text-white font-display">ComposiÃ§Ã£o Corporal</h3>
+        <h3 className="text-xl font-black text-white font-display">Composição Corporal</h3>
         <button 
           onClick={onNewRecord}
           className="bg-primary/10 text-primary px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center gap-2 border border-primary/20"
@@ -1204,17 +1204,17 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       {!records || records.length === 0 ? (
         <div className="bg-[#1A1A1A] p-10 rounded-[40px] border border-white/5 text-center space-y-4 shadow-2xl">
           <TrendingUp className="w-12 h-12 text-slate-600 mx-auto" />
-          <p className="text-slate-500 text-sm">Registre sua primeira biopedÃ¢ncia para comeÃ§ar a ver sua evoluÃ§Ã£o!</p>
+          <p className="text-slate-500 text-sm">Registre sua primeira biopedância para começar a ver sua evolução!</p>
           <button 
             onClick={onNewRecord}
             className="bg-primary text-black px-6 py-3 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-primary/20"
           >
-            ComeÃ§ar Agora
+            Começar Agora
           </button>
         </div>
       ) : (
         <>
-          {/* GrÃ¡fico Principal */}
+          {/* Gráfico Principal */}
           <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-white flex items-center gap-2">
@@ -1276,7 +1276,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
             </div>
             <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
               <h3 className="font-bold text-white text-xs mb-4 flex items-center gap-2">
-                <Activity className="w-3 h-3 text-accent" /> MÃºsculo (kg)
+                <Activity className="w-3 h-3 text-accent" /> Músculo (kg)
               </h3>
               <div className="h-32 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1291,10 +1291,10 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </>
       )}
 
-      {/* DiÃ¡rio de EvoluÃ§Ã£o (Fotos) */}
+      {/* Diário de Evolução (Fotos) */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-white font-display">DiÃ¡rio Visual</h3>
+          <h3 className="text-xl font-black text-white font-display">Diário Visual</h3>
           <label className="cursor-pointer bg-primary text-black px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
             <Camera className="w-4 h-4" />
             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={isUploading} />
@@ -1338,20 +1338,20 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
 
       {records && records.length > 0 && (
         <section className="mt-8">
-          <h3 className="text-lg font-bold text-white mb-4">HistÃ³rico Completo</h3>
+          <h3 className="text-lg font-bold text-white mb-4">Histórico Completo</h3>
           <div className="space-y-3">
             {(records || []).slice().reverse().map((r, i) => (
-              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between shadow-lg">
-                <div>
-                  <p className="font-bold text-white">{r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR') : '-'}</p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between s                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                     <span className="text-[10px] text-slate-500 font-medium">Peso: <b className="text-slate-300">{r.weight || 0}kg</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Gordura: <b className="text-slate-300">{r.body_fat_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">MÃºsculo: <b className="text-slate-300">{r.muscle_mass_kg || 0}kg</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Músculo: <b className="text-slate-300">{r.muscle_mass_kg || 0}kg</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Visceral: <b className="text-slate-300">{r.visceral_fat || '-'}</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Ãgua: <b className="text-slate-300">{r.body_water_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Ã“ssea: <b className="text-slate-300">{r.bone_mass_kg || 0}kg</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Água: <b className="text-slate-300">{r.body_water_pct || 0}%</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Óssea: <b className="text-slate-300">{r.bone_mass_kg || 0}kg</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Idade: <b className="text-slate-300">{r.body_age || '-'}</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
+                  </div>
+/b></span>
                     <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
                   </div>
                 </div>
@@ -1435,7 +1435,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
     if (error) {
       showToast('Erro ao salvar: ' + error.message, 'error')
     } else {
-      showToast('EvoluÃ§Ã£o registrada!')
+      showToast('Evolução registrada!')
       onSave()
     }
     setIsSaving(false)
@@ -1447,7 +1447,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
         <div className="p-8 border-b border-white/5 flex justify-between items-center">
           <div>
             <h3 className="text-2xl font-black text-white font-display">Novo Registro</h3>
-            <p className="text-sm text-slate-500">Acompanhe sua evoluÃ§Ã£o corporal</p>
+            <p className="text-sm text-slate-500">Acompanhe sua evolução corporal</p>
           </div>
           <button onClick={onClose} className="p-2 bg-black rounded-full text-slate-500 border border-white/5">
             <ChevronLeft className="w-6 h-6 rotate-90" />
@@ -1477,7 +1477,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">MÃºsculo (kg)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Músculo (kg)</label>
               <input 
                 required type="number" step="0.1" 
                 value={record.muscle_mass_kg}
@@ -1527,7 +1527,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Massa Ã“ssea</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Massa Óssea</label>
               <input 
                 type="number" step="0.1"
                 value={record.bone_mass_kg}
@@ -1553,7 +1553,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
             disabled={isSaving}
             className="w-full bg-primary text-black font-black py-6 rounded-3xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
           >
-            {isSaving ? 'Salvando...' : 'Salvar EvoluÃ§Ã£o'}
+            {isSaving ? 'Salvando...' : 'Salvar Evolução'}
           </button>
         </form>
       </div>
@@ -1667,7 +1667,7 @@ function ConfigModal({ student, onClose, onSave, showToast }) {
                 value={formData.password}
                 onChange={e => setFormData({...formData, password: e.target.value})}
                 className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="Deixe em branco para nÃ£o alterar"
+                placeholder="Deixe em branco para não alterar"
               />
             </div>
           </div>
@@ -1677,7 +1677,7 @@ function ConfigModal({ student, onClose, onSave, showToast }) {
             disabled={isSaving}
             className="w-full bg-primary text-black font-black py-5 rounded-[32px] shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
           >
-            {isSaving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </form>
       </div>
