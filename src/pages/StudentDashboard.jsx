@@ -1221,7 +1221,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                 <Scale className="w-4 h-4 text-primary" /> Peso Corporal (kg)
               </h3>
               <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded-full">
-                Ãšltimos {records.length} registros
+                Últimos {records.length} registros
               </span>
             </div>
             <div className="h-48 w-full">
@@ -1306,9 +1306,9 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
           <div className="grid grid-cols-2 gap-4">
             {photos.map(p => (
               <div key={p.id} className="relative aspect-[4/5] rounded-[32px] overflow-hidden group border border-white/10 shadow-md">
-                <img src={p.photo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="EvoluÃ§Ã£o" />
+                <img src={p.photo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Evolução" />
                 
-                {/* BotÃ£o Excluir */}
+                {/* Botão Excluir */}
                 <button 
                   onClick={() => setPhotoToDelete({ id: p.id, url: p.photo_url })}
                   className="absolute top-4 right-4 w-10 h-10 bg-black/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-90 border border-white/10"
@@ -1330,7 +1330,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
               <ImageIcon className="w-8 h-8 text-slate-500" />
             </div>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-              Sua transformaÃ§Ã£o merece ser vista. <br/> Comece seu histÃ³rico hoje!
+              Sua transformação merece ser vista. <br/> Comece seu histórico hoje!
             </p>
           </div>
         )}
