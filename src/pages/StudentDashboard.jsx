@@ -24,6 +24,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
+import { getTodayLocally } from '../utils/dateUtils'
 import { 
   LineChart, 
   Line, 
@@ -39,8 +40,8 @@ import {
 export default function StudentDashboard() {
   const navigate = useNavigate()
   const [student, setStudent] = useState(null)
-  const [currentTab, setCurrentTab] = useState(() => localStorage.getItem('casalgym_student_tab') || 'train')
-  const [currentView, setCurrentView] = useState(() => localStorage.getItem('casalgym_student_view') || 'home') // 'home', 'workout-detail', 'executing'
+  const [currentTab, setCurrentTab] = useState(() => localStorage.getItem('vollonfit_student_tab') || 'train')
+  const [currentView, setCurrentView] = useState(() => localStorage.getItem('vollonfit_student_view') || 'home') // 'home', 'workout-detail', 'executing'
   const [selectedWorkout, setSelectedWorkout] = useState(null)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [workoutItems, setWorkoutItems] = useState([])
@@ -53,11 +54,17 @@ export default function StudentDashboard() {
   const [evolutionPhotos, setEvolutionPhotos] = useState([])
   const [weeklyWorkouts, setWeeklyWorkouts] = useState(0)
   const [weeklyStats, setWeeklyStats] = useState({ volume: 0, prs: 0 })
+  const [workoutLastPerformed, setWorkoutLastPerformed] = useState({})
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('Todos')
+  const [partnerWeeklyVolume, setPartnerWeeklyVolume] = useState(0)
+  const [partnerTrainedToday, setPartnerTrainedToday] = useState(false)
+  const [isPinging, setIsPinging] = useState(false)
   const [loading, setLoading] = useState(true)
   const [workoutSummary, setWorkoutSummary] = useState(null) // { totalWeight: 0, exercises: [] }
+  const [completedExercises, setCompletedExercises] = useState([]) // IDs dos exercícios concluídos na sessão
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -66,9 +73,9 @@ export default function StudentDashboard() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('casalgym_user')
-    localStorage.removeItem('casalgym_student_tab')
-    localStorage.removeItem('casalgym_student_view')
+    localStorage.removeItem('vollonfit_user')
+    localStorage.removeItem('vollonfit_student_tab')
+    localStorage.removeItem('vollonfit_student_view')
     navigate('/', { replace: true })
   }
 
@@ -91,39 +98,22 @@ export default function StudentDashboard() {
     
     if (bioData) setBioRecords(bioData)
 
-    // Buscar Stats de Treino (Última semana)
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    const { data: logs } = await supabase
+    // Buscar histórico completo (Para calendário, PRs e Last Performed)
+    const { data: allLogs, error: prError } = await supabase
       .from('gym_training_logs')
-      .select('workout_date')
+      .select('exercise_id, weight_kg, reps_done, workout_date, workout_id, created_at, gym_exercises(name)')
       .eq('student_id', studentId)
-      .gte('workout_date', oneWeekAgo.toISOString().split('T')[0])
+      
+    let currentPrs = []
     
-    if (logs) {
-      const uniqueDays = new Set(logs.map(l => l.workout_date)).size
-      setWeeklyWorkouts(uniqueDays)
-    }
+    if (!prError && allLogs) {
+      // 1. Calendário Geral
+      const uniqueDates = Array.from(new Set(allLogs.map(h => h.workout_date)))
+      setWorkoutHistory(uniqueDates)
 
-    // Buscar histórico completo para o calendário
-    const { data: history } = await supabase
-      .from('gym_training_logs')
-      .select('workout_date')
-      .eq('student_id', studentId)
-    
-    if (history) {
-      setWorkoutHistory(Array.from(new Set(history.map(h => h.workout_date))))
-    }
-
-    // Buscar Recordes Pessoais (Maiores cargas por exercício)
-    const { data: prLogs, error: prError } = await supabase
-      .from('gym_training_logs')
-      .select('exercise_id, weight_kg, workout_date, gym_exercises(name)')
-      .eq('student_id', studentId)
-    
-    if (!prError && prLogs) {
+      // 2. Recordes Pessoais (PRs)
       const prMap = {}
-      prLogs.forEach(log => {
+      allLogs.forEach(log => {
         const exName = Array.isArray(log.gym_exercises) ? log.gym_exercises[0]?.name : log.gym_exercises?.name
         if (!prMap[log.exercise_id] || log.weight_kg > prMap[log.exercise_id].max_weight) {
           prMap[log.exercise_id] = {
@@ -133,8 +123,39 @@ export default function StudentDashboard() {
           }
         }
       })
-      const prList = Object.values(prMap).sort((a, b) => b.max_weight - a.max_weight)
-      setPersonalRecords(prList)
+      currentPrs = Object.values(prMap).sort((a, b) => b.max_weight - a.max_weight)
+      setPersonalRecords(currentPrs)
+
+      // 3. Estatísticas da Semana (Últimos 7 dias)
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]
+
+      const weekLogs = allLogs.filter(log => log.workout_date >= sevenDaysAgoStr)
+
+      // Dias de treino na semana
+      const uniqueDaysThisWeek = new Set(weekLogs.map(l => l.workout_date)).size
+      setWeeklyWorkouts(uniqueDaysThisWeek)
+
+      // Volume da semana
+      const vol = weekLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
+      
+      // PRs da semana
+      const prsCount = currentPrs.filter(pr => pr.record_date >= sevenDaysAgoStr).length
+      
+      setWeeklyStats({ volume: vol, prs: prsCount })
+
+      // 4. Última vez que cada treino foi feito
+      const lastPerformedAt = {}
+      allLogs.forEach(log => {
+        if (log.workout_id) {
+          const time = new Date(log.created_at || log.workout_date).getTime()
+          if (!lastPerformedAt[log.workout_id] || time > lastPerformedAt[log.workout_id]) {
+             lastPerformedAt[log.workout_id] = time
+          }
+        }
+      })
+      setWorkoutLastPerformed(lastPerformedAt)
     }
 
     // Buscar parceiro se houver
@@ -143,15 +164,32 @@ export default function StudentDashboard() {
       const { data: pData } = await supabase.from('gym_students').select('*').eq('id', freshStudent.partner_id).single()
       if (pData) setPartner(pData)
       
-      // Buscar notificações do parceiro
       const { data: notes } = await supabase
         .from('gym_social_notifications')
         .select('*, sender:gym_students!sender_id(name)')
         .eq('receiver_id', studentId)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(20)
       
       if (notes) setSocialNotifications(notes)
+
+      // Fetch partner's volume and today's workout
+      const sevenDaysAgoP = new Date()
+      sevenDaysAgoP.setDate(sevenDaysAgoP.getDate() - 7)
+      const sevenDaysAgoStrP = sevenDaysAgoP.toISOString().split('T')[0]
+      const todayStr = getTodayLocally()
+      
+      const { data: pLogs } = await supabase
+        .from('gym_training_logs')
+        .select('weight_kg, reps_done, workout_date')
+        .eq('student_id', freshStudent.partner_id)
+        .gte('workout_date', sevenDaysAgoStrP)
+        
+      if (pLogs) {
+        const pVol = pLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
+        setPartnerWeeklyVolume(pVol)
+        setPartnerTrainedToday(pLogs.some(log => log.workout_date === todayStr))
+      }
     }
 
     // Buscar fotos de evolução
@@ -163,27 +201,11 @@ export default function StudentDashboard() {
     
     if (photos) setEvolutionPhotos(photos)
     
-    // Estatísticas da Semana (Volume e PRs)
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    
-    const { data: weekLogs } = await supabase
-      .from('gym_training_logs')
-      .select('weight_kg, reps, created_at')
-      .eq('student_id', studentId)
-      .gte('created_at', sevenDaysAgo.toISOString())
-    
-    if (weekLogs) {
-      const vol = weekLogs.reduce((acc, log) => acc + (log.weight_kg * log.reps), 0)
-      const prsCount = personalRecords.filter(pr => new Date(pr.record_date) >= sevenDaysAgo).length
-      setWeeklyStats({ volume: vol, prs: prsCount })
-    }
-    
     setLoading(false)
   }
 
   useEffect(() => {
-    const user = localStorage.getItem('casalgym_user')
+    const user = localStorage.getItem('vollonfit_user')
     if (user) {
       const parsedUser = JSON.parse(user)
       setStudent(parsedUser)
@@ -200,7 +222,7 @@ export default function StudentDashboard() {
           if (data && !error) {
             setStudent(data)
             // Atualizar localStorage com os dados mais recentes (incluindo goals)
-            localStorage.setItem('casalgym_user', JSON.stringify(data))
+            localStorage.setItem('vollonfit_user', JSON.stringify(data))
           }
         } catch (e) {
           console.warn("Erro ao carregar dados do aluno:", e)
@@ -213,11 +235,11 @@ export default function StudentDashboard() {
   }, [navigate])
 
   useEffect(() => {
-    localStorage.setItem('casalgym_student_tab', currentTab)
+    localStorage.setItem('vollonfit_student_tab', currentTab)
   }, [currentTab])
 
   useEffect(() => {
-    localStorage.setItem('casalgym_student_view', currentView)
+    localStorage.setItem('vollonfit_student_view', currentView)
   }, [currentView])
 
   const startWorkout = async (workout) => {
@@ -265,18 +287,19 @@ export default function StudentDashboard() {
       setSelectedWorkout(workout)
       setWorkoutItems(itemsWithHistory)
       setWorkoutSummary({ totalWeight: 0, exerciseLogs: [] })
+      setCompletedExercises([]) // Reseta ao iniciar novo treino
       setCurrentView('workout-detail')
     } catch (err) {
       console.error('Erro ao iniciar treino:', err)
-      showToast('Não foi possível carregar o treino.', 'error')
+      showToast('NÃ£o foi possÃ­vel carregar o treino.', 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  const startExecution = () => {
+  const startExecution = (index = 0) => {
     setCurrentView('executing')
-    setCurrentExerciseIndex(0)
+    setCurrentExerciseIndex(index)
   }
 
   if (currentView === 'executing' && (!workoutItems || workoutItems.length === 0)) {
@@ -287,32 +310,21 @@ export default function StudentDashboard() {
   if (currentView === 'executing') {
     return (
       <ExecutionView 
+        key={currentExerciseIndex} // Chave para resetar estado interno ao mudar exercício
         workout={selectedWorkout} 
         exercises={workoutItems}
         exerciseIndex={currentExerciseIndex}
         studentId={student?.id}
         onNext={async () => {
-          if (currentExerciseIndex < (workoutItems || []).length - 1) {
-            setCurrentExerciseIndex(prev => prev + 1)
-          } else {
-            // Calcular resumo
-            // Calcular volume total: soma de (peso * reps) de todas as séries
-            const totalWeight = (workoutSummary?.exerciseLogs || []).reduce((acc, log) => {
-              return acc + (log.weight * log.reps)
-            }, 0)
-            setWorkoutSummary(prev => ({ ...prev, totalWeight }))
-            // Notificar parceiro
-            if (student?.partner_id) {
-              await supabase.from('gym_social_notifications').insert([{
-                sender_id: student.id,
-                receiver_id: student.partner_id,
-                type: 'workout_finished',
-                message: `${student.name} acabou de amassar no treino de ${selectedWorkout.name}! 🔥`
-              }])
-            }
-
-            setCurrentView('summary')
+          const currentItem = workoutItems[currentExerciseIndex]
+          const exerciseId = Array.isArray(currentItem?.gym_exercises) ? currentItem.gym_exercises[0]?.id : currentItem?.gym_exercises?.id
+          
+          if (exerciseId) {
+            setCompletedExercises(prev => [...new Set([...prev, exerciseId])])
           }
+
+          setCurrentView('workout-detail')
+          showToast('Exercício concluído!')
         }}
         onBack={() => setCurrentView('workout-detail')}
         onLogSet={(setLog) => {
@@ -340,29 +352,70 @@ export default function StudentDashboard() {
     )
   }
 
+  // Lógica da Semana Atual (Home)
+  const todayDate = new Date()
+  const currentDayOfWeek = todayDate.getDay() // 0 (Sun) to 6 (Sat)
+  const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek
+  
+  const currentWeekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(todayDate)
+    d.setDate(todayDate.getDate() + mondayOffset + i)
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return {
+      dayStr: d.toLocaleDateString('pt-BR', { weekday: 'short' })[0].toUpperCase(),
+      dayNum: d.getDate(),
+      dateStr,
+      isToday: d.toDateString() === todayDate.toDateString(),
+      hasTrained: (workoutHistory || []).includes(dateStr)
+    }
+  })
+
+  const sortedWorkouts = [...(studentWorkouts || [])].sort((a, b) => {
+    const timeA = workoutLastPerformed[a.id] || 0
+    const timeB = workoutLastPerformed[b.id] || 0
+    return timeA - timeB
+  })
+  
+  // Se só existe 1 treino, e ele já foi feito hoje, não precisamos sugerir "outro", mas sugerimos o mesmo (único possível).
+  // A UI mostrarÃ¡ normalmente.
+  const suggestedWorkout = sortedWorkouts[0]
+  
+  // Filtros Dinâmicos (Item 4)
+  const uniqueFilters = ['Todos', ...new Set((studentWorkouts || []).map(w => w.description || 'Foco').filter(Boolean))]
+  const filteredWorkouts = (studentWorkouts || []).filter(w => {
+    if (activeFilter === 'Todos') return true;
+    return (w.description || 'Foco') === activeFilter;
+  })
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-primary/20 flex flex-col items-center">
-      <div className="w-full max-w-md bg-slate-50 min-h-screen flex flex-col relative pb-32">
+    <div className="min-h-screen bg-black font-sans selection:bg-primary/20 flex flex-col items-center">
+      <div className="w-full max-w-md bg-black min-h-screen flex flex-col relative pb-32">
         {/* Premium Header */}
-        <header className="px-8 py-10 flex justify-between items-center w-full">
+        <header className="px-6 py-8 flex justify-between items-center w-full">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl fitness-gradient flex items-center justify-center text-white shadow-lg neon-shadow animate-float">
-              <Activity className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden group active:scale-95 transition-transform cursor-pointer">
+              <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
+                {student?.name?.[0] || 'A'}
+              </div>
             </div>
             <div>
-              <span className="font-display font-black text-secondary tracking-tight text-2xl block leading-none">Casal<span className="text-primary">Gym</span></span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Evolution App</span>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-0.5">OLÁ {student?.name?.split(' ')?.[0] || 'ALUNO'}</p>
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-bold text-slate-300">VollonFit Gym</span>
+              </div>
             </div>
           </div>
           <button 
-            onClick={handleLogout}
-            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm active:scale-90"
+            onClick={() => setCurrentTab('profile')}
+            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all active:scale-90 relative"
           >
-            <LogOut className="w-6 h-6" />
+            <Activity className="w-5 h-5" />
+            <span className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full border border-black"></span>
           </button>
         </header>
 
-        <main className="px-8 pb-10 space-y-10">
+        <main className="px-6 pb-10 space-y-8">
           {/* Toast Notification (Top Layer) */}
           {toast && (
             <div className="fixed top-24 left-8 right-8 z-[100] animate-in slide-in-from-top-10 duration-500">
@@ -377,106 +430,122 @@ export default function StudentDashboard() {
 
           {currentTab === 'train' && currentView === 'home' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <header className="mb-10">
-                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Treino & Evolução</p>
-                <h1 className="text-4xl font-black text-secondary font-display">Olá, {student?.name?.split(' ')?.[0] || 'Aluno'}!</h1>
-              </header>
-
-              {/* Social Feed do Casal */}
-              {partner && (
-                <section className="mb-10 animate-in fade-in slide-in-from-right-4 duration-1000 delay-200">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-black text-secondary font-display">Feed do Casal</h3>
-                    <div className="flex -space-x-3">
-                      <div className="w-10 h-10 rounded-full border-4 border-white bg-primary text-white flex items-center justify-center text-[10px] font-black shadow-lg z-10">{student?.name?.[0]}</div>
-                      <div className="w-10 h-10 rounded-full border-4 border-white bg-secondary text-white flex items-center justify-center text-[10px] font-black shadow-lg">{partner?.name?.[0]}</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {socialNotifications.length > 0 ? (
-                      socialNotifications.map(n => (
-                        <div key={n.id} className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm flex items-start gap-4 group hover:border-primary/20 transition-all">
-                          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <Flame className="w-5 h-5 fill-primary/20" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-secondary leading-tight mb-1">{n.message}</p>
-                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="bg-slate-50/50 border-2 border-dashed border-slate-100 p-8 rounded-[40px] text-center">
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Nenhuma atividade recente</p>
+              
+              {/* Calendário Semanal (Sua Frequência) */}
+              <section className="mb-8 mt-2">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-black font-display text-white">Sua Frequência</h2>
+                </div>
+                <div className="flex justify-between">
+                  {currentWeekDays.map((d, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3">
+                      <span className={`text-[10px] font-bold ${d.isToday ? 'text-primary' : 'text-slate-500'}`}>{d.dayStr}</span>
+                      <div className={`w-10 h-10 rounded-full flex flex-col items-center justify-center text-sm font-bold transition-all relative ${
+                        d.isToday ? 'bg-primary text-black scale-110 shadow-lg shadow-primary/20' : 'text-slate-400 bg-white/5 border border-white/5'
+                      }`}>
+                        {d.dayNum}
+                        {d.hasTrained && (
+                          <div className={`w-1.5 h-1.5 rounded-full absolute bottom-1.5 ${d.isToday ? 'bg-black' : 'bg-primary shadow-[0_0_5px_#DFFF5E]'}`} />
+                        )}
                       </div>
-                    )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Treino do Dia (Challenge Card) */}
+              {suggestedWorkout && (
+                <section className="bg-primary p-6 rounded-[32px] flex items-center justify-between group overflow-hidden relative mb-8 shadow-lg shadow-primary/20">
+                  <div className="relative z-10 flex-1">
+                    <p className="text-[11px] font-black text-black/40 uppercase tracking-widest mb-1">Treino Sugerido</p>
+                    <h3 className="text-xl font-black text-black leading-tight mb-4 font-display pr-4 line-clamp-2">
+                      {suggestedWorkout.name}
+                    </h3>
+                    <button 
+                      onClick={() => startWorkout(suggestedWorkout)}
+                      className="bg-black text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                    >
+                      Começar Agora
+                    </button>
+                  </div>
+                  <div className="w-32 h-32 bg-black/5 rounded-full flex items-center justify-center absolute -right-8 -top-8">
+                     <Dumbbell className="w-16 h-16 text-black/10 -rotate-45" />
+                  </div>
+                  <div className="relative z-10 w-20 h-20 flex items-center justify-center">
+                     <Flame className="w-12 h-12 text-black opacity-80" />
                   </div>
                 </section>
               )}
-              
-              <div className="grid grid-cols-2 gap-5 mb-10">
-                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
-                  <div className="w-12 h-12 rounded-[20px] bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Flame className="w-6 h-6 fill-primary/20" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Frequência</p>
-                    <p className="text-3xl font-black text-secondary font-display">{weeklyWorkouts} <span className="text-xs font-bold text-slate-300">/ 5</span></p>
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
-                  <div className="w-12 h-12 rounded-[20px] bg-amber-100 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-                    <Scale className="w-6 h-6 fill-amber-200" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Peso</p>
-                    <p className="text-3xl font-black text-secondary font-display">{bioRecords?.[0]?.weight || '--'} <span className="text-xs font-bold text-slate-300">kg</span></p>
+
+              {/* Estatísticas da Semana (Item 3) */}
+              <div className="grid grid-cols-2 gap-4 mb-10 mt-8">
+                <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex flex-col gap-4 group hover:border-accent/30 transition-all shadow-lg">
+                  <div className="flex justify-between items-start">
+                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Volume da Semana</p>
+                       <p className="text-2xl font-black text-white font-display">{weeklyStats?.volume || 0} <span className="text-xs font-bold text-slate-500">kg</span></p>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
-                  <div className="w-12 h-12 rounded-[20px] bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <TrendingUp className="w-6 h-6 fill-emerald-200" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Volume (7d)</p>
-                    <p className="text-3xl font-black text-secondary font-display">{weeklyStats.volume.toLocaleString()} <span className="text-xs font-bold text-slate-300">kg</span></p>
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-primary/20 transition-all">
-                  <div className="w-12 h-12 rounded-[20px] bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
-                    <Activity className="w-6 h-6 fill-indigo-200" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recordes (7d)</p>
-                    <p className="text-3xl font-black text-secondary font-display">{weeklyStats.prs} <span className="text-xs font-bold text-slate-300">PRs</span></p>
-                  </div>
+                <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex flex-col gap-4 group hover:border-primary/30 transition-all shadow-lg">
+                   <div className="flex justify-between items-start">
+                      <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                        <TrendingUp className="w-5 h-5" />
+                      </div>
+                      <div className="text-right">
+                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Novos Recordes</p>
+                         <p className="text-2xl font-black text-white font-display">{weeklyStats?.prs || 0}</p>
+                      </div>
+                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-xl font-black text-secondary font-display">Planos de Treino</h3>
-                <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-4 py-2 rounded-full">{studentWorkouts?.length || 0} ativos</span>
-              </div>
+              <div className="space-y-4 mt-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-black text-white font-display">Seus Treinos</h3>
+                </div>
+                
+                {/* Filtros Dinâmicos */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-4">
+                  {uniqueFilters.map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
+                        activeFilter === filter 
+                        ? 'bg-primary text-black shadow-lg shadow-primary/20' 
+                        : 'bg-[#1A1A1A] text-slate-500 hover:text-white border border-white/5'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="space-y-6">
-                {(studentWorkouts || []).map(workout => (
+                {filteredWorkouts.map(workout => (
                   <button 
                     key={workout.id}
                     onClick={() => startWorkout(workout)}
-                    className="w-full bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all active:scale-[0.97] tap-effect"
+                    className="w-full bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
                   >
-                    <div className="flex items-center gap-6">
-                      <div className="w-16 h-16 rounded-[24px] bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-inner">
-                        <Dumbbell className="w-8 h-8" />
+                    <div className="flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                        <Dumbbell className="w-7 h-7" />
                       </div>
                       <div className="text-left">
-                        <h4 className="text-lg font-black text-secondary font-display group-hover:text-primary transition-colors leading-none mb-2">{workout.name}</h4>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{workout.description || 'Foco Geral'}</p>
+                        <h4 className="text-base font-black text-white font-display mb-1">{workout.name}</h4>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{workout.description || 'Foco'}</span>
+                           <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                           <span className="text-[10px] font-bold text-primary uppercase">30 min</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all shadow-sm">
-                      <ChevronRight className="w-6 h-6" />
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:bg-primary group-hover:text-black transition-all">
+                      <ChevronRight className="w-5 h-5" />
                     </div>
                   </button>
                 ))}
@@ -497,7 +566,6 @@ export default function StudentDashboard() {
           />
         )}
 
-        {/* Modal Biopedância (Inserido aqui para estar no contexto do aluno) */}
         {isBioModalOpen && (
           <BioModal 
             studentId={student?.id} 
@@ -517,7 +585,7 @@ export default function StudentDashboard() {
             showToast={showToast}
             onSave={(updatedUser) => {
               setStudent(updatedUser)
-              localStorage.setItem('casalgym_user', JSON.stringify(updatedUser))
+              localStorage.setItem('vollonfit_user', JSON.stringify(updatedUser))
               setIsConfigModalOpen(false)
               showToast('Perfil atualizado!')
             }} 
@@ -537,6 +605,22 @@ export default function StudentDashboard() {
             onOpenConfig={() => setIsConfigModalOpen(true)} 
             onOpenGoals={() => setIsGoalsModalOpen(true)}
             showToast={showToast}
+            onLogout={handleLogout}
+          />
+        )}
+
+        {currentTab === 'social' && (
+          <SocialTab 
+            student={student} 
+            partner={partner} 
+            weeklyStats={weeklyStats} 
+            partnerWeeklyVolume={partnerWeeklyVolume} 
+            partnerTrainedToday={partnerTrainedToday} 
+            socialNotifications={socialNotifications} 
+            isPinging={isPinging} 
+            setIsPinging={setIsPinging} 
+            showToast={showToast} 
+            fetchWorkouts={() => fetchWorkouts(student.id)} 
           />
         )}
 
@@ -545,82 +629,123 @@ export default function StudentDashboard() {
             <button onClick={() => setCurrentView('home')} className="flex items-center gap-2 text-slate-500 mb-6 font-bold text-sm">
               <ChevronLeft className="w-4 h-4" /> Voltar
             </button>
-            <h2 className="text-2xl font-bold text-secondary mb-2">{selectedWorkout?.name}</h2>
+            <h2 className="text-2xl font-bold text-white mb-2 font-display uppercase tracking-tight">{selectedWorkout?.name}</h2>
             <div className="flex gap-4 mb-8">
-              <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">{(workoutItems || []).length} Exercícios</span>
-              <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">~45 min</span>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">{(workoutItems || []).length} Exercícios</span>
+              <span className="bg-white/5 text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5">~45 min</span>
             </div>
 
-            <div className="space-y-3 mb-10">
+            <div className="space-y-4 mb-10">
               {(workoutItems || []).map((item, idx) => {
                 const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
                 if (!item) return null
+                const isCompleted = completedExercises.includes(ex?.id)
+
                 return (
-                  <div key={idx} className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100">
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden">
-                      {ex?.gif_url ? <img src={ex.gif_url} className="w-full h-full object-cover" /> : <Dumbbell className="w-5 h-5 text-slate-300" />}
+                  <button 
+                    key={idx} 
+                    onClick={() => startExecution(idx)}
+                    className={`w-full flex items-center gap-4 p-5 rounded-[32px] border transition-all active:scale-[0.98] ${
+                      isCompleted 
+                      ? 'bg-primary/5 border-primary/20 opacity-80' 
+                      : 'bg-[#1A1A1A] border-white/5'
+                    }`}
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center overflow-hidden shrink-0">
+                      {ex?.gif_url ? <img src={ex.gif_url} className="w-full h-full object-cover" /> : <Dumbbell className="w-6 h-6 text-slate-500" />}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-secondary leading-tight">{ex?.name || 'Exercício'}</p>
-                      <p className="text-xs text-slate-400">{item?.target_sets || 3} séries • {item?.target_reps || '10-12'} reps</p>
+                    <div className="flex-1 text-left">
+                      <p className={`font-black font-display leading-tight ${isCompleted ? 'text-primary' : 'text-white'}`}>
+                        {ex?.name || 'Exercício'}
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item?.target_sets || 3} séries • {item?.target_reps || '10-12'} reps</p>
                     </div>
-                  </div>
+                    {isCompleted ? (
+                      <div className="w-8 h-8 rounded-full bg-primary text-black flex items-center justify-center shadow-lg shadow-primary/20">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    )}
+                  </button>
                 )
               })}
-              {(!workoutItems || workoutItems.length === 0) && (
-                <p className="text-center py-10 text-slate-400 italic">Este treino ainda não possui exercícios cadastrados.</p>
-              )}
             </div>
 
             <button 
-              onClick={startExecution}
-              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-5 rounded-3xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all text-lg"
+              onClick={async () => {
+                if (completedExercises.length === 0) {
+                  showToast('Faça pelo menos um exercício!', 'error')
+                  return
+                }
+
+                const totalWeight = (workoutSummary?.exerciseLogs || []).reduce((acc, log) => {
+                  return acc + (log.weight * log.reps)
+                }, 0)
+                setWorkoutSummary(prev => ({ ...prev, totalWeight }))
+                
+                if (student?.partner_id) {
+                  await supabase.from('gym_social_notifications').insert([{
+                    sender_id: student.id,
+                    receiver_id: student.partner_id,
+                    type: 'workout_finished',
+                    message: `${student.name} just crushed ${selectedWorkout.name}! ðŸ”¥`
+                  }])
+                }
+
+                setCurrentView('summary')
+              }}
+              className="w-full fitness-gradient hover:opacity-90 text-black font-black py-6 rounded-[32px] shadow-2xl shadow-primary/20 flex items-center justify-center gap-4 active:scale-[0.98] transition-all text-xl mt-8 neon-shadow font-display uppercase"
             >
-              Começar Treino Agora <Play className="w-5 h-5 fill-white" />
+              Finalizar Treino <CheckCircle2 className="w-7 h-7" />
             </button>
           </div>
         )}
       </main>
 
-      {/* Toast Notification */}
-      {toast && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top-10 duration-300 w-full max-w-[90%] sm:max-w-md">
-          <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border ${
-            toast.type === 'error' ? 'bg-rose-50 border-rose-100 text-rose-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'
-          }`}>
-            {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
-            <span className="font-bold text-sm">{toast.message}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Glassmorphism Bottom Nav */}
-      {currentView === 'home' && (
-        <nav className="fixed bottom-6 left-6 right-6 glass-card px-8 py-4 flex justify-between items-center max-w-md mx-auto rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50">
+      {/* Floating Pill Bottom Navigation */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] z-50">
+        <div className="pill-nav p-2 flex justify-between items-center px-4">
           <button 
-            onClick={() => setCurrentTab('train')}
-            className={`flex flex-col items-center gap-1 transition-all duration-300 ${currentTab === 'train' ? 'text-primary scale-110' : 'text-slate-300 hover:text-slate-400'}`}
+            onClick={() => {
+              setCurrentTab('train')
+              setCurrentView('home')
+            }}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              currentTab === 'train' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
           >
-            <Activity className={`w-6 h-6 ${currentTab === 'train' ? 'fill-primary/10' : ''}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Treinar</span>
+            <Activity className="w-6 h-6" />
           </button>
           <button 
             onClick={() => setCurrentTab('evolution')}
-            className={`flex flex-col items-center gap-1 transition-all duration-300 ${currentTab === 'evolution' ? 'text-primary scale-110' : 'text-slate-300 hover:text-slate-400'}`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              currentTab === 'evolution' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
           >
             <TrendingUp className="w-6 h-6" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Evolução</span>
+          </button>
+          <button 
+            onClick={() => setCurrentTab('social')}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              currentTab === 'social' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
+          >
+            <Dumbbell className="w-6 h-6" />
           </button>
           <button 
             onClick={() => setCurrentTab('profile')}
-            className={`flex flex-col items-center gap-1 transition-all duration-300 ${currentTab === 'profile' ? 'text-primary scale-110' : 'text-slate-300 hover:text-slate-400'}`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              currentTab === 'profile' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
           >
-            <UserIcon className={`w-6 h-6 ${currentTab === 'profile' ? 'fill-primary/10' : ''}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Perfil</span>
+            <UserIcon className="w-6 h-6" />
           </button>
-        </nav>
-      )}
-      </div>
+        </div>
+      </nav>
+    </div>
     </div>
   )
 }
@@ -629,7 +754,6 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
   const item = (exercises || [])[exerciseIndex]
   const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
 
-  if (!ex) return null;
   const [currentSet, setCurrentSet] = useState(1)
   const [weight, setWeight] = useState('')
   const [reps, setReps] = useState('')
@@ -639,10 +763,11 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
   const [exerciseNotes, setExerciseNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
-  // Carregar notas do exercício
+  // Carregar notas do exercÃ­cio
   useEffect(() => {
     const fetchNotes = async () => {
-      const { data, error } = await supabase
+      if (!ex?.id || !studentId) return
+      const { data } = await supabase
         .from('gym_student_exercise_notes')
         .select('notes')
         .eq('student_id', studentId)
@@ -651,10 +776,10 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
       
       if (data) setExerciseNotes(data.notes)
     }
-    if (ex?.id) fetchNotes()
+    fetchNotes()
   }, [ex?.id, studentId])
 
-  // Lógica do Timer
+  // LÃ³gica do Timer
   useEffect(() => {
     let interval = null
     if (isTimerActive && restRemaining > 0) {
@@ -663,11 +788,13 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
       }, 1000)
     } else if (restRemaining === 0 && isTimerActive) {
       setIsTimerActive(false)
-      // Vibração ao terminar (se suportado pelo navegador/celular)
+      // VibraÃ§Ã£o ao terminar (se suportado pelo navegador/celular)
       if (navigator.vibrate) navigator.vibrate([200, 100, 200])
     }
     return () => clearInterval(interval)
   }, [isTimerActive, restRemaining])
+
+  if (!ex) return null;
 
   const handleSaveNotes = async () => {
     setIsSavingNotes(true)
@@ -681,7 +808,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
       }, { onConflict: 'student_id,exercise_id' })
     
     setIsSavingNotes(false)
-    showToast('Anotação salva!')
+    showToast('Note saved!')
   }
 
   const startRestTimer = () => {
@@ -693,13 +820,13 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
 
   const handleNextSet = async () => {
     if (!weight || !reps) {
-      showToast('Informe peso e reps!', 'error')
+      showToast('Enter weight and reps!', 'error')
       return
     }
 
     setIsSaving(true)
     
-    // Salvar log da série no Supabase
+    // Salvar log da sÃ©rie no Supabase
     const { error } = await supabase
       .from('gym_training_logs')
       .insert([{
@@ -709,29 +836,12 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
         set_number: currentSet,
         reps_done: parseInt(reps),
         weight_kg: parseFloat(weight),
-        workout_date: new Date().toISOString().split('T')[0]
+        workout_date: getTodayLocally()
       }])
 
     if (!error) {
-      // 1. Verificar Recorde Pessoal (PR)
-      const { data: maxData } = await supabase
-        .from('gym_training_logs')
-        .select('weight_kg')
-        .eq('student_id', studentId)
-        .eq('exercise_id', ex.id)
-        .order('weight_kg', { ascending: false })
-        .limit(2)
-
-      const currentWeight = parseFloat(weight)
-      const prevMax = maxData?.length > 1 ? maxData[1].weight_kg : (maxData?.length === 1 ? 0 : 0)
-
-      if (currentWeight > prevMax && prevMax > 0) {
-        showToast(`🏆 NOVO RECORDE PESSOAL: ${currentWeight}kg!`)
-      } else if (prevMax === 0 && currentWeight > 0) {
-        showToast(`✨ Primeiro registro de peso!`)
-      }
-
       if (onLogSet) onLogSet({ weight: parseFloat(weight), reps: parseInt(reps) })
+      showToast(`Set ${currentSet} saved!`)
     }
 
     if (currentSet < (item?.target_sets || 1)) {
@@ -748,89 +858,94 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
   const lastBestSet = lastPerf.length > 0 ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] : null
 
   return (
-    <div className="min-h-screen bg-secondary flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/10 z-20">
+    <div className="min-h-screen bg-black flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/5 z-20">
         <div 
-          className="h-full fitness-gradient transition-all duration-700 shadow-[0_0_15px_#10B981]" 
+          className="h-full bg-primary transition-all duration-700 shadow-[0_0_15px_#DFFF5E]" 
           style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}
         />
       </div>
 
-      <header className="px-8 py-10 flex justify-between items-center relative z-10">
-        <button onClick={onBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all">
+      <header className="px-6 py-8 flex justify-between items-center relative z-10">
+        <button onClick={onBack} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-90">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <div className="text-center">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-2">Exercício {exerciseIndex + 1} de {exercises.length}</p>
-          <h2 className="text-white font-black text-xl font-display leading-tight">{ex?.name}</h2>
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">ExercÃ­cio {exerciseIndex + 1} de {exercises.length}</p>
+          <h2 className="text-white font-black text-lg font-display leading-tight uppercase tracking-tight">{ex?.name}</h2>
         </div>
         <div className="w-12 h-12" />
       </header>
 
-      <div className="flex-1 bg-white rounded-t-[50px] p-8 flex flex-col animate-in slide-in-from-bottom-12 duration-700 overflow-y-auto">
-        <div className="w-full aspect-square rounded-[40px] bg-slate-50 mb-10 overflow-hidden border border-slate-100 shadow-inner flex items-center justify-center group relative">
+      <div className="flex-1 px-6 pb-10 flex flex-col animate-in slide-in-from-bottom-12 duration-700 overflow-y-auto space-y-8">
+        <div className="w-full aspect-video rounded-[32px] bg-[#1A1A1A] overflow-hidden border border-white/5 shadow-inner flex items-center justify-center group relative">
           {ex?.gif_url ? (
             <img src={ex.gif_url} className="w-full h-full object-contain p-4" />
           ) : (
-            <Dumbbell className="w-24 h-24 text-slate-100" />
+            <Dumbbell className="w-16 h-16 text-white/10" />
           )}
+          
           {lastBestSet && (
-            <div className="absolute bottom-6 left-6 right-6 glass-card p-4 rounded-3xl border-slate-200 shadow-xl animate-in zoom-in-95 duration-500">
+            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                  <TrendingUp className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <TrendingUp className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Melhor Anterior</p>
-                  <p className="text-sm font-black text-secondary">{lastBestSet.weight_kg}kg <span className="text-slate-400 font-bold">× {lastBestSet.reps_done}</span></p>
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Melhor Marca (PR)</p>
+                  <p className="text-sm font-black text-white">{lastBestSet.weight_kg}kg <span className="text-slate-500 font-bold">Ã— {lastBestSet.reps_done}</span></p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex-1 space-y-10">
-          <div className="flex justify-between items-end px-2">
+        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 flex flex-col gap-8 shadow-2xl relative">
+          <div className="flex justify-between items-end">
             <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Série Atual</p>
-              <p className="text-5xl font-black text-secondary font-display">{currentSet}<span className="text-slate-300 text-2xl font-normal ml-2">/ {item?.target_sets || 1}</span></p>
+              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">SÃ©rie Atual</p>
+              <p className="text-5xl font-black text-white font-display">{currentSet}<span className="text-slate-700 text-2xl font-normal ml-2">/ {item?.target_sets || 1}</span></p>
             </div>
-            <div className={`px-6 py-4 rounded-3xl flex flex-col items-center border transition-all duration-500 min-w-[100px] ${isTimerActive ? 'bg-primary/5 border-primary/20 neon-shadow' : 'bg-slate-50 border-slate-100'}`}>
-              <Timer className={`w-5 h-5 mb-1 ${isTimerActive ? 'text-primary animate-pulse' : 'text-slate-300'}`} />
-              <p className={`text-lg font-black font-display ${isTimerActive ? 'text-primary' : 'text-slate-400'}`}>
-                {isTimerActive ? `${restRemaining}s` : (item?.rest_time || '60s')}
-              </p>
+            <div className={`px-6 py-3 rounded-full flex flex-col items-center border transition-all duration-500 ${isTimerActive ? 'bg-primary text-black border-primary' : 'bg-white/5 border-white/10'}`}>
+               <div className="flex items-center gap-2">
+                  <Timer className={`w-4 h-4 ${isTimerActive ? 'animate-pulse' : 'text-slate-500'}`} />
+                  <p className={`text-sm font-black font-display`}>
+                    {isTimerActive ? `${restRemaining}s` : 'DESCANSO'}
+                  </p>
+               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Peso (kg)</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Carga (KG)</label>
               <input 
                 type="number" 
+                inputMode="decimal"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
+                onChange={e => setWeight(e.target.value)}
                 placeholder="0"
-                className="w-full bg-slate-50 border-none rounded-[28px] p-6 text-3xl font-black text-secondary focus:ring-8 focus:ring-primary/5 transition-all text-center outline-none shadow-inner"
+                className="w-full bg-black border-2 border-white/5 rounded-3xl p-6 text-2xl font-black text-primary text-center outline-none focus:border-primary/50 transition-all shadow-inner"
               />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reps</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">RepetiÃ§Ãµes</label>
               <input 
-                type="number" 
+                type="number"
+                inputMode="numeric"
                 value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                placeholder={item.target_reps}
-                className="w-full bg-slate-50 border-none rounded-[28px] p-6 text-3xl font-black text-secondary focus:ring-8 focus:ring-primary/5 transition-all text-center outline-none shadow-inner"
+                onChange={e => setReps(e.target.value)}
+                placeholder="0"
+                className="w-full bg-black border-2 border-white/5 rounded-3xl p-6 text-2xl font-black text-primary text-center outline-none focus:border-primary/50 transition-all shadow-inner"
               />
             </div>
           </div>
 
-          <div className="bg-slate-50 p-8 rounded-[40px] border border-slate-100 space-y-4 shadow-inner">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Info className="w-4 h-4 text-slate-300" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anotações de Ajuste</span>
+          {/* AnotaÃ§Ãµes de Ajuste */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AnotaÃ§Ãµes de Ajuste</span>
               </div>
               <button 
                 onClick={handleSaveNotes}
@@ -844,7 +959,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
               value={exerciseNotes}
               onChange={e => setExerciseNotes(e.target.value)}
               placeholder="Ex: Banco no 4, pegada aberta..."
-              className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-600 focus:ring-0 placeholder:text-slate-300 resize-none min-h-[60px]"
+              className="w-full bg-black/50 border border-white/5 rounded-2xl p-4 text-sm font-medium text-slate-300 focus:outline-none focus:border-primary/30 placeholder:text-slate-600 resize-none min-h-[60px]"
             />
           </div>
         </div>
@@ -854,7 +969,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
           disabled={isSaving}
           className="w-full fitness-gradient hover:opacity-90 text-white font-black py-7 rounded-[32px] shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 active:scale-[0.98] transition-all text-xl mt-12 disabled:opacity-50 neon-shadow"
         >
-          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir Série' : 'Próximo Exercício')} 
+          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir SÃ©rie' : 'PrÃ³ximo ExercÃ­cio')} 
           <CheckCircle2 className="w-7 h-7" />
         </button>
       </div>
@@ -864,38 +979,41 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
 
 function WorkoutSummaryView({ summary, workout, onClose }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans max-w-md mx-auto animate-in fade-in duration-500">
-      <main className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-8">
-        <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center animate-bounce">
-          <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+    <div className="min-h-screen bg-black flex flex-col font-sans max-w-md mx-auto animate-in fade-in duration-500 relative">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <main className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-8 relative z-10">
+        <div className="w-24 h-24 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center animate-bounce shadow-lg shadow-primary/20">
+          <CheckCircle2 className="w-12 h-12 text-primary drop-shadow-[0_0_15px_rgba(223,255,94,0.8)]" />
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-3xl font-black text-secondary">Treino Concluído!</h2>
-          <p className="text-slate-500 font-medium">Você esmagou o {workout?.name} hoje.</p>
+          <h2 className="text-3xl font-black text-white font-display">Treino ConcluÃ­do!</h2>
+          <p className="text-slate-400 font-medium">VocÃª esmagou o {workout?.name} hoje.</p>
         </div>
 
-        <div className="w-full bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl space-y-6">
+        <div className="w-full bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
           <div>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mb-2">Volume Total de Carga</p>
-            <p className="text-5xl font-black text-primary">{summary?.totalWeight || 0}<span className="text-xl font-bold ml-1">kg</span></p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Volume Total de Carga</p>
+            <p className="text-5xl font-black text-primary font-display">{summary?.totalWeight || 0}<span className="text-xl font-bold ml-1 text-primary/70">kg</span></p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Exercícios</p>
-              <p className="text-xl font-bold text-secondary">{(summary?.exerciseLogs || []).length}</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">ExercÃ­cios</p>
+              <p className="text-xl font-bold text-white font-display">{(summary?.exerciseLogs || []).length}</p>
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Status</p>
-              <p className="text-xl font-bold text-emerald-500">Evoluindo</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Status</p>
+              <p className="text-xl font-bold text-primary font-display">Evoluindo</p>
             </div>
           </div>
         </div>
 
         <button 
           onClick={onClose}
-          className="w-full bg-secondary text-white font-bold py-5 rounded-3xl active:scale-95 transition-all text-lg shadow-xl shadow-secondary/20"
+          className="w-full bg-white text-black font-black py-5 rounded-[32px] active:scale-95 transition-all text-lg shadow-xl shadow-white/10 uppercase tracking-widest font-display"
         >
           Voltar para Home
         </button>
@@ -918,25 +1036,22 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       const fileName = `${studentId}/${Date.now()}.${fileExt}`
       const filePath = `${fileName}`
 
-      // 1. Upload para Storage (Assumindo bucket 'evolution_photos')
       const { error: uploadError } = await supabase.storage
         .from('evolution_photos')
         .upload(filePath, file)
 
       if (uploadError) throw uploadError
 
-      // 2. Obter URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('evolution_photos')
         .getPublicUrl(filePath)
 
-      // 3. Salvar no Banco
       const { data: newPhoto, error: dbError } = await supabase
         .from('gym_evolution_photos')
         .insert([{
           student_id: studentId,
           photo_url: publicUrl,
-          caption: 'Check-in de Evolução'
+          caption: 'Check-in de EvoluÃ§Ã£o'
         }])
         .select()
         .single()
@@ -944,7 +1059,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       if (dbError) throw dbError
       
       onPhotosUpdate([newPhoto, ...photos])
-      showToast('Foto de evolução salva!', 'success')
+      showToast('Foto de evoluÃ§Ã£o salva!', 'success')
     } catch (err) {
       console.error('Erro no upload:', err)
       showToast('Erro no Upload: ' + (err.message || err.error_description || 'Verifique o bucket'), 'error')
@@ -956,22 +1071,18 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
   const handleDeletePhoto = async () => {
     if (!photoToDelete) return
     const { id, url } = photoToDelete
-    setIsUploading(true) // Reutilizando para loading visual
+    setIsUploading(true) 
     
     try {
-      // 1. Extrair path do Storage
-      // A URL é algo como .../evolution_photos/studentId/timestamp.jpg
       const pathParts = url.split('evolution_photos/')
       const filePath = pathParts[pathParts.length - 1]
 
-      // 2. Deletar do Storage
       const { error: storageError } = await supabase.storage
         .from('evolution_photos')
         .remove([filePath])
       
-      if (storageError) console.warn('Erro ao remover do storage (pode já não existir):', storageError)
+      if (storageError) console.warn('Erro ao remover do storage (pode jÃ¡ nÃ£o existir):', storageError)
 
-      // 3. Deletar do Banco
       const { error: dbError } = await supabase
         .from('gym_evolution_photos')
         .delete()
@@ -980,11 +1091,11 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       if (dbError) throw dbError
 
       onPhotosUpdate(photos.filter(p => p.id !== id))
-      showToast('Foto excluída com sucesso.', 'success')
+      showToast('Foto excluÃ­da com sucesso.', 'success')
       setPhotoToDelete(null)
     } catch (err) {
       console.error('Erro ao excluir foto:', err)
-      showToast('Erro ao Excluir: ' + (err.message || 'Erro de permissão'), 'error')
+      showToast('Erro ao Excluir: ' + (err.message || 'Erro de permissÃ£o'), 'error')
     } finally {
       setIsUploading(false)
     }
@@ -999,7 +1110,6 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
     muscle: r?.muscle_mass_kg || 0
   }))
 
-  // Lógica do Calendário
   const today = new Date()
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).getDay()
@@ -1010,7 +1120,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     return {
       day,
-      hasTrained: history.includes(dateStr)
+      hasTrained: (history || []).includes(dateStr)
     }
   })
 
@@ -1018,20 +1128,20 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
     <div className="space-y-12 animate-in fade-in duration-700 pb-20">
       <header>
         <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Sua Jornada</p>
-        <h1 className="text-4xl font-black text-secondary font-display">Sua Evolução</h1>
+        <h1 className="text-4xl font-black text-white font-display">Sua EvoluÃ§Ã£o</h1>
       </header>
 
-      {/* Calendário de Frequência */}
+      {/* CalendÃ¡rio de FrequÃªncia */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-secondary font-display capitalize">{monthName}</h3>
-          <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-4 py-2 rounded-full">Frequência</span>
+          <h3 className="text-xl font-black text-white font-display capitalize">{monthName}</h3>
+          <span className="text-[10px] font-black text-slate-500 uppercase bg-[#1A1A1A] px-4 py-2 rounded-full border border-white/5">FrequÃªncia</span>
         </div>
         
-        <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl">
           <div className="grid grid-cols-7 gap-3 mb-4">
             {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-              <div key={d} className="text-[10px] font-black text-slate-300 text-center uppercase">{d}</div>
+              <div key={d} className="text-[10px] font-black text-slate-500 text-center uppercase">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-3">
@@ -1043,8 +1153,8 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                 key={d.day}
                 className={`aspect-square rounded-xl flex items-center justify-center text-xs font-black transition-all ${
                   d.hasTrained 
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
-                  : 'bg-slate-50 text-slate-300'
+                  ? 'bg-primary text-black shadow-lg shadow-primary/20 scale-110' 
+                  : 'bg-black text-slate-600 border border-white/5'
                 }`}
               >
                 {d.day}
@@ -1054,64 +1164,64 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </div>
       </section>
 
-      {/* Seção de Recordes Pessoais (Troféus) */}
+      {/* SeÃ§Ã£o de Recordes Pessoais (TrofÃ©us) */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-secondary font-display">Hall de Recordes</h3>
-          <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-4 py-2 rounded-full">🏆 {prs.length} Marcas</span>
+          <h3 className="text-xl font-black text-white font-display">Hall de Recordes</h3>
+          <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20">ðŸ† {prs.length} Marcas</span>
         </div>
 
-        {prs.length > 0 ? (
+        {(prs || []).length > 0 ? (
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
             {prs.map((pr, idx) => (
-              <div key={idx} className="flex-shrink-0 w-40 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-primary/30 transition-all hover:shadow-xl hover:shadow-primary/5">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 mb-4 group-hover:scale-110 transition-transform">
+              <div key={idx} className="flex-shrink-0 w-40 bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 shadow-lg flex flex-col items-center text-center group hover:border-primary/30 transition-all hover:shadow-xl hover:shadow-primary/5">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                   <TrendingUp className="w-7 h-7" />
                 </div>
-                <h4 className="text-xs font-black text-secondary font-display mb-1 line-clamp-1">{pr.exercise_name}</h4>
-                <p className="text-2xl font-black text-primary font-display">{pr.max_weight}<span className="text-[10px] ml-1 uppercase text-slate-300">kg</span></p>
-                <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest mt-2">{new Date(pr.record_date).toLocaleDateString()}</p>
+                <h4 className="text-xs font-black text-white font-display mb-1 line-clamp-1">{pr.exercise_name}</h4>
+                <p className="text-2xl font-black text-primary font-display">{pr.max_weight}<span className="text-[10px] ml-1 uppercase text-slate-500">kg</span></p>
+                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-2">{new Date(pr.record_date).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 text-center">
-            <p className="text-xs text-slate-400 font-bold">Treine para registrar seus primeiros recordes!</p>
+          <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 text-center shadow-lg">
+            <p className="text-xs text-slate-500 font-bold">Treine para registrar seus primeiros recordes!</p>
           </div>
         )}
       </section>
 
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-xl font-black text-secondary font-display">Composição Corporal</h3>
+        <h3 className="text-xl font-black text-white font-display">ComposiÃ§Ã£o Corporal</h3>
         <button 
           onClick={onNewRecord}
-          className="bg-primary/10 text-primary px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+          className="bg-primary/10 text-primary px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center gap-2 border border-primary/20"
         >
           <Plus className="w-4 h-4" /> Novo Registro
         </button>
       </div>
 
       {!records || records.length === 0 ? (
-        <div className="bg-white p-10 rounded-[40px] border border-slate-100 text-center space-y-4">
-          <TrendingUp className="w-12 h-12 text-slate-200 mx-auto" />
-          <p className="text-slate-400 text-sm">Registre sua primeira biopedância para começar a ver sua evolução!</p>
+        <div className="bg-[#1A1A1A] p-10 rounded-[40px] border border-white/5 text-center space-y-4 shadow-2xl">
+          <TrendingUp className="w-12 h-12 text-slate-600 mx-auto" />
+          <p className="text-slate-500 text-sm">Registre sua primeira biopedÃ¢ncia para comeÃ§ar a ver sua evoluÃ§Ã£o!</p>
           <button 
             onClick={onNewRecord}
-            className="bg-primary text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20"
+            className="bg-primary text-black px-6 py-3 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-primary/20"
           >
-            Começar Agora
+            ComeÃ§ar Agora
           </button>
         </div>
       ) : (
         <>
-          {/* Gráfico Principal */}
-          <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm">
+          {/* GrÃ¡fico Principal */}
+          <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-slate-700 flex items-center gap-2">
+              <h3 className="font-bold text-white flex items-center gap-2">
                 <Scale className="w-4 h-4 text-primary" /> Peso Corporal (kg)
               </h3>
-              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full">
-                Últimos {records.length} registros
+              <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded-full">
+                Ãšltimos {records.length} registros
               </span>
             </div>
             <div className="h-48 w-full">
@@ -1119,27 +1229,28 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FB7185" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#FB7185" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#DFFF5E" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#DFFF5E" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
                   <XAxis 
                     dataKey="date" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fontSize: 10, fill: '#94a3b8'}} 
+                    tick={{fontSize: 10, fill: '#64748b'}} 
                     dy={10}
                   />
                   <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
                   <Tooltip 
-                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                    labelStyle={{fontWeight: 'bold', marginBottom: '4px'}}
+                    contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}}
+                    itemStyle={{color: '#DFFF5E'}}
+                    labelStyle={{fontWeight: 'bold', marginBottom: '4px', color: '#94a3b8'}}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="weight" 
-                    stroke="#FB7185" 
+                    stroke="#DFFF5E" 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorWeight)" 
@@ -1150,28 +1261,28 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm">
-              <h3 className="font-bold text-slate-700 text-xs mb-4 flex items-center gap-2">
+            <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
+              <h3 className="font-bold text-white text-xs mb-4 flex items-center gap-2">
                 <Flame className="w-3 h-3 text-orange-500" /> Gordura (%)
               </h3>
               <div className="h-32 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <Line type="monotone" dataKey="fat" stroke="#f59e0b" strokeWidth={3} dot={{r: 4, fill: '#f59e0b'}} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm">
-              <h3 className="font-bold text-slate-700 text-xs mb-4 flex items-center gap-2">
-                <Activity className="w-3 h-3 text-emerald-500" /> Músculo (kg)
+            <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
+              <h3 className="font-bold text-white text-xs mb-4 flex items-center gap-2">
+                <Activity className="w-3 h-3 text-accent" /> MÃºsculo (kg)
               </h3>
               <div className="h-32 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <Line type="monotone" dataKey="muscle" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill: '#10b981'}} />
-                    <Tooltip />
+                    <Line type="monotone" dataKey="muscle" stroke="#C6C4FF" strokeWidth={3} dot={{r: 4, fill: '#C6C4FF'}} />
+                    <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1180,11 +1291,11 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </>
       )}
 
-      {/* Diário de Evolução (Fotos) */}
+      {/* DiÃ¡rio de EvoluÃ§Ã£o (Fotos) */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-secondary font-display">Diário Visual</h3>
-          <label className="cursor-pointer bg-primary text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-dark transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+          <h3 className="text-xl font-black text-white font-display">DiÃ¡rio Visual</h3>
+          <label className="cursor-pointer bg-primary text-black px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
             <Camera className="w-4 h-4" />
             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={isUploading} />
             {isUploading ? 'Subindo...' : 'Novo Check-in'}
@@ -1194,19 +1305,19 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         {photos.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
             {photos.map(p => (
-              <div key={p.id} className="relative aspect-[4/5] rounded-[32px] overflow-hidden group border-2 border-white shadow-md">
-                <img src={p.photo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Evolução" />
+              <div key={p.id} className="relative aspect-[4/5] rounded-[32px] overflow-hidden group border border-white/10 shadow-md">
+                <img src={p.photo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="EvoluÃ§Ã£o" />
                 
-                {/* Botão Excluir */}
+                {/* BotÃ£o Excluir */}
                 <button 
                   onClick={() => setPhotoToDelete({ id: p.id, url: p.photo_url })}
-                  className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-90"
+                  className="absolute top-4 right-4 w-10 h-10 bg-black/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-90 border border-white/10"
                 >
                   <X className="w-5 h-5" />
                 </button>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 pointer-events-none">
-                  <p className="text-[8px] font-bold text-white/80 uppercase tracking-widest">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 pointer-events-none">
+                  <p className="text-[8px] font-bold text-white uppercase tracking-widest">
                     {new Date(p.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
@@ -1214,12 +1325,12 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
             ))}
           </div>
         ) : (
-          <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-12 rounded-[40px] text-center space-y-4">
-            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm">
-              <ImageIcon className="w-8 h-8 text-slate-300" />
+          <div className="bg-black border-2 border-dashed border-white/10 p-12 rounded-[40px] text-center space-y-4">
+            <div className="w-16 h-16 bg-[#1A1A1A] rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-white/5">
+              <ImageIcon className="w-8 h-8 text-slate-500" />
             </div>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-              Sua transformação merece ser vista. <br/> Comece seu histórico hoje!
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+              Sua transformaÃ§Ã£o merece ser vista. <br/> Comece seu histÃ³rico hoje!
             </p>
           </div>
         )}
@@ -1227,26 +1338,26 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
 
       {records && records.length > 0 && (
         <section className="mt-8">
-          <h3 className="text-lg font-bold text-secondary mb-4">Histórico Completo</h3>
+          <h3 className="text-lg font-bold text-white mb-4">HistÃ³rico Completo</h3>
           <div className="space-y-3">
             {(records || []).slice().reverse().map((r, i) => (
-              <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 flex items-center justify-between">
+              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between shadow-lg">
                 <div>
-                  <p className="font-bold text-secondary">{r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR') : '-'}</p>
+                  <p className="font-bold text-white">{r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR') : '-'}</p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                    <span className="text-[10px] text-slate-400 font-medium">Peso: <b className="text-slate-600">{r.weight || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Gordura: <b className="text-slate-600">{r.body_fat_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Músculo: <b className="text-slate-600">{r.muscle_mass_kg || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Visceral: <b className="text-slate-600">{r.visceral_fat || '-'}</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Água: <b className="text-slate-600">{r.body_water_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Óssea: <b className="text-slate-600">{r.bone_mass_kg || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">Idade: <b className="text-slate-600">{r.body_age || '-'}</b></span>
-                    <span className="text-[10px] text-slate-400 font-medium">IMC: <b className="text-slate-600">{r.bmi || '-'}</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Peso: <b className="text-slate-300">{r.weight || 0}kg</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Gordura: <b className="text-slate-300">{r.body_fat_pct || 0}%</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">MÃºsculo: <b className="text-slate-300">{r.muscle_mass_kg || 0}kg</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Visceral: <b className="text-slate-300">{r.visceral_fat || '-'}</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Ãgua: <b className="text-slate-300">{r.body_water_pct || 0}%</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Ã“ssea: <b className="text-slate-300">{r.bone_mass_kg || 0}kg</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">Idade: <b className="text-slate-300">{r.body_age || '-'}</b></span>
+                    <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-emerald-600 text-sm">{r.tmb || 0} kcal</p>
-                  <p className="text-[10px] text-slate-300 font-bold uppercase">TMB</p>
+                  <p className="font-bold text-primary text-sm">{r.tmb || 0} kcal</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase">TMB</p>
                 </div>
               </div>
             ))}
@@ -1254,28 +1365,28 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </section>
       )}
 
-      {/* Modal de Confirmação Customizado */}
+      {/* Modal de ConfirmaÃ§Ã£o Customizado */}
       {photoToDelete && (
-        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-xs rounded-[40px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 text-center">
-            <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-rose-500">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-[#1A1A1A] w-full max-w-xs rounded-[40px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 text-center border border-white/10">
+            <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-rose-500 border border-rose-500/20">
               <AlertCircle className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-black text-secondary font-display mb-2">Excluir Foto?</h3>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-8">Esta ação não pode ser desfeita.</p>
+            <h3 className="text-xl font-black text-white font-display mb-2">Excluir Foto?</h3>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">Esta aÃ§Ã£o nÃ£o pode ser desfeita.</p>
             
             <div className="space-y-3">
               <button 
                 onClick={handleDeletePhoto}
                 disabled={isUploading}
-                className="w-full bg-rose-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-rose-200 active:scale-95 transition-all disabled:opacity-50"
+                className="w-full bg-rose-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-rose-500/20 active:scale-95 transition-all disabled:opacity-50"
               >
-                {isUploading ? 'Excluindo...' : 'Confirmar Exclusão'}
+                {isUploading ? 'Excluindo...' : 'Confirmar ExclusÃ£o'}
               </button>
               <button 
                 onClick={() => setPhotoToDelete(null)}
                 disabled={isUploading}
-                className="w-full bg-slate-100 text-slate-400 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all disabled:opacity-50"
+                className="w-full bg-black text-slate-400 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all disabled:opacity-50 border border-white/5"
               >
                 Cancelar
               </button>
@@ -1318,27 +1429,27 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
         body_water_pct: record.body_water_pct ? parseFloat(record.body_water_pct) : null,
         bone_mass_kg: record.bone_mass_kg ? parseFloat(record.bone_mass_kg) : null,
         body_age: record.body_age ? parseInt(record.body_age) : null,
-        record_date: new Date().toISOString().split('T')[0]
+        record_date: getTodayLocally()
       }])
 
     if (error) {
       showToast('Erro ao salvar: ' + error.message, 'error')
     } else {
-      showToast('Evolução registrada!')
+      showToast('EvoluÃ§Ã£o registrada!')
       onSave()
     }
     setIsSaving(false)
   }
 
   return (
-    <div className="fixed inset-0 bg-secondary/90 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center">
           <div>
-            <h3 className="text-2xl font-black text-secondary">Novo Registro</h3>
-            <p className="text-sm text-slate-400">Acompanhe sua evolução corporal</p>
+            <h3 className="text-2xl font-black text-white font-display">Novo Registro</h3>
+            <p className="text-sm text-slate-500">Acompanhe sua evoluÃ§Ã£o corporal</p>
           </div>
-          <button onClick={onClose} className="p-2 bg-slate-100 rounded-full text-slate-400">
+          <button onClick={onClose} className="p-2 bg-black rounded-full text-slate-500 border border-white/5">
             <ChevronLeft className="w-6 h-6 rotate-90" />
           </button>
         </div>
@@ -1346,92 +1457,92 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Peso (kg)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Peso (kg)</label>
               <input 
                 required type="number" step="0.1" 
                 value={record.weight}
                 onChange={e => setRecord({...record, weight: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gordura (%)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Gordura (%)</label>
               <input 
                 required type="number" step="0.1" 
                 value={record.body_fat_pct}
                 onChange={e => setRecord({...record, body_fat_pct: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Músculo (kg)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">MÃºsculo (kg)</label>
               <input 
                 required type="number" step="0.1" 
                 value={record.muscle_mass_kg}
                 onChange={e => setRecord({...record, muscle_mass_kg: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">TMB (kcal)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">TMB (kcal)</label>
               <input 
                 required type="number" 
                 value={record.tmb}
                 onChange={e => setRecord({...record, tmb: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="0000"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">IMC</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">IMC</label>
               <input 
                 type="number" step="0.1"
                 value={record.bmi}
                 onChange={e => setRecord({...record, bmi: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gord. Visceral</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Gord. Visceral</label>
               <input 
                 type="number" 
                 value={record.visceral_fat}
                 onChange={e => setRecord({...record, visceral_fat: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="0-20"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Água (%)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ãgua (%)</label>
               <input 
                 type="number" step="0.1"
                 value={record.body_water_pct}
                 onChange={e => setRecord({...record, body_water_pct: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Massa Óssea</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Massa Ã“ssea</label>
               <input 
                 type="number" step="0.1"
                 value={record.bone_mass_kg}
                 onChange={e => setRecord({...record, bone_mass_kg: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="0.0"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Idade Corp.</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Idade Corp.</label>
               <input 
                 type="number" 
                 value={record.body_age}
                 onChange={e => setRecord({...record, body_age: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xl font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="00"
               />
             </div>
@@ -1440,9 +1551,9 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
           <button 
             type="submit" 
             disabled={isSaving}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-black py-6 rounded-3xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50"
+            className="w-full bg-primary text-black font-black py-6 rounded-3xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
           >
-            {isSaving ? 'Salvando...' : 'Salvar Evolução'}
+            {isSaving ? 'Salvando...' : 'Salvar EvoluÃ§Ã£o'}
           </button>
         </form>
       </div>
@@ -1491,72 +1602,72 @@ function ConfigModal({ student, onClose, onSave, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-secondary/90 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center">
           <div>
-            <h3 className="text-2xl font-black text-secondary">Configurar Conta</h3>
-            <p className="text-sm text-slate-400">Mantenha seus dados atualizados</p>
+            <h3 className="text-2xl font-black text-white font-display">Configurar Conta</h3>
+            <p className="text-sm text-slate-500">Mantenha seus dados atualizados</p>
           </div>
-          <button onClick={onClose} className="p-2 bg-slate-100 rounded-full text-slate-400">
+          <button onClick={onClose} className="p-2 bg-black rounded-full text-slate-500 border border-white/5">
             <X className="w-6 h-6" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
               <input 
                 required type="text"
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-lg font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Idade</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Idade</label>
                 <input 
                   type="number"
                   value={formData.age}
                   onChange={e => setFormData({...formData, age: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl p-4 text-lg font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                  className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                   placeholder="Ex: 25"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Altura (m)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Altura (m)</label>
                 <input 
                   type="number" step="0.01"
                   value={formData.height}
                   onChange={e => setFormData({...formData, height: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl p-4 text-lg font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                  className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                   placeholder="Ex: 1.75"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Peso Inicial (kg)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Peso Inicial (kg)</label>
               <input 
                 type="number" step="0.1"
                 value={formData.initial_weight}
                 onChange={e => setFormData({...formData, initial_weight: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-lg font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
                 placeholder="Ex: 80.5"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alterar Senha</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alterar Senha</label>
               <input 
                 type="password"
                 value={formData.password}
                 onChange={e => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-lg font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all"
-                placeholder="Deixe em branco para não alterar"
+                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
+                placeholder="Deixe em branco para nÃ£o alterar"
               />
             </div>
           </div>
@@ -1564,9 +1675,9 @@ function ConfigModal({ student, onClose, onSave, showToast }) {
           <button 
             type="submit" 
             disabled={isSaving}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 rounded-3xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50"
+            className="w-full bg-primary text-black font-black py-5 rounded-[32px] shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
           >
-            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+            {isSaving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
           </button>
         </form>
       </div>
@@ -1576,26 +1687,26 @@ function ConfigModal({ student, onClose, onSave, showToast }) {
 
 function GoalsModal({ goals, onClose }) {
   return (
-    <div className="fixed inset-0 bg-secondary/90 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-primary/5">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-primary/5">
           <div>
-            <h3 className="text-2xl font-black text-secondary">Minhas Metas</h3>
+            <h3 className="text-2xl font-black text-white font-display">Minhas Metas</h3>
             <p className="text-sm text-slate-500">Definidas pelo seu professor</p>
           </div>
-          <button onClick={onClose} className="p-2 bg-white rounded-full text-slate-400 shadow-sm">
+          <button onClick={onClose} className="p-2 bg-black border border-white/5 rounded-full text-slate-500 shadow-sm">
             <X className="w-6 h-6" />
           </button>
         </div>
         
         <div className="p-8 pb-12">
-          <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 min-h-[200px] flex items-center justify-center text-center">
+          <div className="bg-black rounded-[32px] p-8 border border-white/5 min-h-[200px] flex items-center justify-center text-center shadow-inner">
             {goals ? (
-              <p className="text-lg text-slate-700 font-medium leading-relaxed italic">
+              <p className="text-lg text-primary font-medium leading-relaxed italic font-display">
                 "{goals}"
               </p>
             ) : (
-              <p className="text-slate-400 italic">
+              <p className="text-slate-500 italic">
                 Nenhuma meta definida ainda. <br/> Converse com seu professor!
               </p>
             )}
@@ -1603,7 +1714,7 @@ function GoalsModal({ goals, onClose }) {
           
           <button 
             onClick={onClose}
-            className="w-full mt-8 bg-secondary text-white font-black py-5 rounded-3xl active:scale-95 transition-all text-xl"
+            className="w-full mt-8 bg-white text-black font-black py-5 rounded-[32px] active:scale-95 transition-all text-xl uppercase tracking-widest font-display shadow-lg shadow-white/5"
           >
             Entendido!
           </button>
@@ -1613,7 +1724,7 @@ function GoalsModal({ goals, onClose }) {
   )
 }
 
-function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
+function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast, onLogout }) {
   const [allStudents, setAllStudents] = useState([])
   const [isLinking, setIsLinking] = useState(false)
   const [search, setSearch] = useState('')
@@ -1643,7 +1754,7 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
       
       if (error) throw error
 
-      // Vínculo recíproco
+      // VÃ­nculo recÃ­proco
       const { error: error2 } = await supabase.from('gym_students').update({ partner_id: student.id }).eq('id', partnerId)
       if (error2) throw error2
 
@@ -1660,7 +1771,7 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
   const handleUnlink = async () => {
     if (isLinking) return
     setIsLinking(true)
-    console.log('Iniciando desvínculo para:', student.id, 'Parceiro:', student.partner_id)
+    console.log('Iniciando desvÃ­nculo para:', student.id, 'Parceiro:', student.partner_id)
     try {
       const partnerId = student.partner_id
       
@@ -1702,26 +1813,26 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
   return (
     <div className="animate-in fade-in duration-500 text-center py-10 space-y-12">
       <div>
-        <div className="w-32 h-32 fitness-gradient rounded-[40px] flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-2xl text-white text-5xl font-black font-display neon-shadow">
+        <div className="w-32 h-32 fitness-gradient rounded-[40px] flex items-center justify-center mx-auto mb-6 border-4 border-[#1A1A1A] shadow-2xl text-black text-5xl font-black font-display neon-shadow">
           {student?.name?.[0]}
         </div>
-        <h2 className="text-3xl font-black text-secondary font-display">{student?.name}</h2>
-        <p className="text-slate-400 font-bold tracking-widest uppercase text-xs mt-2">@{student?.username}</p>
+        <h2 className="text-3xl font-black text-white font-display">{student?.name}</h2>
+        <p className="text-slate-500 font-bold tracking-widest uppercase text-xs mt-2">@{student?.username}</p>
       </div>
       
       {/* Sistema de Parceria */}
       {!student?.partner_id ? (
-        <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-6">
+        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
           <div className="text-left">
-            <h3 className="font-black text-secondary font-display text-lg tracking-tight">Vincular Parceiro(a)</h3>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Treinem juntos e motivem-se!</p>
+            <h3 className="font-black text-white font-display text-lg tracking-tight">Vincular Parceiro(a)</h3>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Treinem juntos e motivem-se!</p>
           </div>
           <input 
             type="text"
             placeholder="Buscar por nome ou @username..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-secondary outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+            className="w-full bg-black border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all shadow-inner placeholder:text-slate-700"
           />
           {search && (
             <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
@@ -1729,52 +1840,52 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
                 <button 
                   key={s.id}
                   onClick={() => handleLink(s.id)}
-                  className="w-full p-4 bg-slate-50 hover:bg-primary/5 rounded-2xl flex items-center justify-between group transition-all"
+                  className="w-full p-4 bg-black hover:bg-primary/5 border border-white/5 rounded-2xl flex items-center justify-between group transition-all"
                 >
                   <div className="text-left">
-                    <p className="text-sm font-black text-secondary group-hover:text-primary transition-colors">{s.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">@{s.username}</p>
+                    <p className="text-sm font-black text-white group-hover:text-primary transition-colors">{s.name}</p>
+                    <p className="text-[10px] text-slate-500 font-bold">@{s.username}</p>
                   </div>
-                  <Plus className="w-4 h-4 text-slate-300 group-hover:text-primary transition-all" />
+                  <Plus className="w-4 h-4 text-slate-600 group-hover:text-primary transition-all" />
                 </button>
               ))}
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+        <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl space-y-4">
           <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-black shadow-lg shadow-primary/20">
-                <Heart className="w-6 h-6 fill-white" />
+              <div className="w-12 h-12 rounded-2xl bg-primary text-black flex items-center justify-center font-black shadow-lg shadow-primary/20">
+                <Heart className="w-6 h-6 fill-black" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Seu Casal</p>
-                <p className="text-lg font-black text-secondary font-display tracking-tight leading-none">Vínculo Ativo</p>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Seu Parceiro</p>
+                <p className="text-lg font-black text-white font-display tracking-tight leading-none">Vínculo Ativo</p>
               </div>
             </div>
             <button 
               onClick={() => setShowUnlinkConfirm(true)}
-              className="p-3 bg-white text-rose-500 rounded-2xl border border-rose-100 hover:bg-rose-50 transition-all shadow-sm active:scale-90"
+              className="p-3 bg-black text-rose-500 rounded-2xl border border-rose-500/20 hover:bg-rose-500/10 transition-all shadow-sm active:scale-90"
             >
               <LogOut className="w-5 h-5" />
             </button>
           </div>
 
           {showUnlinkConfirm && (
-            <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 animate-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-rose-600 mb-3">Confirmar desvínculo?</p>
+            <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20 animate-in slide-in-from-top-2">
+              <p className="text-xs font-bold text-rose-500 mb-3">Confirmar desvínculo?</p>
               <div className="flex gap-2">
                 <button 
                   onClick={handleUnlink}
                   disabled={isLinking}
-                  className="flex-1 bg-rose-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-200"
+                  className="flex-1 bg-rose-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20"
                 >
                   {isLinking ? '...' : 'Sim, Desvincular'}
                 </button>
                 <button 
                   onClick={() => setShowUnlinkConfirm(false)}
-                  className="flex-1 bg-white text-slate-400 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-100"
+                  className="flex-1 bg-black text-slate-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5"
                 >
                   Cancelar
                 </button>
@@ -1787,30 +1898,185 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast }) {
       <div className="space-y-4">
         <button 
           onClick={onOpenConfig}
-          className="w-full p-8 text-left bg-white rounded-[32px] border border-slate-100 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
+          className="w-full p-8 text-left bg-[#1A1A1A] rounded-[32px] border border-white/5 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
         >
           <div className="flex items-center gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all">
               <UserIcon className="w-6 h-6" />
             </div>
-            <span className="font-black text-secondary font-display text-lg tracking-tight">Configurações da Conta</span>
+            <span className="font-black text-white font-display text-lg tracking-tight">Configurações da Conta</span>
           </div>
-          <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-primary transition-all" />
+          <ChevronRight className="w-6 h-6 text-slate-600 group-hover:text-primary transition-all" />
         </button>
 
         <button 
           onClick={onOpenGoals}
-          className="w-full p-8 text-left bg-white rounded-[32px] border border-slate-100 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
+          className="w-full p-8 text-left bg-[#1A1A1A] rounded-[32px] border border-white/5 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
         >
           <div className="flex items-center gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all">
               <ClipboardList className="w-6 h-6" />
             </div>
-            <span className="font-black text-secondary font-display text-lg tracking-tight">Metas e Objetivos</span>
+            <span className="font-black text-white font-display text-lg tracking-tight">Metas e Objetivos</span>
           </div>
-          <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-primary transition-all" />
+          <ChevronRight className="w-6 h-6 text-slate-600 group-hover:text-primary transition-all" />
+        </button>
+
+        {/* LOGOUT BUTTON */}
+        <button 
+          onClick={onLogout}
+          className="w-full mt-4 p-6 text-center bg-rose-500/10 rounded-[32px] border border-rose-500/20 flex items-center justify-center gap-3 hover:bg-rose-500 hover:text-white transition-all text-rose-500 active:scale-95 shadow-xl shadow-rose-500/5"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-black uppercase tracking-widest font-display text-sm">Sair da Conta</span>
         </button>
       </div>
     </div>
   )
 }
+
+function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partnerTrainedToday, socialNotifications, isPinging, setIsPinging, showToast, fetchWorkouts }) {
+  const handlePing = async () => {
+    if (!partner) return
+    setIsPinging(true)
+    const { error } = await supabase.from('gym_social_notifications').insert([{
+      sender_id: student.id,
+      receiver_id: partner.id,
+      type: 'ping',
+      message: `${student.name} mandou um PING! Bora treinar! 💪`
+    }])
+    setIsPinging(false)
+    if (!error) {
+      showToast('Ping enviado com sucesso!')
+      fetchWorkouts()
+    } else {
+      showToast('Erro ao enviar ping', 'error')
+    }
+  }
+
+  const myVol = weeklyStats?.volume || 0;
+  const pVol = partnerWeeklyVolume || 0;
+  const totalVol = myVol + pVol;
+  const myVolPercent = totalVol > 0 ? (myVol / totalVol) * 100 : 50;
+
+  return (
+    <div className="w-full max-w-md mx-auto p-6 pb-32 animate-in fade-in duration-500">
+      <header className="mb-8">
+        <h1 className="text-4xl font-black text-white font-display uppercase tracking-tight">VollonFit<span className="text-primary"> Social</span></h1>
+        <p className="text-slate-400 font-bold mt-1">Conectado com <span className="text-white">{partner ? partner.name : 'Ninguém'}</span></p>
+      </header>
+
+      {!partner ? (
+        <div className="bg-[#1A1A1A] p-8 rounded-[32px] border border-white/5 text-center">
+          <Dumbbell className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+          <h3 className="text-xl font-black text-white font-display mb-2">Vincule seu parceiro</h3>
+          <p className="text-slate-400 text-sm font-bold">Vá até a aba Perfil e adicione o código do seu parceiro para liberar o VollonFit Social!</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Card de Notificações PWA */}
+          {Notification.permission === 'default' && (
+            <div className="bg-primary/10 border border-primary/20 p-6 rounded-[32px] flex items-center justify-between animate-in zoom-in duration-500">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-primary text-black flex items-center justify-center">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white uppercase tracking-tight">Ativar Notificações</h4>
+                  <p className="text-[10px] text-slate-400 font-bold">Receba PINGS do seu parceiro!</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => Notification.requestPermission().then(() => window.location.reload())}
+                className="bg-primary text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+              >
+                Permitir
+              </button>
+            </div>
+          )}
+
+          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-10">
+              <UserIcon className="w-24 h-24 text-primary" />
+            </div>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-primary text-black flex items-center justify-center font-black text-2xl shadow-lg shadow-primary/20">
+                {partner.name?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-white font-display">{partner.name}</h3>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${partnerTrainedToday ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                  {partnerTrainedToday ? 'Treinou Hoje! 🔥' : 'Não treinou hoje 😴'}
+                </span>
+              </div>
+            </div>
+
+            <button 
+              onClick={handlePing}
+              disabled={isPinging}
+              className="w-full fitness-gradient text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <Activity className="w-5 h-5" /> {isPinging ? 'Enviando...' : 'Mandar um Ping'}
+            </button>
+          </div>
+
+          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5">
+            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-6 text-center">Batalha de Carga (7 Dias)</h3>
+            
+            <div className="flex justify-between items-end mb-3">
+              <div className="text-left">
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">Você</p>
+                <p className="text-2xl font-black text-white font-display">{myVol} <span className="text-xs text-slate-500">kg</span></p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{partner.name}</p>
+                <p className="text-2xl font-black text-primary font-display">{pVol} <span className="text-xs text-primary/50">kg</span></p>
+              </div>
+            </div>
+
+            <div className="h-4 bg-white/5 rounded-full overflow-hidden flex shadow-inner">
+              <div 
+                className="h-full bg-white transition-all duration-1000"
+                style={{ width: `${myVolPercent}%` }}
+              />
+              <div 
+                className="h-full bg-primary transition-all duration-1000 shadow-[0_0_15px_#DFFF5E]"
+                style={{ width: `${100 - myVolPercent}%` }}
+              />
+            </div>
+            
+            {myVol > pVol && <p className="text-center text-xs font-bold text-white mt-4">Você está ganhando! 🚀</p>}
+            {myVol < pVol && <p className="text-center text-xs font-bold text-primary mt-4">Corra atrás do prejuízo! 🏃‍♂️</p>}
+            {myVol === pVol && totalVol > 0 && <p className="text-center text-xs font-bold text-slate-400 mt-4">Empate técnico! 🤝</p>}
+          </div>
+
+          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5">
+            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-6">Feed de Atividades</h3>
+            <div className="space-y-4">
+              {socialNotifications?.length === 0 ? (
+                <p className="text-slate-500 text-sm font-bold text-center py-4">Nenhuma atividade recente.</p>
+              ) : (
+                socialNotifications?.map(note => (
+                  <div key={note.id} className="flex gap-4 items-start p-3 bg-black rounded-2xl border border-white/5">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      {note.type === 'ping' ? <Activity className="w-5 h-5 text-primary" /> : <Dumbbell className="w-5 h-5 text-primary" />}
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm leading-snug">{note.message}</p>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1 block">
+                        {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+

@@ -1,8 +1,8 @@
-# Fases de Desenvolvimento - CasalGym
+# Fases de Desenvolvimento - VollonFit
 
 Este arquivo acompanha o progresso do projeto CasalGym, dividido por fases de implementação e homologação.
 
-## 📋 Status Geral: PROJETO FINALIZADO 🏁🚀
+## 📋 Status Geral: EVOLUÇÃO SaaS EM ANDAMENTO 🚀
 
 ---
 
@@ -85,12 +85,87 @@ Este arquivo acompanha o progresso do projeto CasalGym, dividido por fases de im
 - [x] **Homologação & Deploy:** Código publicado no GitHub e Vercel com suporte SPA.
 - **Status:** Concluído
 
-### Fase 11: Refinamento de UX Administrativa 🛠️✨
-- [x] Substituição de `alert()` e `confirm()` nativos por Toasts e Modais do sistema
-- [x] Padronização das mensagens de feedback no fluxo de criação de treinos
-- [x] Revisão de validações de formulário no Admin
+---
+
+## 🔥 EVOLUÇÃO SaaS — Gestão Comercial
+
+### Fase 13A: Banco de Dados + Configurações 🗄️
+- [x] Criação da tabela `gym_settings` (preço global R$ 30/aluno)
+- [x] Criação da tabela `gym_billing_records` (histórico de cobranças)
+- [x] Novos campos em `gym_teachers` (phone, contract_start_date, notes)
+- [x] Atualização do `estrutura_db.md`
+- [x] Script SQL de migração (`migrations/001_saas_comercial.sql`)
+- **Status:** ✅ Concluído — **⚠️ Rodar o script no Supabase SQL Editor**
+
+### Fase 13B: MasterDashboard — Overview + Professores + Responsivo 👑📊
+- [x] Reescrever MasterDashboard com layout responsivo (sidebar → drawer mobile)
+- [x] Implementar Overview com KPIs reais (Professores, Alunos, Faturamento, Pendentes)
+- [x] Alertas de vencimento (próximos 5 dias baseado em contract_start_date)
+- [x] CRUD completo de professores (criar, editar, bloquear, excluir, ver alunos)
+- [x] Indicador de preço global com link para configurações
+- **Status:** ✅ Concluído
+
+### Fase 13C: MasterDashboard — Faturamento + Configurações 💰⚙️
+- [x] Módulo de faturamento com tabela responsiva e filtro mensal
+- [x] Geração de cobranças em lote ("Gerar Cobranças do Mês")
+- [x] Marcar como pago / inadimplente
+- [x] Módulo de configurações (preço global editável com aviso de reajuste)
+- **Status:** ✅ Concluído
+
+### Fase 13D: Responsividade Admin + Regras de Bloqueio 📱🔒
+- [x] AdminDashboard responsivo (sidebar → drawer mobile com hamburger menu)
+- [x] Bloqueio no Login para professor com `status = blocked`
+- [x] Bloqueio no Login para aluno de professor bloqueado
+- [x] Login professor via tabela (sem Supabase Auth) + fix RLS
+- [x] Testes finais de bloqueio e responsividade
+- **Status:** ✅ Concluído
+
+### Fase 14: Painel do Master (futuro) 👑📊
+- [x] Dashboard exclusivo para gestão global (absorvido pela Fase 13B/13C)
+- [x] Relatório Financeiro: `Professores x Alunos Ativos x Faturamento`
+- **Status:** ✅ Absorvido nas fases 13B/13C
+
+### Fase 15: Gestão de Quotas e Bloqueios (futuro) 🚫💳
+- [x] Lógica de verificação de limite de alunos por professor
+- [ ] Interface de "Upgrade de Plano" para professores
+- [ ] Notificações de cobrança e vencimento
+- **Status:** Parcialmente concluído
+
+### Fase 16: Redesign Visual Premium VollonFit (Dark Neon) 🎨✨
+- [x] Implementação da nova paleta (Lime Neon & Lavender)
+- [x] Redesign Mobile Aluno (Dashboard, Execução, Evolução, Perfil)
+- [x] Redesign Desktop/Mobile Admin (Painel do Professor)
+- [x] Redesign Desktop/Mobile Master (Dashboard Administrativo Geral)
+- **Status:** Concluído
+
+### Fase 17: Enriquecimento da Home do Aluno (Widgets Funcionais) 🧩
+- [x] 1. Calendário Horizontal de Frequência (Dias da Semana atual + check de treino)
+- [x] 2. Card "Treino do Dia" (Sugerir o primeiro treino da lista e rodízio)
+- [x] 3. Cards de Volume Semanal e Recordes (Usando `weeklyStats`)
+- [x] 4. Filtros em formato de pílulas (Filtrar a lista por Foco/Músculo)
+- **Status:** Concluído
+
+### Fase 18: CasalGym Hub (Aba Social do Aluno) 👥
+- [x] 1. Ativar navegação do 3º botão inferior do app.
+- [x] 2. Renderizar card principal exibindo o status do parceiro de treino.
+- [x] 3. Gráfico "Batalha da Semana": Comparativo de Volume (kg) do Aluno vs Parceiro.
+- [x] 4. Feed de Atividades: Consumir `gym_social_notifications`.
+- [x] 5. Botão "Ping": Enviar notificação push/in-app motivacional para o parceiro.
+- **Status:** Concluído
+
+- [x] **Foco de Treino**: Adicionar coluna `description` na tabela `gym_workouts` e no painel de criação do Professor, popular as pílulas dinâmicas da Fase 17.
+- [x] **Área Financeira**: Criar aba "Financeiro" para o Professor ver faturas, status de pagamento (pendente, pago) vindas da tabela `gym_billing_records`.
+- **Status:** Concluído
+
+### Fase 20: Progressive Web App (PWA) Nativo 📲
+- [x] Configuração dos ícones Apple Touch e Android.
+- [x] Configuração avançada do `manifest.json`.
+- [x] Remoção completa da barra do navegador (standalone mode).
+- [x] Cache offline inicial para funcionamento sem internet.
+- [x] Correção Global de Datas (UTC Fix) e Notificações In-App.
 - **Status:** Concluído
 
 ---
-**Data de Entrega:** 03 de Maio de 2026
+**Data de Entrega Prevista (SaaS):** 20 de Maio de 2026
 **Responsável:** Antigravity AI
+

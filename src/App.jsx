@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import AdminDashboard from './pages/AdminDashboard'
+import MasterDashboard from './pages/MasterDashboard'
 import StudentDashboard from './pages/StudentDashboard'
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/master" element={<MasterDashboard />} />
         <Route path="/student" element={<StudentDashboard />} />
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

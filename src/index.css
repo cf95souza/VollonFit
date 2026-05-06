@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply font-sans text-slate-900 antialiased bg-slate-50;
+    @apply font-sans text-white antialiased bg-black;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -16,30 +16,42 @@
 
 @layer components {
   .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  .font-outfit {
     font-family: 'Outfit', sans-serif;
   }
   
   .glass-card {
-    @apply bg-white/70 backdrop-blur-lg border border-white/20;
+    @apply bg-[#111111]/80 backdrop-blur-2xl border border-white/5;
   }
   
   .fitness-gradient {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    background: linear-gradient(135deg, #DFFF5E 0%, #B8E600 100%);
   }
   
-  .dark-gradient {
-    background: linear-gradient(135deg, #0F172A 0%, #020617 100%);
+  .lavender-gradient {
+    background: linear-gradient(135deg, #C6C4FF 0%, #9B98FF 100%);
   }
   
   .neon-shadow {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 25px rgba(223, 255, 94, 0.3);
+  }
+  
+  .neon-text {
+    text-shadow: 0 0 10px rgba(223, 255, 94, 0.5);
+  }
+
+  .pill-nav {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl;
   }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -47,20 +59,37 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 }
 
 /* Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-8px); }
   100% { transform: translateY(0px); }
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 4s ease-in-out infinite;
 }
 
 .tap-effect {
   @apply active:scale-95 transition-transform duration-100;
+}
+
+/* Layout Specifics */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(223, 255, 94, 0.05) 0%, transparent 70%);
+  pointer-events: none;
 }

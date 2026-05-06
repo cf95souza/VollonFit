@@ -1,15 +1,22 @@
 {
-  "name": "CasalGym",
-  "short_name": "CasalGym",
+  "name": "VollonFit - Evolution Management System",
+  "short_name": "VollonFit",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#FB7185",
-  "description": "Treine em casal, evolua juntos.",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "description": "Gestão de evolução fitness e treinos de alta performance.",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2964/2964514.png",
+      "src": "/assets/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     }

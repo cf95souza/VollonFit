@@ -17,11 +17,13 @@ import {
   X,
   Timer,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Menu
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { MOCK_EXERCISES, MOCK_STUDENTS } from '../services/mockData'
 import { supabase } from '../supabaseClient'
+import { getTodayLocally } from '../utils/dateUtils'
 import { 
   LineChart, 
   Line, 
@@ -36,124 +38,132 @@ import {
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('casalgym_admin_tab') || 'overview')
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('vollonfit_admin_tab') || 'overview')
   const [searchTerm, setSearchTerm] = useState('')
   const [exercises, setExercises] = useState(MOCK_EXERCISES)
   const [viewingStudent, setViewingStudent] = useState(() => {
-    const saved = localStorage.getItem('casalgym_admin_viewing_student')
+    const saved = localStorage.getItem('vollonfit_admin_viewing_student')
     return saved ? JSON.parse(saved) : null
   })
   const [toast, setToast] = useState(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }
 
+  const [teacherInfo, setTeacherInfo] = useState(null)
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) navigate('/', { replace: true })
+    const checkAuth = () => {
+      const saved = localStorage.getItem('vollonfit_teacher')
+      if (!saved) {
+        navigate('/', { replace: true })
+        return
+      }
+      const teacher = JSON.parse(saved)
+      setTeacherInfo(teacher)
     }
     checkAuth()
   }, [navigate])
 
   useEffect(() => {
-    localStorage.setItem('casalgym_admin_tab', activeTab)
+    localStorage.setItem('vollonfit_admin_tab', activeTab)
   }, [activeTab])
 
   useEffect(() => {
     if (viewingStudent) {
-      localStorage.setItem('casalgym_admin_viewing_student', JSON.stringify(viewingStudent))
+      localStorage.setItem('vollonfit_admin_viewing_student', JSON.stringify(viewingStudent))
     } else {
-      localStorage.removeItem('casalgym_admin_viewing_student')
+      localStorage.removeItem('vollonfit_admin_viewing_student')
     }
   }, [viewingStudent])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    localStorage.removeItem('casalgym_admin_tab')
-    localStorage.removeItem('casalgym_admin_viewing_student')
+  const handleLogout = () => {
+    localStorage.removeItem('vollonfit_teacher')
+    localStorage.removeItem('vollonfit_admin_tab')
+    localStorage.removeItem('vollonfit_admin_viewing_student')
     navigate('/')
   }
 
+  const SidebarContent = () => (
+    <>
+      <div className="p-5 border-b border-slate-700/50 flex items-center gap-3">
+        <div className="bg-[#DFFF5E] p-2 rounded-lg text-black">
+          <ShieldCheck className="w-5 h-5" />
+        </div>
+        <span className="text-white font-bold tracking-tight text-lg">VOLLON<span className="text-[#DFFF5E] text-xs font-normal ml-0.5">FIT</span></span>
+      </div>
+      <nav className="flex-1 px-3 py-6 space-y-1">
+        <SidebarLink icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setViewingStudent(null); setDrawerOpen(false); }} />
+        <SidebarLink icon={<Dumbbell className="w-5 h-5" />} label="Exercícios" active={activeTab === 'exercises'} onClick={() => { setActiveTab('exercises'); setViewingStudent(null); setDrawerOpen(false); }} />
+        <SidebarLink icon={<ClipboardList className="w-5 h-5" />} label="Treinos" active={activeTab === 'workouts'} onClick={() => { setActiveTab('workouts'); setViewingStudent(null); setDrawerOpen(false); }} />
+        <SidebarLink icon={<Users className="w-5 h-5" />} label="Alunos" active={activeTab === 'students'} onClick={() => { setActiveTab('students'); setViewingStudent(null); setDrawerOpen(false); }} />
+        <SidebarLink icon={<Scale className="w-5 h-5" />} label="Financeiro" active={activeTab === 'finance'} onClick={() => { setActiveTab('finance'); setViewingStudent(null); setDrawerOpen(false); }} />
+      </nav>
+      <div className="p-3 border-t border-slate-700/50">
+        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-rose-400 hover:bg-rose-400/5 rounded-lg transition-all text-sm">
+          <LogOut className="w-5 h-5" /> Sair
+        </button>
+      </div>
+    </>
+  )
+
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-50 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-secondary border-r border-slate-800 flex flex-col">
-        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-          <div className="bg-primary p-2 rounded-lg text-white shadow-lg shadow-primary/20">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <span className="text-white font-bold tracking-tight">ADMIN <span className="text-primary font-normal">CasalGym</span></span>
-        </div>
-
-        <nav className="flex-1 px-4 py-8 space-y-2">
-          <SidebarLink 
-            icon={<LayoutDashboard className="w-5 h-5" />} 
-            label="Dashboard" 
-            active={activeTab === 'overview'} 
-            onClick={() => { setActiveTab('overview'); setViewingStudent(null); }} 
-          />
-          <SidebarLink 
-            icon={<Dumbbell className="w-5 h-5" />} 
-            label="Exercícios" 
-            active={activeTab === 'exercises'} 
-            onClick={() => { setActiveTab('exercises'); setViewingStudent(null); }} 
-          />
-          <SidebarLink 
-            icon={<ClipboardList className="w-5 h-5" />} 
-            label="Treinos" 
-            active={activeTab === 'workouts'} 
-            onClick={() => { setActiveTab('workouts'); setViewingStudent(null); }} 
-          />
-          <SidebarLink 
-            icon={<Users className="w-5 h-5" />} 
-            label="Alunos" 
-            active={activeTab === 'students'} 
-            onClick={() => { setActiveTab('students'); setViewingStudent(null); }} 
-          />
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-rose-400 hover:bg-rose-400/5 rounded-lg transition-all text-sm font-medium"
-          >
-            <LogOut className="w-5 h-5" />
-            Sair do Sistema
-          </button>
-        </div>
+    <div className="flex h-screen w-full overflow-hidden bg-black font-sans text-slate-200">
+      {/* Sidebar Desktop */}
+      <aside className="hidden lg:flex w-60 bg-[#0F172A] border-r border-white/5 flex-col shrink-0">
+        <SidebarContent />
       </aside>
 
+      {/* Drawer Mobile */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+          <aside className="relative w-64 h-full bg-[#0F172A] flex flex-col animate-in slide-in-from-left duration-200 border-r border-white/10">
+            <button onClick={() => setDrawerOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+              <X className="w-5 h-5" />
+            </button>
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0A]">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
-          <h2 className="text-xl font-bold text-secondary">
-            {activeTab === 'overview' && 'Painel de Controle'}
-            {activeTab === 'exercises' && 'Biblioteca de Exercícios'}
-            {activeTab === 'workouts' && 'Gestão de Treinos'}
-            {activeTab === 'students' && 'Gerenciar Alunos'}
-          </h2>
-          <div className="flex items-center gap-4">
-            <div className="relative">
+        <header className="h-14 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setDrawerOpen(true)} className="lg:hidden text-slate-400 hover:text-white">
+              <Menu className="w-6 h-6" />
+            </button>
+            <h2 className="text-base lg:text-lg font-bold text-white truncate">
+              {activeTab === 'overview' && 'Painel de Controle'}
+              {activeTab === 'exercises' && 'Exercícios'}
+              {activeTab === 'workouts' && 'Treinos'}
+              {activeTab === 'students' && 'Alunos'}
+              {activeTab === 'finance' && 'Financeiro'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative hidden sm:block">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Buscar..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64"
+                className="pl-10 pr-4 py-2 bg-[#111111] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all w-48 lg:w-64"
               />
             </div>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
+            <div className="w-8 h-8 rounded-full bg-[#DFFF5E]/10 flex items-center justify-center text-[#DFFF5E] font-bold text-xs border border-[#DFFF5E]/20 shadow-[0_0_10px_rgba(223,255,94,0.1)]">
               AD
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-10 bg-[#F8FAFC]">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           {viewingStudent ? (
             <div className="max-w-5xl mx-auto animate-in slide-in-from-right-10 duration-500">
               <StudentDetailView 
@@ -166,12 +176,13 @@ export default function AdminDashboard() {
             <div className="max-w-7xl mx-auto space-y-10">
               <header className="flex justify-between items-end">
                 <div>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Painel de Gestão</p>
-                  <h1 className="text-4xl font-black text-secondary font-display">
+                  <p className="text-[10px] font-black text-[#DFFF5E] uppercase tracking-[0.3em] mb-2">Painel de Gestão</p>
+                  <h1 className="text-4xl font-black text-white font-display">
                     {activeTab === 'overview' && 'Visão Geral'}
                     {activeTab === 'exercises' && 'Biblioteca de Exercícios'}
                     {activeTab === 'workouts' && 'Gestão de Treinos'}
                     {activeTab === 'students' && 'Meus Alunos'}
+                    {activeTab === 'finance' && 'Financeiro & Faturas'}
                   </h1>
                 </div>
                 <div className="flex items-center gap-4">
@@ -182,20 +193,21 @@ export default function AdminDashboard() {
                       placeholder="Buscar por nome..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all w-72 shadow-sm"
+                      className="pl-12 pr-4 py-3 bg-[#111111] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all w-72 shadow-sm"
                     />
                   </div>
-                  <div className="w-12 h-12 rounded-2xl fitness-gradient flex items-center justify-center text-white font-black text-sm shadow-lg neon-shadow">
+                  <div className="w-12 h-12 rounded-2xl bg-[#DFFF5E] flex items-center justify-center text-black font-black text-sm shadow-[0_0_20px_rgba(223,255,94,0.3)]">
                     AD
                   </div>
                 </div>
               </header>
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} searchTerm={searchTerm} />}
-                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} searchTerm={searchTerm} />}
-                {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} searchTerm={searchTerm} />}
-                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} searchTerm={searchTerm} />}
+                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
+                {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
+                {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
+                {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
+                {activeTab === 'finance' && <FinanceiroTab teacherInfo={teacherInfo} />}
               </div>
             </div>
           )}
@@ -221,22 +233,22 @@ function SidebarLink({ icon, label, active, onClick }) {
   return (
     <button 
       onClick={onClick}
-      className={`w-full flex items-center gap-4 px-5 py-4 rounded-[20px] transition-all duration-300 text-sm font-bold ${
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
         active 
-          ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' 
+          ? 'bg-[#DFFF5E] text-black font-bold' 
           : 'text-slate-400 hover:text-white hover:bg-white/5'
       }`}
     >
-      <div className={`${active ? 'text-white' : 'text-slate-500'}`}>
+      <div className={`${active ? 'text-black' : 'text-slate-500'}`}>
         {icon}
       </div>
       {label}
-      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_#fff]" />}
+      {active && <ChevronRight className="w-4 h-4 ml-auto" />}
     </button>
   )
 }
 
-function OverviewTab({ onViewProfile, searchTerm }) {
+function OverviewTab({ onViewProfile, searchTerm, teacherInfo }) {
   const [stats, setStats] = useState({ exercises: 0, workouts: 0, students: 0, sessionsToday: 0 })
   const [recentStudents, setRecentStudents] = useState([])
   const [recentActivities, setRecentActivities] = useState([])
@@ -245,16 +257,27 @@ function OverviewTab({ onViewProfile, searchTerm }) {
 
   const fetchStats = async () => {
     setLoading(true)
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayLocally()
     
+    const teacherId = teacherInfo?.id
     const [exCount, woCount, stCount, logCount] = await Promise.all([
       supabase.from('gym_exercises').select('*', { count: 'exact', head: true }),
-      supabase.from('gym_workouts').select('*', { count: 'exact', head: true }),
-      supabase.from('gym_students').select('*', { count: 'exact', head: true }),
+      supabase.from('gym_workouts').select('*', { count: 'exact', head: true }).eq('teacher_id', teacherId),
+      supabase.from('gym_students').select('*', { count: 'exact', head: true }).eq('teacher_id', teacherId),
       supabase.from('gym_training_logs')
-        .select('*', { count: 'exact', head: true })
+        .select('*, gym_students!inner(teacher_id)', { count: 'exact', head: true })
         .eq('workout_date', today)
+        .eq('gym_students.teacher_id', teacherId)
     ])
+
+    const { data: logs } = await supabase
+      .from('gym_training_logs')
+      .select('*, gym_students(name, teacher_id), gym_exercises(name)')
+      .eq('gym_students.teacher_id', teacherId)
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (logs) setRecentActivities(logs)
 
     setStats({
       exercises: exCount.count || 0,
@@ -266,12 +289,11 @@ function OverviewTab({ onViewProfile, searchTerm }) {
     const { data: students } = await supabase
       .from('gym_students')
       .select('*')
+      .eq('teacher_id', teacherId)
       .order('created_at', { ascending: false })
       .limit(3)
     
     if (students) setRecentStudents(students)
-
-    if (logs) setRecentActivities(logs)
 
     // Radar de Evasão: Alunos sem treinar há > 3 dias
     const threeDaysAgo = new Date()
@@ -322,26 +344,26 @@ function OverviewTab({ onViewProfile, searchTerm }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-slate-800">Alunos Recentes</h3>
+            <Users className="w-5 h-5 text-[#DFFF5E]" />
+            <h3 className="font-bold text-white">Alunos Recentes</h3>
           </div>
           <div className="space-y-4">
             {filteredRecent.map((student, i) => (
-              <div key={student.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary/30 transition-all cursor-pointer group">
+              <div key={student.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-[#DFFF5E]/30 transition-all cursor-pointer group">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center font-bold text-slate-400 border border-slate-200 group-hover:border-primary/30">
+                  <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300 border border-white/5 group-hover:border-[#DFFF5E]/30">
                     {student.name[0]}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-700 text-sm">{student.name}</h4>
+                    <h4 className="font-bold text-white text-sm">{student.name}</h4>
                     <p className="text-xs text-slate-400">@{student.username}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => onViewProfile(student)}
-                  className="text-[10px] font-bold text-primary hover:underline"
+                  className="text-[10px] font-bold text-[#DFFF5E] hover:text-[#B8E600]"
                 >
                   Ver Perfil ›
                 </button>
@@ -353,19 +375,19 @@ function OverviewTab({ onViewProfile, searchTerm }) {
           </div>
         </section>
 
-        <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <ClipboardList className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-slate-800">Atividades Recentes</h3>
+            <ClipboardList className="w-5 h-5 text-[#DFFF5E]" />
+            <h3 className="font-bold text-white">Atividades Recentes</h3>
           </div>
           <div className="space-y-6">
             {recentActivities.map(log => (
               <div key={log.id} className="flex gap-4 relative">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full mt-1.5 ring-4 ring-emerald-50 shrink-0" />
+                <div className="w-2 h-2 bg-[#DFFF5E] rounded-full mt-1.5 ring-4 ring-[#DFFF5E]/20 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm text-slate-600">
-                    <span className="font-bold text-secondary">{log.gym_students?.name}</span> treinou 
-                    <span className="font-bold text-secondary"> {log.gym_exercises?.name}</span>
+                  <p className="text-sm text-slate-400">
+                    <span className="font-bold text-white">{log.gym_students?.name}</span> treinou 
+                    <span className="font-bold text-white"> {log.gym_exercises?.name}</span>
                   </p>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
                     {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {log.weight_kg}kg
@@ -381,18 +403,18 @@ function OverviewTab({ onViewProfile, searchTerm }) {
       </div>
 
       {/* Radar de Evasão */}
-      <section className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
+      <section className="bg-[#111111] p-8 rounded-[40px] border border-white/5 shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 shadow-sm">
+            <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-400 shadow-sm">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-secondary font-display">Radar de Evasão</h3>
+              <h3 className="text-xl font-black text-white font-display">Radar de Evasão</h3>
               <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Alunos em risco de desistência (+3 dias off)</p>
             </div>
           </div>
-          <span className="bg-rose-100 text-rose-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
+          <span className="bg-rose-500/10 text-rose-400 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/20">
             {atRiskStudents.length} Alunos
           </span>
         </div>
@@ -400,13 +422,13 @@ function OverviewTab({ onViewProfile, searchTerm }) {
         {filteredAtRisk.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAtRisk.map(student => (
-              <div key={student.id} className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 hover:border-rose-200 transition-all group relative overflow-hidden">
+              <div key={student.id} className="p-6 bg-white/5 rounded-[32px] border border-white/5 hover:border-rose-500/30 transition-all group relative overflow-hidden">
                 <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center font-black text-slate-300 text-xl border border-slate-100 shadow-sm group-hover:border-rose-200 transition-colors">
+                  <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center font-black text-slate-300 text-xl border border-white/5 shadow-sm group-hover:border-rose-500/30 transition-colors">
                     {student.name[0]}
                   </div>
                   <div>
-                    <h4 className="font-black text-secondary text-sm group-hover:text-rose-600 transition-colors">{student.name}</h4>
+                    <h4 className="font-black text-white text-sm group-hover:text-rose-400 transition-colors">{student.name}</h4>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">@{student.username}</p>
                   </div>
                 </div>
@@ -420,21 +442,21 @@ function OverviewTab({ onViewProfile, searchTerm }) {
                   </div>
                   <button 
                     onClick={() => onViewProfile(student)}
-                    className="bg-white text-rose-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-100"
+                    className="bg-slate-800 text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-500/20"
                   >
                     Motivar ›
                   </button>
                 </div>
                 
                 {/* Efeito visual de fundo */}
-                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-colors" />
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-colors" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
-            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          <div className="text-center py-20 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
+            <div className="w-16 h-16 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-white/5">
+              <CheckCircle2 className="w-8 h-8 text-[#DFFF5E]" />
             </div>
             <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Todos os alunos estão ativos! 🚀</p>
           </div>
@@ -444,7 +466,7 @@ function OverviewTab({ onViewProfile, searchTerm }) {
   )
 }
 
-function ExercisesTab({ showToast, searchTerm }) {
+function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedGif, setSelectedGif] = useState(null)
@@ -501,7 +523,7 @@ function ExercisesTab({ showToast, searchTerm }) {
     } else {
       const { error } = await supabase
         .from('gym_exercises')
-        .insert([newExercise])
+        .insert([{ ...newExercise, teacher_id: teacherInfo.id }])
 
       if (error) {
         showToast('Erro ao cadastrar: ' + error.message, 'error')
@@ -523,23 +545,17 @@ function ExercisesTab({ showToast, searchTerm }) {
     )
 
     return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
-      <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
+    <div className="bg-[#111111] rounded-xl border border-white/5 shadow-sm overflow-hidden animate-in fade-in duration-500">
+      <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#111111] sticky top-0 z-10">
         <div>
-          <h3 className="font-bold text-lg text-slate-800">Biblioteca de Exercícios</h3>
-          <p className="text-xs text-slate-500">Gerencie sua biblioteca de movimentos com demonstrações</p>
+          <h3 className="font-bold text-lg text-white">Acervo Global de Exercícios</h3>
+          <p className="text-xs text-slate-400">Consulte a biblioteca padronizada para montar seus treinos</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
-        >
-          <Plus className="w-4 h-4" /> Novo Exercício
-        </button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+          <thead className="bg-black/50 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-white/5">
             <tr>
               <th className="px-6 py-4">Preview</th>
               <th className="px-6 py-4">Nome</th>
@@ -548,47 +564,41 @@ function ExercisesTab({ showToast, searchTerm }) {
               <th className="px-6 py-4 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/5">
             {loading ? (
               [1, 2, 3].map(i => (
                 <tr key={i} className="animate-pulse">
-                  <td colSpan="5" className="px-6 py-4 h-16 bg-slate-50/50"></td>
+                  <td colSpan="5" className="px-6 py-4 h-16 bg-white/5"></td>
                 </tr>
               ))
             ) : (
               filteredExercises.map(ex => (
-                <tr key={ex.id} className="hover:bg-slate-50/80 transition-colors group">
+                <tr key={ex.id} className="hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4">
                     <div 
                       onClick={() => setSelectedGif(ex)}
-                      className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                      className="w-12 h-12 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#DFFF5E] transition-colors"
                     >
                       {ex.gif_url ? (
                         <img src={ex.gif_url} alt={ex.name} className="w-full h-full object-cover" />
                       ) : (
-                        <Dumbbell className="w-4 h-4 text-slate-400" />
+                        <Dumbbell className="w-4 h-4 text-slate-500" />
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-bold text-slate-700">{ex.name}</td>
+                  <td className="px-6 py-4 font-bold text-slate-200">{ex.name}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                    <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
                       {ex.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{ex.description}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400 max-w-xs truncate">{ex.description}</td>
                   <td className="px-6 py-4 text-right space-x-3">
                     <button 
                       onClick={() => setSelectedGif(ex)}
-                      className="text-primary hover:text-primary-dark transition-colors text-xs font-bold"
+                      className="text-[#DFFF5E] hover:text-[#B8E600] transition-colors text-xs font-bold"
                     >
-                      Ver GIF
-                    </button>
-                    <button 
-                      onClick={() => handleOpenEdit(ex)}
-                      className="text-slate-400 hover:text-primary transition-colors text-xs font-bold"
-                    >
-                      Editar
+                      Ver Demonstração
                     </button>
                   </td>
                 </tr>
@@ -607,15 +617,15 @@ function ExercisesTab({ showToast, searchTerm }) {
 
       {/* Modal Cadastro Exercício */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-lg text-secondary">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-lg w-full shadow-2xl animate-in zoom-in duration-200">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white">
                 {editingId ? 'Editar Exercício' : 'Cadastrar Exercício'}
               </h3>
               <button 
                 onClick={() => { setIsModalOpen(false); setEditingId(null); }} 
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-slate-300 transition-colors"
               >
                 Fechar
               </button>
@@ -629,7 +639,7 @@ function ExercisesTab({ showToast, searchTerm }) {
                     type="text" 
                     value={newExercise.name}
                     onChange={e => setNewExercise({...newExercise, name: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
                     placeholder="Ex: Supino Reto"
                   />
                 </div>
@@ -638,7 +648,7 @@ function ExercisesTab({ showToast, searchTerm }) {
                   <select 
                     value={newExercise.category}
                     onChange={e => setNewExercise({...newExercise, category: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
                   >
                     <option>Peito</option>
                     <option>Costas</option>
@@ -656,7 +666,7 @@ function ExercisesTab({ showToast, searchTerm }) {
                   type="url" 
                   value={newExercise.gif_url}
                   onChange={e => setNewExercise({...newExercise, gif_url: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
                   placeholder="https://exemplo.com/exercicio.gif"
                 />
               </div>
@@ -666,7 +676,7 @@ function ExercisesTab({ showToast, searchTerm }) {
                   rows="3"
                   value={newExercise.description}
                   onChange={e => setNewExercise({...newExercise, description: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none resize-none"
                   placeholder="Instruções de execução..."
                 />
               </div>
@@ -674,14 +684,14 @@ function ExercisesTab({ showToast, searchTerm }) {
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200"
+                  className="flex-1 px-4 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-700"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-[#DFFF5E] text-black rounded-xl font-bold text-sm hover:bg-[#B8E600] transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Salvar Exercício'}
                 </button>
@@ -693,26 +703,26 @@ function ExercisesTab({ showToast, searchTerm }) {
 
       {/* Gif Viewer Modal */}
       {selectedGif && (
-        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-lg text-secondary">{selectedGif.name}</h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in duration-200">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white">{selectedGif.name}</h3>
               <button 
                 onClick={() => setSelectedGif(null)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-slate-300 transition-colors"
               >
                 Fechar
               </button>
             </div>
-            <div className="aspect-square bg-slate-900 flex items-center justify-center">
+            <div className="aspect-square bg-black flex items-center justify-center">
               {selectedGif.gif_url ? (
                 <img src={selectedGif.gif_url} alt={selectedGif.name} className="max-h-full max-w-full object-contain" />
               ) : (
                 <Dumbbell className="w-20 h-20 text-slate-700" />
               )}
             </div>
-            <div className="p-6 bg-slate-50">
-              <p className="text-sm text-slate-600 leading-relaxed">{selectedGif.description || 'Sem descrição cadastrada.'}</p>
+            <div className="p-6 bg-black/50">
+              <p className="text-sm text-slate-400 leading-relaxed">{selectedGif.description || 'Sem descrição cadastrada.'}</p>
             </div>
           </div>
         </div>
@@ -721,7 +731,7 @@ function ExercisesTab({ showToast, searchTerm }) {
   )
 }
 
-function WorkoutsTab({ showToast, searchTerm }) {
+function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
   const [students, setStudents] = useState([])
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
@@ -732,11 +742,13 @@ function WorkoutsTab({ showToast, searchTerm }) {
   const [studentWorkouts, setStudentWorkouts] = useState([])
   const [editingWorkoutId, setEditingWorkoutId] = useState(null)
   const [workoutName, setWorkoutName] = useState('')
+  const [workoutDescription, setWorkoutDescription] = useState('')
   const [workoutItems, setWorkoutItems] = useState([]) // { exercise_id, target_sets, target_reps, rest_time }
 
   const fetchData = async () => {
+    if (!teacherInfo?.id) return
     setLoading(true)
-    const { data, error } = await supabase.from('gym_students').select('id, name').order('name')
+    const { data, error } = await supabase.from('gym_students').select('id, name').eq('teacher_id', teacherInfo.id).order('name')
     if (!error) setStudents(data)
     
     const { data: exData } = await supabase.from('gym_exercises').select('id, name, category').order('name')
@@ -746,7 +758,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [teacherInfo?.id])
 
   // Buscar treinos do aluno quando selecionado
   useEffect(() => {
@@ -771,6 +783,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
     setLoading(true)
     setEditingWorkoutId(workout.id)
     setWorkoutName(workout.name)
+    setWorkoutDescription(workout.description || '')
     
     const { data, error } = await supabase
       .from('gym_workout_items')
@@ -801,16 +814,23 @@ function WorkoutsTab({ showToast, searchTerm }) {
     let workoutId = editingWorkoutId
 
     if (editingWorkoutId) {
-      // Atualizar nome do treino se mudou
-      await supabase.from('gym_workouts').update({ name: workoutName }).eq('id', editingWorkoutId)
+      // Atualizar nome e descrição do treino se mudou
+      await supabase.from('gym_workouts').update({ 
+        name: workoutName,
+        description: workoutDescription 
+      }).eq('id', editingWorkoutId)
       // Para simplificar a edição de itens, vamos deletar os antigos e inserir os novos
-      // (Em um app complexo faríamos update individual, mas aqui o delete/insert é mais limpo)
       await supabase.from('gym_workout_items').delete().eq('workout_id', editingWorkoutId)
     } else {
       // Criar novo cabeçalho
       const { data, error } = await supabase
         .from('gym_workouts')
-        .insert([{ name: workoutName, student_id: selectedStudent }])
+        .insert([{ 
+          name: workoutName, 
+          description: workoutDescription,
+          student_id: selectedStudent, 
+          teacher_id: teacherInfo.id 
+        }])
         .select().single()
       
       if (error) { 
@@ -846,6 +866,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
   const resetForm = () => {
     setEditingWorkoutId(null)
     setWorkoutName('')
+    setWorkoutDescription('')
     setWorkoutItems([])
   }
 
@@ -875,12 +896,12 @@ function WorkoutsTab({ showToast, searchTerm }) {
         
         {/* Coluna Lateral: Seleção de Aluno e Treinos Existentes */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm space-y-4">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Selecione o Aluno</label>
             <select 
               value={selectedStudent}
               onChange={e => { setSelectedStudent(e.target.value); resetForm(); }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-[#DFFF5E]/20"
             >
               <option value="">Selecione um aluno...</option>
               {filteredStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -888,10 +909,10 @@ function WorkoutsTab({ showToast, searchTerm }) {
           </div>
 
           {selectedStudent && (
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 animate-in slide-in-from-left duration-300">
+            <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm space-y-4 animate-in slide-in-from-left duration-300">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Treinos do Aluno</label>
-                <button onClick={resetForm} className="text-[10px] font-bold text-primary hover:underline">Novo Treino</button>
+                <button onClick={resetForm} className="text-[10px] font-bold text-[#DFFF5E] hover:underline">Novo Treino</button>
               </div>
               <div className="space-y-2">
                 {studentWorkouts.map(w => (
@@ -899,7 +920,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
                     key={w.id}
                     onClick={() => loadWorkoutForEdit(w)}
                     className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
-                      editingWorkoutId === w.id ? 'bg-primary/5 border-primary text-primary' : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-slate-300'
+                      editingWorkoutId === w.id ? 'bg-[#DFFF5E]/10 border-[#DFFF5E] text-[#DFFF5E]' : 'bg-white/5 border-white/5 text-slate-300 hover:border-white/20'
                     }`}
                   >
                     <span className="font-bold text-sm">{w.name}</span>
@@ -916,13 +937,13 @@ function WorkoutsTab({ showToast, searchTerm }) {
         <div className="lg:col-span-2 space-y-6">
           {selectedStudent ? (
             <div className="space-y-6">
-              <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-secondary flex items-center gap-2">
-                    <ClipboardList className="w-6 h-6 text-primary" /> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <ClipboardList className="w-6 h-6 text-[#DFFF5E]" /> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
                   </h3>
                   {editingWorkoutId && (
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full uppercase tracking-widest">Existente</span>
+                    <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20">Existente</span>
                   )}
                 </div>
                 
@@ -933,31 +954,42 @@ function WorkoutsTab({ showToast, searchTerm }) {
                     value={workoutName}
                     onChange={e => setWorkoutName(e.target.value)}
                     placeholder="Ex: Treino A - Superior (Foco Peito)"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-[#DFFF5E]/20 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Foco / Descrição (Pílula de Filtro)</label>
+                  <input 
+                    type="text" 
+                    value={workoutDescription}
+                    onChange={e => setWorkoutDescription(e.target.value)}
+                    placeholder="Ex: Foco Peito, Superior, Cardio..."
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-[#DFFF5E]/20 outline-none"
                   />
                 </div>
               </section>
 
               <section className="space-y-4">
                 <div className="flex justify-between items-center px-2">
-                  <h3 className="text-lg font-bold text-secondary">Exercícios da Rotina</h3>
+                  <h3 className="text-lg font-bold text-white">Exercícios da Rotina</h3>
                   <button 
                     onClick={addExercise}
-                    className="flex items-center gap-2 text-primary hover:text-primary-dark font-bold text-sm transition-colors"
+                    className="flex items-center gap-2 text-[#DFFF5E] hover:text-[#B8E600] font-bold text-sm transition-colors"
                   >
-                    <Plus className="w-4 h-4 p-0.5 bg-primary/10 rounded-full" /> Adicionar Exercício
+                    <Plus className="w-4 h-4 p-0.5 bg-[#DFFF5E]/10 rounded-full" /> Adicionar Exercício
                   </button>
                 </div>
 
                 <div className="space-y-4">
                   {workoutItems.map((item, index) => (
-                    <div key={index} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap md:flex-nowrap gap-4 items-end animate-in zoom-in-95 duration-200">
+                    <div key={index} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex flex-wrap md:flex-nowrap gap-4 items-end animate-in zoom-in-95 duration-200">
                       <div className="flex-1 min-w-[200px] space-y-2">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Exercício {index + 1}</label>
                         <select 
                           value={item.exercise_id}
                           onChange={e => updateItem(index, 'exercise_id', e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm outline-none focus:border-[#DFFF5E]/50"
                         >
                           <option value="">Selecione...</option>
                           {exercises.map(ex => (
@@ -972,7 +1004,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
                           type="number" 
                           value={item.target_sets}
                           onChange={e => updateItem(index, 'target_sets', e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-center outline-none"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-[#DFFF5E]/50"
                         />
                       </div>
 
@@ -982,13 +1014,13 @@ function WorkoutsTab({ showToast, searchTerm }) {
                           type="text" 
                           value={item.target_reps}
                           onChange={e => updateItem(index, 'target_reps', e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-center outline-none"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-[#DFFF5E]/50"
                         />
                       </div>
 
                       <button 
                         onClick={() => removeExercise(index)}
-                        className="p-3 text-slate-300 hover:text-rose-500 transition-colors"
+                        className="p-3 text-slate-500 hover:text-rose-400 transition-colors"
                       >
                         <LogOut className="w-5 h-5 rotate-180" />
                       </button>
@@ -1001,15 +1033,15 @@ function WorkoutsTab({ showToast, searchTerm }) {
                 <button 
                   onClick={handleSaveWorkout}
                   disabled={isSaving}
-                  className="bg-secondary hover:bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50"
+                  className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-10 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : editingWorkoutId ? 'Salvar Alterações' : 'Criar Treino'}
                 </button>
               </div>
             </div>
           ) : (
-            <div className="h-[400px] flex flex-col items-center justify-center text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px]">
-              <Users className="w-16 h-16 text-slate-200 mb-4" />
+            <div className="h-[400px] flex flex-col items-center justify-center text-center bg-[#111111] border-2 border-dashed border-white/5 rounded-[40px]">
+              <Users className="w-16 h-16 text-white/10 mb-4" />
               <p className="text-slate-400 font-medium">Selecione um aluno ao lado <br/> para começar a montar ou editar treinos.</p>
             </div>
           )}
@@ -1019,7 +1051,7 @@ function WorkoutsTab({ showToast, searchTerm }) {
   )
 }
 
-function StudentsTab({ onViewProfile, showToast, searchTerm }) {
+function StudentsTab({ onViewProfile, showToast, searchTerm, teacherInfo }) {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -1027,10 +1059,12 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
   const [isSaving, setIsSaving] = useState(false)
 
   const fetchStudents = async () => {
+    if (!teacherInfo?.id) return
     setLoading(true)
     const { data, error } = await supabase
       .from('gym_students')
       .select('*')
+      .eq('teacher_id', teacherInfo.id)
       .order('name')
     if (error) {
       console.error('Erro ao buscar alunos:', error)
@@ -1042,15 +1076,37 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
 
   useEffect(() => {
     fetchStudents()
-  }, [])
+  }, [teacherInfo?.id])
 
   const handleCreateStudent = async (e) => {
     e.preventDefault()
+    
+    // Validar quota
+    if (students.length >= teacherInfo.quota_limit) {
+      showToast(`Limite de alunos atingido (${teacherInfo.quota_limit}). Entre em contato com o administrador.`, 'error')
+      return
+    }
+
     setIsSaving(true)
+    
+    // Verificar se username já existe no sistema global
+    const { data: existingStudent } = await supabase
+      .from('gym_students')
+      .select('id')
+      .eq('username', newStudent.username.toLowerCase().trim())
+      .maybeSingle()
+
+    if (existingStudent) {
+      showToast('Este nome de usuário já está sendo usado por outro aluno no sistema. Tente algo diferente (ex: nome.sobrenome).', 'error')
+      setIsSaving(false)
+      return
+    }
+
       const { data, error } = await supabase
       .from('gym_students')
       .insert([{
         ...newStudent,
+        teacher_id: teacherInfo.id,
         username: newStudent.username.toLowerCase().trim()
       }])
       .select()
@@ -1075,12 +1131,12 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-bold text-secondary">Gestão de Alunos</h3>
+          <h3 className="text-lg font-bold text-white">Gestão de Alunos</h3>
           <p className="text-xs text-slate-500">Cadastre e gerencie o acesso de Caio e Thais</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
+          className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(223,255,94,0.2)]"
         >
           <Plus className="w-4 h-4" /> Novo Aluno
         </button>
@@ -1088,24 +1144,24 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">
-          {[1, 2].map(i => <div key={i} className="h-32 bg-slate-200 animate-pulse rounded-2xl" />)}
+          {[1, 2].map(i => <div key={i} className="h-32 bg-slate-800 animate-pulse rounded-2xl" />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredStudents.map(s => (
-            <div key={s.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-primary/30 transition-all">
+            <div key={s.id} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex items-center justify-between group hover:border-[#DFFF5E]/30 transition-all">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl font-bold text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-300 group-hover:bg-[#DFFF5E]/10 group-hover:text-[#DFFF5E] transition-colors border border-white/5">
                   {s.name[0]}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-800">{s.name}</h3>
-                  <p className="text-sm text-slate-500">@{s.username}</p>
+                  <h3 className="font-bold text-lg text-white">{s.name}</h3>
+                  <p className="text-sm text-slate-400">@{s.username}</p>
                 </div>
               </div>
                   <button 
                     onClick={() => onViewProfile(s)}
-                    className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-primary hover:text-white transition-all group-hover:scale-110 flex items-center gap-2"
+                    className="p-3 bg-white/5 text-slate-400 rounded-xl hover:bg-[#DFFF5E] hover:text-black transition-all group-hover:scale-110 flex items-center gap-2"
                   >
                     <span className="text-xs font-bold px-1">Ver Perfil</span>
                     <ChevronRight className="w-5 h-5" />
@@ -1113,8 +1169,8 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
             </div>
           ))}
           {students.length === 0 && (
-            <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+            <div className="col-span-full py-20 text-center bg-[#111111] rounded-3xl border-2 border-dashed border-white/5">
+              <Users className="w-12 h-12 text-slate-700 mx-auto mb-4" />
               <p className="text-slate-500 font-medium">Nenhum aluno cadastrado ainda.</p>
             </div>
           )}
@@ -1123,13 +1179,13 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
 
       {/* Modal Cadastro Aluno */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-lg text-secondary flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" /> Cadastrar Novo Aluno
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white flex items-center gap-2">
+                <Plus className="w-5 h-5 text-[#DFFF5E]" /> Cadastrar Novo Aluno
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">Fechar</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-300 transition-colors">Fechar</button>
             </div>
             <form onSubmit={handleCreateStudent} className="p-6 space-y-4">
               <div className="space-y-2">
@@ -1139,7 +1195,7 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
                   type="text" 
                   value={newStudent.name}
                   onChange={e => setNewStudent({...newStudent, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
                   placeholder="Ex: Caio França"
                 />
               </div>
@@ -1150,7 +1206,7 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
                   type="text" 
                   value={newStudent.username}
                   onChange={e => setNewStudent({...newStudent, username: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
                   placeholder="Ex: caio.franca"
                 />
               </div>
@@ -1161,7 +1217,7 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
                   type="password" 
                   value={newStudent.password}
                   onChange={e => setNewStudent({...newStudent, password: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
                   placeholder="Defina uma senha"
                 />
               </div>
@@ -1169,14 +1225,14 @@ function StudentsTab({ onViewProfile, showToast, searchTerm }) {
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
+                  className="flex-1 px-4 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all border border-white/5"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-[#DFFF5E] text-black rounded-xl font-bold text-sm hover:bg-[#B8E600] transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : 'Cadastrar Aluno'}
                 </button>
@@ -1275,37 +1331,37 @@ function StudentDetailView({ student, onBack, showToast }) {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-right duration-300">
-      <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors font-bold text-sm">
+      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-[#DFFF5E] transition-colors font-bold text-sm">
         <ChevronLeft className="w-4 h-4" /> Voltar para Alunos
       </button>
 
-      <div className="flex items-center justify-between bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="flex items-center justify-between bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-3xl font-bold text-primary">
+          <div className="w-20 h-20 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-3xl font-bold text-[#DFFF5E]">
             {student?.name?.[0] || 'A'}
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-secondary">{student?.name || 'Aluno'}</h2>
-            <p className="text-slate-500">@{student?.username || 'usuario'}</p>
+            <h2 className="text-3xl font-bold text-white">{student?.name || 'Aluno'}</h2>
+            <p className="text-slate-400">@{student?.username || 'usuario'}</p>
           </div>
         </div>
         
-        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+        <div className="flex bg-black/50 p-1.5 rounded-2xl border border-white/10">
           <button 
             onClick={() => setCurrentSubTab('overview')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'overview' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'overview' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Visão Geral
           </button>
           <button 
             onClick={() => setCurrentSubTab('workouts')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'workouts' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'workouts' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Treinos
           </button>
           <button 
             onClick={() => setCurrentSubTab('evolution')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'evolution' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'evolution' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Evolução
           </button>
@@ -1316,19 +1372,19 @@ function StudentDetailView({ student, onBack, showToast }) {
         {currentSubTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-                <h3 className="text-lg font-bold text-secondary mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" /> Evolução Recente
+              <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm">
+                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-[#DFFF5E]" /> Evolução Recente
                 </h3>
                 {bioRecords.length > 0 ? (
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
                         <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
-                        <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                        <Area type="monotone" dataKey="weight" stroke="#FB7185" fill="#FB7185" fillOpacity={0.1} strokeWidth={3} />
+                        <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', backgroundColor: '#111', color: '#fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)'}} />
+                        <Area type="monotone" dataKey="weight" stroke="#DFFF5E" fill="#DFFF5E" fillOpacity={0.1} strokeWidth={3} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -1339,30 +1395,30 @@ function StudentDetailView({ student, onBack, showToast }) {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-secondary p-8 rounded-3xl text-white shadow-xl relative overflow-hidden group">
+              <div className="bg-[#0F172A] border border-white/5 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden group">
                 <Activity className="absolute -right-4 -top-4 w-32 h-32 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                <h4 className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-8">Status Atual</h4>
+                <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8">Status Atual</h4>
                 {bioRecords.length > 0 ? (
                   <div className="space-y-6 relative z-10">
                     <div className="flex justify-between items-end">
-                      <span className="text-white/60 text-xs font-medium">Peso Total</span>
+                      <span className="text-slate-400 text-xs font-medium">Peso Total</span>
                       <span className="text-3xl font-black">{bioRecords[bioRecords.length-1]?.weight || 0}kg</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className="text-white/60 text-xs font-medium">% Gordura</span>
+                      <span className="text-slate-400 text-xs font-medium">% Gordura</span>
                       <span className="text-3xl font-black text-rose-400">{bioRecords[bioRecords.length-1]?.body_fat_pct || 0}%</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className="text-white/60 text-xs font-medium">Massa Magra</span>
+                      <span className="text-slate-400 text-xs font-medium">Massa Magra</span>
                       <span className="text-3xl font-black text-emerald-400">{bioRecords[bioRecords.length-1]?.muscle_mass_kg || 0}kg</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                       <div className="flex flex-col">
-                        <span className="text-white/40 text-[10px] uppercase font-bold">Gord. Visceral</span>
+                        <span className="text-slate-500 text-[10px] uppercase font-bold">Gord. Visceral</span>
                         <span className="text-xl font-bold text-amber-400">{bioRecords[bioRecords.length-1]?.visceral_fat || '-'}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-white/40 text-[10px] uppercase font-bold">Idade Corp.</span>
+                        <span className="text-slate-500 text-[10px] uppercase font-bold">Idade Corp.</span>
                         <span className="text-xl font-bold text-sky-400">{bioRecords[bioRecords.length-1]?.body_age || '-'}</span>
                       </div>
                     </div>
@@ -1370,24 +1426,24 @@ function StudentDetailView({ student, onBack, showToast }) {
                 ) : (
                   <div className="py-10 text-center relative z-10">
                     <Scale className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                    <p className="text-white/40 text-sm italic">Aguardando biopedância.</p>
+                    <p className="text-slate-500 text-sm italic">Aguardando biopedância.</p>
                   </div>
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
                 <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Metas do Professor</h4>
                 <div className="space-y-4">
                   <textarea 
                     value={goals}
                     onChange={(e) => setGoals(e.target.value)}
                     placeholder="Defina metas para o aluno..."
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-primary/10 transition-all min-h-[120px] resize-none"
+                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-[#DFFF5E]/50 transition-all min-h-[120px] resize-none"
                   />
                   <button 
                     onClick={handleSaveGoals}
                     disabled={isSavingGoals}
-                    className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl text-xs hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+                    className="w-full bg-[#DFFF5E]/10 text-[#DFFF5E] font-bold py-3 rounded-xl text-xs hover:bg-[#DFFF5E] hover:text-black transition-all disabled:opacity-50"
                   >
                     {isSavingGoals ? 'Salvando...' : 'Atualizar Metas'}
                   </button>
@@ -1398,31 +1454,31 @@ function StudentDetailView({ student, onBack, showToast }) {
         )}
 
         {currentSubTab === 'workouts' && (
-          <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-lg font-bold text-secondary mb-6 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-primary" /> Treinos do Aluno
+          <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-[#DFFF5E]" /> Treinos do Aluno
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workouts.map(w => (
                 <button 
                   key={w.id} 
                   onClick={() => handleViewWorkoutDetail(w)}
-                  className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 flex flex-col justify-between hover:border-primary/30 transition-all group shadow-sm text-left active:scale-95"
+                  className="p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-[#DFFF5E]/30 transition-all group shadow-sm text-left active:scale-95"
                 >
                   <div className="mb-6">
-                    <p className="font-bold text-secondary text-xl mb-1 group-hover:text-primary transition-colors">{w.name}</p>
+                    <p className="font-bold text-white text-xl mb-1 group-hover:text-[#DFFF5E] transition-colors">{w.name}</p>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                       Criado em {new Date(w.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-primary bg-primary/5 px-3 py-1.5 rounded-full">Ver Exercícios</span>
-                    <Dumbbell className="w-5 h-5 text-slate-200 group-hover:text-primary transition-colors" />
+                    <span className="text-xs font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
+                    <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-[#DFFF5E] transition-colors" />
                   </div>
                 </button>
               ))}
               {workouts.length === 0 && (
-                <div className="col-span-full py-20 text-center bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-100">
+                <div className="col-span-full py-20 text-center bg-[#111111] rounded-3xl border-2 border-dashed border-white/5">
                   <p className="text-slate-400 italic">Nenhum treino criado ainda.</p>
                 </div>
               )}
@@ -1431,32 +1487,32 @@ function StudentDetailView({ student, onBack, showToast }) {
         )}
 
         {currentSubTab === 'evolution' && (
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-lg font-bold text-secondary mb-6 flex items-center gap-2">
-              <History className="w-5 h-5 text-primary" /> Histórico de Evolução
+          <div className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <History className="w-5 h-5 text-[#DFFF5E]" /> Histórico de Evolução
             </h3>
             <div className="space-y-4">
               {bioRecords.slice().reverse().map((r, i) => (
-                <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-[32px] border border-slate-100 group hover:bg-white hover:shadow-md transition-all">
+                <div key={i} className="flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 group hover:bg-white/10 hover:border-white/10 hover:shadow-md transition-all">
                   <div className="flex items-center gap-6">
-                    <div className="bg-white w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-sm">
+                    <div className="bg-black/50 w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-sm border border-white/5">
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{new Date(r.record_date).toLocaleDateString('pt-BR', { month: 'short' })}</p>
-                      <p className="text-lg font-black text-secondary">{new Date(r.record_date).getDate()}</p>
+                      <p className="text-lg font-black text-white">{new Date(r.record_date).getDate()}</p>
                     </div>
                     <div>
-                      <p className="font-bold text-secondary text-lg">{r.weight}kg</p>
+                      <p className="font-bold text-[#DFFF5E] text-lg">{r.weight}kg</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                        <span className="text-[10px] text-slate-400 font-medium">Gordura: <b className="text-slate-600">{r.body_fat_pct}%</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Músculo: <b className="text-slate-600">{r.muscle_mass_kg}kg</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Água: <b className="text-slate-600">{r.body_water_pct || 0}%</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Óssea: <b className="text-slate-600">{r.bone_mass_kg || 0}kg</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Visceral: <b className="text-slate-600">{r.visceral_fat || '-'}</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Idade: <b className="text-slate-600">{r.body_age || '-'}</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">IMC: <b className="text-slate-600">{r.bmi || '-'}</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Gordura: <b className="text-white">{r.body_fat_pct}%</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Músculo: <b className="text-white">{r.muscle_mass_kg}kg</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Água: <b className="text-white">{r.body_water_pct || 0}%</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Óssea: <b className="text-white">{r.bone_mass_kg || 0}kg</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Visceral: <b className="text-white">{r.visceral_fat || '-'}</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">Idade: <b className="text-white">{r.body_age || '-'}</b></span>
+                        <span className="text-[10px] text-slate-400 font-medium">IMC: <b className="text-white">{r.bmi || '-'}</b></span>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white px-4 py-2 rounded-xl text-xs font-bold text-slate-400 border border-slate-100">
+                  <div className="bg-black/50 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 border border-white/5">
                     TMB: {r.tmb || 0} kcal
                   </div>
                 </div>
@@ -1471,16 +1527,16 @@ function StudentDetailView({ student, onBack, showToast }) {
 
       {/* Modal Detalhes do Treino */}
       {isWorkoutModalOpen && (
-        <div className="fixed inset-0 bg-secondary/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-white/10 w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center">
               <div>
-                <h3 className="text-2xl font-black text-secondary">{selectedWorkoutDetail?.name}</h3>
+                <h3 className="text-2xl font-black text-white">{selectedWorkoutDetail?.name}</h3>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Lista de Exercícios</p>
               </div>
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="p-3 bg-slate-100 rounded-full text-slate-400 hover:text-rose-500 transition-all"
+                className="p-3 bg-white/5 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-white/5"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1489,30 +1545,30 @@ function StudentDetailView({ student, onBack, showToast }) {
             <div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">
               {loadingItems ? (
                 <div className="py-20 text-center">
-                  <Activity className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
+                  <Activity className="w-10 h-10 text-[#DFFF5E] animate-spin mx-auto mb-4" />
                   <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando Itens...</p>
                 </div>
               ) : workoutItems.length > 0 ? (
                 workoutItems.map((item, idx) => {
                   const ex = Array.isArray(item.gym_exercises) ? item.gym_exercises[0] : item.gym_exercises
                   return (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100 hover:border-primary/20 transition-all group">
-                      <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm">
+                    <div key={idx} className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/5 hover:border-[#DFFF5E]/30 transition-all group">
+                      <div className="w-14 h-14 rounded-2xl bg-black/50 flex items-center justify-center overflow-hidden border border-white/5 shadow-sm">
                         {ex?.gif_url ? (
                           <img src={ex.gif_url} className="w-full h-full object-cover" />
                         ) : (
-                          <Dumbbell className="w-6 h-6 text-slate-200" />
+                          <Dumbbell className="w-6 h-6 text-slate-500" />
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-bold text-secondary">{ex?.name || 'Exercício'}</p>
+                        <p className="font-bold text-white">{ex?.name || 'Exercício'}</p>
                         <div className="flex gap-3 mt-1">
-                          <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase">{item.target_sets} Sets</span>
-                          <span className="text-[10px] font-bold text-accent bg-accent/5 px-2 py-0.5 rounded-md uppercase">{item.target_reps} Reps</span>
+                          <span className="text-[10px] font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-2 py-0.5 rounded-md uppercase">{item.target_sets} Sets</span>
+                          <span className="text-[10px] font-bold text-[#C6C4FF] bg-[#C6C4FF]/10 px-2 py-0.5 rounded-md uppercase">{item.target_reps} Reps</span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="flex items-center gap-1 text-slate-300">
+                        <div className="flex items-center gap-1 text-slate-500 group-hover:text-slate-300">
                           <Timer className="w-3 h-3" />
                           <span className="text-[10px] font-bold uppercase tracking-tighter">{item.rest_time}</span>
                         </div>
@@ -1527,10 +1583,10 @@ function StudentDetailView({ student, onBack, showToast }) {
               )}
             </div>
             
-            <div className="p-8 bg-slate-50 flex gap-4">
+            <div className="p-8 bg-black/50 flex gap-4 border-t border-white/5">
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="w-full bg-secondary text-white font-bold py-4 rounded-2xl hover:bg-slate-900 transition-all shadow-lg shadow-secondary/10"
+                className="w-full bg-[#DFFF5E] text-black font-bold py-4 rounded-2xl hover:bg-[#B8E600] transition-all shadow-[0_0_20px_rgba(223,255,94,0.15)]"
               >
                 Fechar Detalhes
               </button>
@@ -1542,14 +1598,124 @@ function StudentDetailView({ student, onBack, showToast }) {
   )
 }
 
+function FinanceiroTab({ teacherInfo }) {
+  const [bills, setBills] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({ pending: 0, paid: 0, total: 0 })
+
+  const fetchBills = async () => {
+    if (!teacherInfo?.id) return
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('gym_billing_records')
+      .select('*')
+      .eq('teacher_id', teacherInfo.id)
+      .order('reference_month', { ascending: false })
+    
+    if (data) {
+      setBills(data)
+      const pending = data.filter(b => b.status === 'pending' || b.status === 'overdue').reduce((acc, b) => acc + Number(b.total_amount), 0)
+      const paid = data.filter(b => b.status === 'paid').reduce((acc, b) => acc + Number(b.total_amount), 0)
+      setStats({ pending, paid, total: pending + paid })
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchBills()
+  }, [teacherInfo?.id])
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Total Pendente</p>
+          <h3 className="text-3xl font-black text-rose-400 font-display">R$ {stats.pending.toFixed(2)}</h3>
+        </div>
+        <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Total Pago</p>
+          <h3 className="text-3xl font-black text-emerald-400 font-display">R$ {stats.paid.toFixed(2)}</h3>
+        </div>
+        <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Preço por Aluno</p>
+          <h3 className="text-3xl font-black text-white font-display">R$ 30,00</h3>
+        </div>
+      </div>
+
+      <section className="bg-[#111111] rounded-3xl border border-white/5 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-white/5">
+          <h3 className="font-bold text-white">Histórico de Faturas</h3>
+          <p className="text-xs text-slate-400">Cobranças mensais baseadas na quantidade de alunos ativos</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-black/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5">
+              <tr>
+                <th className="px-6 py-4">Mês Referência</th>
+                <th className="px-6 py-4">Qtd Alunos</th>
+                <th className="px-6 py-4">Valor Total</th>
+                <th className="px-6 py-4">Vencimento</th>
+                <th className="px-6 py-4">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                [1, 2].map(i => <tr key={i} className="animate-pulse h-16 bg-white/5" />)
+              ) : bills.map(bill => (
+                <tr key={bill.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-6 py-5">
+                    <span className="font-bold text-white">{bill.reference_month}</span>
+                  </td>
+                  <td className="px-6 py-5 text-sm text-slate-400">{bill.student_count} alunos</td>
+                  <td className="px-6 py-5 font-black text-white font-display">R$ {Number(bill.total_amount).toFixed(2)}</td>
+                  <td className="px-6 py-5 text-xs text-slate-400">
+                    {new Date(bill.due_date).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                      bill.status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                      bill.status === 'overdue' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    }`}>
+                      {bill.status === 'paid' ? 'Pago' : bill.status === 'overdue' ? 'Atrasado' : 'Pendente'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {!loading && bills.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic">
+                    Nenhuma fatura encontrada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      
+      <div className="bg-amber-500/5 border border-amber-500/10 p-6 rounded-3xl flex gap-4">
+        <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
+        <div>
+          <p className="text-sm font-bold text-amber-500 mb-1">Informação sobre Pagamentos</p>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            As faturas são geradas automaticamente todo dia 01 com base no número de alunos ativos. 
+            Para realizar o pagamento ou contestar valores, entre em contato com o administrador master através do email <b>cf95.souza@gmail.com</b>.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function KPICard({ title, value, change, trend }) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-      <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">{title}</p>
+    <div className="bg-[#111111] p-6 rounded-xl border border-white/5 shadow-sm">
+      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{title}</p>
       <div className="flex items-end justify-between">
-        <h3 className="text-3xl font-bold text-secondary">{value}</h3>
+        <h3 className="text-3xl font-bold text-white">{value}</h3>
         <span className={`text-xs font-bold ${
-          trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-rose-600' : 'text-slate-400'
+          trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-rose-400' : 'text-slate-400'
         }`}>
           {change}
         </span>

@@ -1,32 +1,38 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Dumbbell, ShieldCheck, User, Loader2 } from 'lucide-react'
+import { Dumbbell, ShieldCheck, User, Loader2, ArrowRight } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function Login() {
-  const [loginType, setLoginType] = useState('student') // 'student' or 'admin'
-  const [identifier, setIdentifier] = useState('') // email or username
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
-
   const [checkingSession, setCheckingSession] = useState(true)
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // Check Admin Session
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
-          navigate('/admin', { replace: true })
+          if (session.user.email === 'cf95.souza@gmail.com') {
+            navigate('/master', { replace: true })
+          } else {
+            navigate('/admin', { replace: true })
+          }
           return
         }
 
-        // Check Student Session (Custom Table)
-        const student = localStorage.getItem('casalgym_user')
+        const student = localStorage.getItem('vollonfit_user')
         if (student) {
           navigate('/student', { replace: true })
+          return
+        }
+
+        const teacher = localStorage.getItem('vollonfit_teacher')
+        if (teacher) {
+          navigate('/admin', { replace: true })
           return
         }
       } finally {
@@ -36,31 +42,42 @@ export default function Login() {
     checkSession()
   }, [navigate])
 
-  if (checkingSession) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando Sessão...</p>
-      </div>
-    )
-  }
-
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      if (loginType === 'admin') {
-        // Admin Login via Supabase Auth
-        const { error } = await supabase.auth.signInWithPassword({
-          email: identifier,
+      const isEmail = identifier.includes('@')
+
+      if (isEmail && identifier.trim().toLowerCase() === 'cf95.souza@gmail.com') {
+        // Master Admin Login (Supabase Auth)
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: identifier.trim(),
           password: password,
         })
-        if (error) throw error
+        if (error) throw new Error('Credenciais inválidas')
+        navigate('/master', { replace: true })
+
+      } else if (isEmail) {
+        // Teacher Login (tabela gym_teachers)
+        const { data: teacher, error } = await supabase
+          .from('gym_teachers')
+          .select('*')
+          .eq('email', identifier.trim().toLowerCase())
+          .eq('password', password.trim())
+          .single()
+
+        if (error || !teacher) throw new Error('Email ou senha incorretos')
+
+        if (teacher.status === 'blocked') {
+          throw new Error('Sua conta está suspensa. Entre em contato com o administrador.')
+        }
+
+        localStorage.setItem('vollonfit_teacher', JSON.stringify(teacher))
         navigate('/admin', { replace: true })
       } else {
-        // Student Login via Custom Table
+        // Student Login
         const { data, error } = await supabase
           .from('gym_students')
           .select('*')
@@ -68,84 +85,102 @@ export default function Login() {
           .eq('password', password.trim())
           .single()
 
-        if (error) throw error
-        if (!data) throw new Error('Usuário não encontrado ou senha incorreta')
+        if (error) throw new Error('Usuário ou senha incorretos')
+
+        // Verificar se o professor vinculado está bloqueado
+        if (data.teacher_id) {
+          const { data: teacher } = await supabase
+            .from('gym_teachers')
+            .select('status')
+            .eq('id', data.teacher_id)
+            .single()
+
+          if (teacher?.status === 'blocked') {
+            throw new Error('Acesso temporariamente indisponível. Entre em contato com seu professor.')
+          }
+        }
         
-        // Em um app real, salvaríamos a sessão do aluno (localStorage ou context)
-        localStorage.setItem('casalgym_user', JSON.stringify(data))
+        localStorage.setItem('vollonfit_user', JSON.stringify(data))
         navigate('/student', { replace: true })
       }
     } catch (err) {
-      setError(err.message === 'Failed to fetch' ? 'Erro de conexão com o banco' : err.message)
+      setError(err.message)
     } finally {
       setLoading(false)
     }
   }
 
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+        <Loader2 className="w-12 h-12 text-[#DFFF5E] animate-spin mb-4" />
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Iniciando VollonFit...</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-        {/* Header */}
-        <div className="bg-secondary p-8 text-center">
-          <div className="inline-flex items-center justify-center bg-primary p-3 rounded-xl mb-4">
-            <Dumbbell className="text-white w-6 h-6" />
+    <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden bg-black">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105"
+        style={{ backgroundImage: 'url("/assets/login-bg.png")' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-[#DFFF5E]/20" />
+      
+      {/* Animated Elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#DFFF5E] to-transparent opacity-50" />
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#DFFF5E] to-transparent opacity-50" />
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center bg-[#DFFF5E] p-4 rounded-3xl mb-6 shadow-2xl shadow-[#DFFF5E]/40 animate-bounce-subtle text-black">
+            <Dumbbell className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-white">CasalGym</h1>
-          <p className="text-slate-400 text-sm mt-1">Sua jornada de evolução</p>
+          <h1 className="text-5xl font-black text-white tracking-tighter mb-2 font-display uppercase">
+            VOLLON<span className="text-[#DFFF5E]">FIT</span>
+          </h1>
+          <p className="text-slate-400 font-medium tracking-widest text-[10px] uppercase">Evolution Management System</p>
         </div>
 
-        <div className="p-8">
-          {/* Toggle Switch */}
-          <div className="flex bg-slate-100 p-1 rounded-lg mb-8">
-            <button
-              onClick={() => setLoginType('student')}
-              className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                loginType === 'student' ? 'bg-white text-secondary shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <User className="w-4 h-4 mr-2" />
-              Aluno
-            </button>
-            <button
-              onClick={() => setLoginType('admin')}
-              className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                loginType === 'admin' ? 'bg-white text-secondary shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 mr-2" />
-              Admin
-            </button>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                {loginType === 'admin' ? 'E-mail' : 'Usuário (caio.franca / thais.franca)'}
-              </label>
-              <input
-                type={loginType === 'admin' ? 'email' : 'text'}
-                required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-                placeholder={loginType === 'admin' ? 'seu@email.com' : 'usuario.nome'}
-              />
+        <div className="bg-white/10 backdrop-blur-2xl p-10 rounded-[40px] border border-white/10 shadow-2xl shadow-black/50">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Acesso do Usuário</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors">
+                  <User className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
+                  placeholder="Email ou Username"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Senha</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-                placeholder="••••••••"
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chave de Segurança</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-rose-50 border border-rose-100 text-rose-600 text-xs rounded-lg">
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
                 {error}
               </div>
             )}
@@ -153,21 +188,42 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center disabled:opacity-70"
+              className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black font-black py-5 rounded-2xl shadow-xl shadow-[#DFFF5E]/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                'Entrar'
+                <>
+                  ACESSAR SISTEMA
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </button>
           </form>
         </div>
+
+        <p className="mt-8 text-slate-500 text-[10px] text-center font-bold uppercase tracking-[0.3em]">
+          Powered by VollonFit OS © 2026
+        </p>
       </div>
-      
-      <p className="mt-8 text-slate-400 text-xs text-center max-w-xs">
-        Seja bem-vindo de volta! Prepare-se para superar seus limites hoje.
-      </p>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 3s ease-in-out infinite;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        .animate-shake {
+          animation: shake 0.2s ease-in-out 0s 2;
+        }
+      `}} />
     </div>
   )
 }
