@@ -1341,7 +1341,10 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
           <h3 className="text-lg font-bold text-white mb-4">Histórico Completo</h3>
           <div className="space-y-3">
             {(records || []).slice().reverse().map((r, i) => (
-              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between s                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between shadow-lg">
+                <div>
+                  <p className="font-bold text-white">{r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR') : '-'}</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                     <span className="text-[10px] text-slate-500 font-medium">Peso: <b className="text-slate-300">{r.weight || 0}kg</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Gordura: <b className="text-slate-300">{r.body_fat_pct || 0}%</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Músculo: <b className="text-slate-300">{r.muscle_mass_kg || 0}kg</b></span>
@@ -1349,9 +1352,6 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                     <span className="text-[10px] text-slate-500 font-medium">Água: <b className="text-slate-300">{r.body_water_pct || 0}%</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Óssea: <b className="text-slate-300">{r.bone_mass_kg || 0}kg</b></span>
                     <span className="text-[10px] text-slate-500 font-medium">Idade: <b className="text-slate-300">{r.body_age || '-'}</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
-                  </div>
-/b></span>
                     <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
                   </div>
                 </div>
@@ -1365,7 +1365,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </section>
       )}
 
-      {/* Modal de ConfirmaÃ§Ã£o Customizado */}
+      {/* Modal de Confirmação Customizado */}
       {photoToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="bg-[#1A1A1A] w-full max-w-xs rounded-[40px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 text-center border border-white/10">
