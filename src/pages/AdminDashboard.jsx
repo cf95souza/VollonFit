@@ -178,10 +178,10 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="max-w-7xl mx-auto space-y-10">
-              <header className="flex justify-between items-end">
+              <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
                   <p className="text-[10px] font-black text-[#DFFF5E] uppercase tracking-[0.3em] mb-2">Painel de Gestão</p>
-                  <h1 className="text-4xl font-black text-white font-display">
+                  <h1 className="text-3xl md:text-4xl font-black text-white font-display">
                     {activeTab === 'overview' && 'Visão Geral'}
                     {activeTab === 'exercises' && 'Biblioteca de Exercícios'}
                     {activeTab === 'workouts' && 'Gestão de Treinos'}
@@ -190,18 +190,18 @@ export default function AdminDashboard() {
                     {activeTab === 'settings' && 'Configurações do Perfil'}
                   </h1>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="relative">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                  <div className="relative flex-1 md:flex-none">
                     <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input 
                       type="text" 
                       placeholder="Buscar por nome..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-12 pr-4 py-3 bg-[#111111] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all w-72 shadow-sm"
+                      className="pl-12 pr-4 py-3 bg-[#111111] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all w-full md:w-72 shadow-sm"
                     />
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-[#DFFF5E] flex items-center justify-center text-black font-black text-sm shadow-[0_0_20px_rgba(223,255,94,0.3)]">
+                  <div className="w-12 h-12 rounded-2xl bg-[#DFFF5E] flex items-center justify-center text-black font-black text-sm shadow-[0_0_20px_rgba(223,255,94,0.3)] shrink-0">
                     AD
                   </div>
                 </div>
