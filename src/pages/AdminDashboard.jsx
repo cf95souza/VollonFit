@@ -1411,33 +1411,33 @@ function StudentDetailView({ student, onBack, showToast }) {
         <ChevronLeft className="w-4 h-4" /> Voltar para Alunos
       </button>
 
-      <div className="flex items-center justify-between bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-3xl font-bold text-[#DFFF5E]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#111111] p-6 sm:p-8 rounded-3xl border border-white/5 shadow-sm gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="w-16 h-16 sm:w-20 h-20 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-bold text-[#DFFF5E]">
             {student?.name?.[0] || 'A'}
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-white">{student?.name || 'Aluno'}</h2>
-            <p className="text-slate-400">@{student?.username || 'usuario'}</p>
+            <h2 className="text-xl sm:text-3xl font-bold text-white truncate max-w-[200px] sm:max-w-none">{student?.name || 'Aluno'}</h2>
+            <p className="text-sm text-slate-400">@{student?.username || 'usuario'}</p>
           </div>
         </div>
         
-        <div className="flex bg-black/50 p-1.5 rounded-2xl border border-white/10">
+        <div className="flex w-full sm:w-auto bg-black/50 p-1 rounded-2xl border border-white/10 overflow-x-auto custom-scrollbar">
           <button 
             onClick={() => setCurrentSubTab('overview')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'overview' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === 'overview' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Visão Geral
           </button>
           <button 
             onClick={() => setCurrentSubTab('workouts')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'workouts' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === 'workouts' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Treinos
           </button>
           <button 
             onClick={() => setCurrentSubTab('evolution')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'evolution' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === 'evolution' ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
           >
             Evolução
           </button>
