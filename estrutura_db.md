@@ -200,3 +200,4 @@ CREATE POLICY "Anon manage photos" ON gym_evolution_photos FOR ALL TO anon USING
 CREATE POLICY "Anon manage billing" ON gym_billing_records FOR SELECT TO anon USING (true);
 CREATE POLICY "Anon manage settings" ON gym_settings FOR SELECT TO anon USING (true);
 CREATE POLICY "Anon manage notes" ON gym_student_exercise_notes FOR ALL TO anon USING (true) WITH CHECK (true);
+

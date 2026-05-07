@@ -1,6 +1,6 @@
 # Fases de Desenvolvimento - VollonFit
 
-Este arquivo acompanha o progresso do projeto CasalGym, dividido por fases de implementação e homologação.
+Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de implementação e homologação.
 
 ## 📋 Status Geral: EVOLUÇÃO SaaS EM ANDAMENTO 🚀
 
@@ -164,6 +164,13 @@ Este arquivo acompanha o progresso do projeto CasalGym, dividido por fases de im
 - [x] Cache offline inicial para funcionamento sem internet.
 - [x] Correção Global de Datas (UTC Fix) e Notificações In-App.
 - **Status:** Concluído
+
+### Fase 21: Validação de Novo Ambiente e Lançamento 🚀
+- [ ] 1. Verificação de conexão com o novo banco de dados (Supabase).
+- [ ] 2. Criação do primeiro usuário Master (`cf95.souza@gmail.com`).
+- [ ] 3. Sincronização e Push para os repositórios Dev e Produção.
+- [ ] 4. Teste de fumaça (Smoke Test) de todas as roles (Master, Professor, Aluno).
+- **Status:** Em Andamento
 
 ---
 **Data de Entrega Prevista (SaaS):** 20 de Maio de 2026
