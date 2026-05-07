@@ -1999,11 +1999,28 @@ function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partner
 
   const subscribeToPush = async () => {
     try {
+      if (!('serviceWorker' in navigator)) {
+        window.alert('Seu navegador não suporta Service Workers (essencial para PWA).');
+        return;
+      }
+
+      if (!('PushManager' in window)) {
+        window.alert('Seu navegador não suporta Notificações Push (PWA).');
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
-      const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
       
+      const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
       if (!publicKey) {
-        console.error('VAPID Public Key não encontrada no .env');
+        window.alert('Erro: Chave VAPID não configurada no .env');
+        return;
+      }
+
+      // Tenta pedir a permissão explicitamente antes de assinar
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        window.alert('⚠️ Permissão Negada! Você precisa permitir notificações nas configurações do seu navegador/celular.');
         return;
       }
 
@@ -2023,14 +2040,19 @@ function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partner
       }, { onConflict: 'endpoint' });
 
       if (!error) {
-        showToast('Notificações ativadas!');
+        window.alert('✅ Notificações ativadas com sucesso!');
         window.location.reload();
       } else {
         throw error;
       }
     } catch (err) {
       console.error('Erro ao assinar push:', err);
-      showToast('Erro ao ativar notificações', 'error');
+      // Se o erro for sobre a chave, avisar
+      if (err.message.includes('applicationServerKey')) {
+        window.alert('❌ Erro na Chave de Segurança (VAPID). Talvez o formato no .env esteja incorreto.');
+      } else {
+        window.alert('❌ Falha ao ativar: ' + err.message);
+      }
     }
   };
 
