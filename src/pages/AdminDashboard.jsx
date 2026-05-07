@@ -227,7 +227,7 @@ export default function AdminDashboard() {
               </header>
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
+                {activeTab === 'overview' && <OverviewTab onViewProfile={setViewingStudent} onMotivate={setMotivateModal} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
                 {activeTab === 'exercises' && <ExercisesTab exercises={exercises} showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
                 {activeTab === 'workouts' && <WorkoutsTab showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
                 {activeTab === 'students' && <StudentsTab onViewProfile={setViewingStudent} showToast={showToast} searchTerm={searchTerm} teacherInfo={teacherInfo} />}
@@ -335,7 +335,7 @@ function SidebarLink({ icon, label, active, onClick }) {
   )
 }
 
-function OverviewTab({ onViewProfile, searchTerm, teacherInfo }) {
+function OverviewTab({ onViewProfile, onMotivate, searchTerm, teacherInfo }) {
   const [stats, setStats] = useState({ exercises: 0, workouts: 0, students: 0, sessionsToday: 0 })
   const [recentStudents, setRecentStudents] = useState([])
   const [recentActivities, setRecentActivities] = useState([])
@@ -528,7 +528,7 @@ function OverviewTab({ onViewProfile, searchTerm, teacherInfo }) {
                     </p>
                   </div>
                   <button 
-                    onClick={() => setMotivateModal({ open: true, student: student, message: '' })}
+                    onClick={() => onMotivate({ open: true, student: student, message: '' })}
                     className="bg-slate-800 text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-500/20"
                   >
                     Motivar ›
