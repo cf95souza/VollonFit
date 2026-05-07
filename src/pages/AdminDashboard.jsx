@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   })
   const [toast, setToast] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [motivateModal, setMotivateModal] = useState({ open: false, student: null, message: '' })
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -87,6 +88,24 @@ export default function AdminDashboard() {
     localStorage.removeItem('vollonfit_admin_tab')
     localStorage.removeItem('vollonfit_admin_viewing_student')
     navigate('/')
+  }
+
+  const handleSendMotivation = async () => {
+    if (!motivateModal.student || !motivateModal.message) return
+    
+    const { error } = await supabase.from('gym_social_notifications').insert([{
+      sender_id: teacherInfo.id,
+      receiver_id: motivateModal.student.id,
+      type: 'motivation',
+      message: motivateModal.message
+    }])
+
+    if (error) {
+      showToast('Erro ao enviar motivação', 'error')
+    } else {
+      showToast('Incentivo enviado com sucesso!')
+      setMotivateModal({ open: false, student: null, message: '' })
+    }
   }
 
   const SidebarContent = () => (
@@ -219,6 +238,68 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {/* Modal de Motivação */}
+      {motivateModal.open && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-white/10 rounded-[32px] max-w-md w-full shadow-2xl animate-in zoom-in duration-200 overflow-hidden">
+            <div className="p-8 border-b border-white/5">
+              <div className="w-12 h-12 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-[#DFFF5E] mb-4">
+                <Activity className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-white">Motivar {motivateModal.student?.name}</h3>
+              <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">O aluno receberá uma notificação no celular</p>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Frases Sugeridas</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Bora treinar hoje? 💪', 'Sentimos sua falta! 👊', 'Foco no objetivo! 🎯', 'O plano não para! 🔥'].map(frase => (
+                    <button 
+                      key={frase}
+                      onClick={() => setMotivateModal(prev => ({ ...prev, message: frase }))}
+                      className={`px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                        motivateModal.message === frase 
+                          ? 'bg-[#DFFF5E] border-[#DFFF5E] text-black' 
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:border-[#DFFF5E]/30'
+                      }`}
+                    >
+                      {frase}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mensagem Personalizada</p>
+                <textarea 
+                  value={motivateModal.message}
+                  onChange={e => setMotivateModal(prev => ({ ...prev, message: e.target.value }))}
+                  className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-[#DFFF5E]/50 transition-all min-h-[100px] resize-none"
+                  placeholder="Escreva algo inspirador..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setMotivateModal({ open: false, student: null, message: '' })}
+                  className="flex-1 px-4 py-4 bg-slate-800 text-slate-300 rounded-2xl font-bold text-xs hover:bg-slate-700 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleSendMotivation}
+                  disabled={!motivateModal.message}
+                  className="flex-[2] px-4 py-4 bg-[#DFFF5E] text-black rounded-2xl font-bold text-xs hover:bg-[#B8E600] transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(223,255,94,0.2)]"
+                >
+                  Enviar Incentivo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {toast && (
@@ -447,7 +528,7 @@ function OverviewTab({ onViewProfile, searchTerm, teacherInfo }) {
                     </p>
                   </div>
                   <button 
-                    onClick={() => onViewProfile(student)}
+                    onClick={() => setMotivateModal({ open: true, student: student, message: '' })}
                     className="bg-slate-800 text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-500/20"
                   >
                     Motivar ›

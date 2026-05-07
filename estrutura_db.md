@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS gym_student_exercise_notes (
 -- 9. NOTIFICAÇÕES (In-App)
 CREATE TABLE IF NOT EXISTS gym_social_notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    sender_id UUID REFERENCES gym_students(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL,
     receiver_id UUID REFERENCES gym_students(id) ON DELETE CASCADE,
     type TEXT NOT NULL,
     message TEXT,
