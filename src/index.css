@@ -62,6 +62,24 @@
   @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 }
 
+/* Hide scrollbars on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+  }
+}
+
 /* Animations */
 @keyframes float {
   0% { transform: translateY(0px); }

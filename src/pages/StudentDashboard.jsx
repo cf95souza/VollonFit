@@ -211,6 +211,28 @@ export default function StudentDashboard() {
       setStudent(parsedUser)
       fetchWorkouts(parsedUser.id)
       
+      // --- rádio REALTIME ---
+      // Aqui ligamos a "escuta" para saber quando alguém nos manda algo
+      const channel = supabase
+        .channel('social_updates') // Nome do canal
+        .on(
+          'postgres_changes', 
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'gym_social_notifications',
+            filter: `receiver_id=eq.${parsedUser.id}` // Só quero ouvir o que é PARA MIM
+          }, 
+          (payload) => {
+            console.log('Nova notificação em tempo real:', payload)
+            // Quando chegar algo, mostramos o aviso na tela!
+            showToast(payload.new.message, 'success')
+            // E atualizamos a lista de notificações para ela aparecer no feed
+            fetchWorkouts(parsedUser.id)
+          }
+        )
+        .subscribe()
+
       // Buscar dados atualizados do aluno (metas)
       const fetchFreshData = async () => {
         try {
@@ -229,6 +251,11 @@ export default function StudentDashboard() {
         }
       }
       fetchFreshData()
+
+      // Limpar a rádio quando sair da tela
+      return () => {
+        supabase.removeChannel(channel)
+      }
     } else {
       navigate('/', { replace: true })
     }

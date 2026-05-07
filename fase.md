@@ -166,11 +166,13 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - **Status:** Concluído
 
 ### Fase 21: Validação de Novo Ambiente e Lançamento 🚀
-- [ ] 1. Verificação de conexão com o novo banco de dados (Supabase).
-- [ ] 2. Criação do primeiro usuário Master (`cf95.souza@gmail.com`).
-- [ ] 3. Sincronização e Push para os repositórios Dev e Produção.
-- [ ] 4. Teste de fumaça (Smoke Test) de todas as roles (Master, Professor, Aluno).
-- **Status:** Em Andamento
+- [x] 1. Verificação de conexão com o novo banco de dados (Supabase).
+- [x] 2. Migração e Vinculação de Dados (Exercícios, Alunos, Treinos vinculados ao Teacher).
+- [x] 3. Refinamento de UI Admin (Remoção de colunas redundantes, novo Popup de Exercícios).
+- [x] 4. Filtros Dinâmicos (Pílulas de Categoria no Professor e Master).
+- [x] 5. Redesign Dark Neon completo do Master Dashboard.
+- [x] 6. Homologação de Sincronização de Perfil (Update instantâneo sem reload).
+- **Status:** Concluído ✅
 
 ---
 **Data de Entrega Prevista (SaaS):** 20 de Maio de 2026
