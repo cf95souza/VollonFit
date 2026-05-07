@@ -58,6 +58,7 @@ export default function StudentDashboard() {
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false)
+  const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(new Set())
   const [activeFilter, setActiveFilter] = useState('Todos')
   const [partnerWeeklyVolume, setPartnerWeeklyVolume] = useState(0)
   const [partnerTrainedToday, setPartnerTrainedToday] = useState(false)
@@ -145,6 +146,10 @@ export default function StudentDashboard() {
       const prsCount = currentPrs.filter(pr => pr.record_date >= sevenDaysAgoStr).length
       
       setWeeklyStats({ volume: vol, prs: prsCount })
+
+      // 3.1 IDs dos treinos concluídos nos últimos 7 dias (Para o Pin)
+      const completedIds = new Set(weekLogs.map(l => l.workout_id).filter(Boolean))
+      setCompletedWorkoutsThisWeek(completedIds)
 
       // 4. Última vez que cada treino foi feito
       const lastPerformedAt = {}
@@ -380,14 +385,13 @@ export default function StudentDashboard() {
     )
   }
 
-  // Lógica da Semana Atual (Home)
+  // Lógica da Janela Deslizante de 7 Dias (Últimos 7 dias)
   const todayDate = new Date()
-  const currentDayOfWeek = todayDate.getDay() // 0 (Sun) to 6 (Sat)
-  const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek
   
   const currentWeekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(todayDate)
-    d.setDate(todayDate.getDate() + mondayOffset + i)
+    // Mostra de 6 dias atrás até hoje (total 7 dias)
+    d.setDate(todayDate.getDate() - 6 + i)
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     return {
       dayStr: d.toLocaleDateString('pt-BR', { weekday: 'short' })[0].toUpperCase(),
@@ -563,8 +567,16 @@ export default function StudentDashboard() {
                       <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
                         <Dumbbell className="w-7 h-7" />
                       </div>
-                      <div className="text-left">
-                        <h4 className="text-base font-black text-white font-display mb-1">{workout.name}</h4>
+                      <div className="text-left relative">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-black text-white font-display mb-1">{workout.name}</h4>
+                          {completedWorkoutsThisWeek.has(workout.id) && (
+                            <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30">
+                              <CheckCircle2 className="w-3 h-3 text-primary" />
+                              <span className="text-[8px] font-black text-primary uppercase">Feito</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{workout.description || 'Foco'}</span>
                            <span className="w-1 h-1 rounded-full bg-slate-700"></span>
