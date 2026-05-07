@@ -85,6 +85,7 @@ export default function StudentDashboard() {
       .from('gym_workouts')
       .select('*')
       .eq('student_id', studentId)
+      .order('sequence_order', { ascending: true })
       .order('created_at', { ascending: false })
     
     if (!error) setStudentWorkouts(data)

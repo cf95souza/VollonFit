@@ -1309,7 +1309,7 @@ function StudentDetailView({ student, onBack, showToast }) {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
-      const { data: woData } = await supabase.from('gym_workouts').select('*').eq('student_id', student.id)
+      const { data: woData } = await supabase.from('gym_workouts').select('*').eq('student_id', student.id).order('sequence_order', { ascending: true })
       if (woData) setWorkouts(woData)
       
       const { data: bioData } = await supabase.from('gym_biopedance_records').select('*').eq('student_id', student.id).order('record_date', { ascending: true })
@@ -1369,6 +1369,33 @@ function StudentDetailView({ student, onBack, showToast }) {
     
     if (data) setWorkoutItems(data)
     setLoadingItems(false)
+  }
+
+  const handleMoveWorkout = async (index, direction) => {
+    const newWorkouts = [...workouts]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    
+    if (targetIndex < 0 || targetIndex >= newWorkouts.length) return
+
+    // Troca local
+    const temp = newWorkouts[index]
+    newWorkouts[index] = newWorkouts[targetIndex]
+    newWorkouts[targetIndex] = temp
+
+    // Atualiza estados
+    setWorkouts(newWorkouts)
+
+    // Salva no banco as novas ordens
+    const updates = newWorkouts.map((w, idx) => ({
+      id: w.id,
+      sequence_order: idx
+    }))
+
+    for (const update of updates) {
+      await supabase.from('gym_workouts').update({ sequence_order: update.sequence_order }).eq('id', update.id)
+    }
+    
+    showToast('Ordem atualizada!')
   }
 
   const chartData = (bioRecords || []).map(r => ({
@@ -1508,23 +1535,42 @@ function StudentDetailView({ student, onBack, showToast }) {
               <ClipboardList className="w-5 h-5 text-[#DFFF5E]" /> Treinos do Aluno
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {workouts.map(w => (
-                <button 
-                  key={w.id} 
-                  onClick={() => handleViewWorkoutDetail(w)}
-                  className="p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-[#DFFF5E]/30 transition-all group shadow-sm text-left active:scale-95"
-                >
-                  <div className="mb-6">
-                    <p className="font-bold text-white text-xl mb-1 group-hover:text-[#DFFF5E] transition-colors">{w.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                      Criado em {new Date(w.created_at).toLocaleDateString()}
-                    </p>
+              {workouts.map((w, idx) => (
+                <div key={w.id} className="relative group">
+                  <button 
+                    onClick={() => handleViewWorkoutDetail(w)}
+                    className="w-full p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-[#DFFF5E]/30 transition-all shadow-sm text-left active:scale-95"
+                  >
+                    <div className="mb-6">
+                      <p className="font-bold text-white text-xl mb-1 group-hover:text-[#DFFF5E] transition-colors">{w.name}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                        Criado em {new Date(w.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
+                      <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-[#DFFF5E] transition-colors" />
+                    </div>
+                  </button>
+
+                  {/* Controles de Ordenação */}
+                  <div className="absolute top-4 right-4 flex gap-1 z-20">
+                    <button 
+                      disabled={idx === 0}
+                      onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'up'); }}
+                      className="p-3 bg-black/80 rounded-xl text-[#DFFF5E] hover:bg-[#DFFF5E] hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all"
+                    >
+                      <ChevronLeft className="w-5 h-5 rotate-90" />
+                    </button>
+                    <button 
+                      disabled={idx === workouts.length - 1}
+                      onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'down'); }}
+                      className="p-3 bg-black/80 rounded-xl text-[#DFFF5E] hover:bg-[#DFFF5E] hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all"
+                    >
+                      <ChevronLeft className="w-5 h-5 -rotate-90" />
+                    </button>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
-                    <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-[#DFFF5E] transition-colors" />
-                  </div>
-                </button>
+                </div>
               ))}
               {workouts.length === 0 && (
                 <div className="col-span-full py-20 text-center bg-[#111111] rounded-3xl border-2 border-dashed border-white/5">
