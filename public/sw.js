@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vollonfit-v2';
+const CACHE_NAME = 'casalgym-pwa-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
