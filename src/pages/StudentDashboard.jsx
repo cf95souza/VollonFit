@@ -409,7 +409,7 @@ export default function StudentDashboard() {
   })
   
   // Se só existe 1 treino, e ele já foi feito hoje, não precisamos sugerir "outro", mas sugerimos o mesmo (único possível).
-  // A UI mostrarÃ¡ normalmente.
+  // A UI mostrará normalmente.
   const suggestedWorkout = sortedWorkouts[0]
   
   // Filtros Dinâmicos (Item 4)
@@ -731,7 +731,7 @@ export default function StudentDashboard() {
                     sender_id: student.id,
                     receiver_id: student.partner_id,
                     type: 'workout_finished',
-                    message: `${student.name} just crushed ${selectedWorkout.name}! ðŸ”¥`
+                    message: `${student.name} just crushed ${selectedWorkout.name}! 🔥`
                   }])
                 }
 
@@ -803,7 +803,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
   const [exerciseNotes, setExerciseNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
-  // Carregar notas do exercÃ­cio
+  // Carregar notas do exercício
   useEffect(() => {
     const fetchNotes = async () => {
       if (!ex?.id || !studentId) return
@@ -819,7 +819,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
     fetchNotes()
   }, [ex?.id, studentId])
 
-  // LÃ³gica do Timer
+  // Lógica do Timer
   useEffect(() => {
     let interval = null
     if (isTimerActive && restRemaining > 0) {
@@ -828,7 +828,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
       }, 1000)
     } else if (restRemaining === 0 && isTimerActive) {
       setIsTimerActive(false)
-      // VibraÃ§Ã£o ao terminar (se suportado pelo navegador/celular)
+      // Vibração ao terminar (se suportado pelo navegador/celular)
       if (navigator.vibrate) navigator.vibrate([200, 100, 200])
     }
     return () => clearInterval(interval)
@@ -933,7 +933,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Melhor Marca (PR)</p>
-                  <p className="text-sm font-black text-white">{lastBestSet.weight_kg}kg <span className="text-slate-500 font-bold">Ã— {lastBestSet.reps_done}</span></p>
+                  <p className="text-sm font-black text-white">{lastBestSet.weight_kg}kg <span className="text-slate-500 font-bold">× {lastBestSet.reps_done}</span></p>
                 </div>
               </div>
             </div>
@@ -981,11 +981,11 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
             </div>
           </div>
 
-          {/* AnotaÃ§Ãµes de Ajuste */}
+          {/* Anotações de Ajuste */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AnotaÃ§Ãµes de Ajuste</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anotações de Ajuste</span>
               </div>
               <button 
                 onClick={handleSaveNotes}
@@ -1009,7 +1009,7 @@ function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNe
           disabled={isSaving}
           className="w-full fitness-gradient hover:opacity-90 text-white font-black py-7 rounded-[32px] shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 active:scale-[0.98] transition-all text-xl mt-12 disabled:opacity-50 neon-shadow"
         >
-          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir SÃ©rie' : 'PrÃ³ximo ExercÃ­cio')} 
+          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir Série' : 'Próximo Exercício')} 
           <CheckCircle2 className="w-7 h-7" />
         </button>
       </div>
@@ -1099,7 +1099,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       if (dbError) throw dbError
       
       onPhotosUpdate([newPhoto, ...photos])
-      showToast('Foto de evoluÃ§Ã£o salva!', 'success')
+      showToast('Foto de evolução salva!', 'success')
     } catch (err) {
       console.error('Erro no upload:', err)
       showToast('Erro no Upload: ' + (err.message || err.error_description || 'Verifique o bucket'), 'error')
@@ -1121,7 +1121,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         .from('evolution_photos')
         .remove([filePath])
       
-      if (storageError) console.warn('Erro ao remover do storage (pode jÃ¡ nÃ£o existir):', storageError)
+      if (storageError) console.warn('Erro ao remover do storage (pode já não existir):', storageError)
 
       const { error: dbError } = await supabase
         .from('gym_evolution_photos')
@@ -1131,11 +1131,11 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
       if (dbError) throw dbError
 
       onPhotosUpdate(photos.filter(p => p.id !== id))
-      showToast('Foto excluÃ­da com sucesso.', 'success')
+      showToast('Foto excluída com sucesso.', 'success')
       setPhotoToDelete(null)
     } catch (err) {
       console.error('Erro ao excluir foto:', err)
-      showToast('Erro ao Excluir: ' + (err.message || 'Erro de permissÃ£o'), 'error')
+      showToast('Erro ao Excluir: ' + (err.message || 'Erro de permissão'), 'error')
     } finally {
       setIsUploading(false)
     }
@@ -1204,11 +1204,11 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
         </div>
       </section>
 
-      {/* SeÃ§Ã£o de Recordes Pessoais (TrofÃ©us) */}
+      {/* Seção de Recordes Pessoais (Troféus) */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-xl font-black text-white font-display">Hall de Recordes</h3>
-          <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20">ðŸ† {prs.length} Marcas</span>
+          <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20">🏆 {prs.length} Marcas</span>
         </div>
 
         {(prs || []).length > 0 ? (
@@ -1413,7 +1413,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
               <AlertCircle className="w-10 h-10" />
             </div>
             <h3 className="text-xl font-black text-white font-display mb-2">Excluir Foto?</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">Esta aÃ§Ã£o nÃ£o pode ser desfeita.</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">Esta ação não pode ser desfeita.</p>
             
             <div className="space-y-3">
               <button 
@@ -1421,7 +1421,7 @@ function EvolutionView({ records = [], prs = [], history = [], photos = [], stud
                 disabled={isUploading}
                 className="w-full bg-rose-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-rose-500/20 active:scale-95 transition-all disabled:opacity-50"
               >
-                {isUploading ? 'Excluindo...' : 'Confirmar ExclusÃ£o'}
+                {isUploading ? 'Excluindo...' : 'Confirmar Exclusão'}
               </button>
               <button 
                 onClick={() => setPhotoToDelete(null)}
@@ -1557,7 +1557,7 @@ function BioModal({ studentId, onClose, onSave, showToast }) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ãgua (%)</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Água (%)</label>
               <input 
                 type="number" step="0.1"
                 value={record.body_water_pct}
@@ -1794,7 +1794,7 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast, onLogout })
       
       if (error) throw error
 
-      // VÃ­nculo recÃ­proco
+      // Vínculo recíproco
       const { error: error2 } = await supabase.from('gym_students').update({ partner_id: student.id }).eq('id', partnerId)
       if (error2) throw error2
 
@@ -1811,7 +1811,7 @@ function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast, onLogout })
   const handleUnlink = async () => {
     if (isLinking) return
     setIsLinking(true)
-    console.log('Iniciando desvÃ­nculo para:', student.id, 'Parceiro:', student.partner_id)
+    console.log('Iniciando desvínculo para:', student.id, 'Parceiro:', student.partner_id)
     try {
       const partnerId = student.partner_id
       
