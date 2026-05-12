@@ -6,14 +6,11 @@ import {
   TrendingUp, 
   User as UserIcon, 
   LogOut, 
-  Play, 
   CheckCircle2, 
   ChevronLeft,
   Timer,
-  Info,
   ChevronRight,
   ClipboardList,
-  TrendingDown,
   Scale,
   Flame,
   Plus,
@@ -36,6 +33,12 @@ import {
   AreaChart,
   Area
 } from 'recharts'
+
+import ExecutionView from '../components/dashboard/ExecutionView'
+import WorkoutSummaryView from '../components/dashboard/WorkoutSummaryView'
+import EvolutionView from '../components/dashboard/EvolutionView'
+import ProfileTab from '../components/dashboard/ProfileTab'
+import SocialTab from '../components/dashboard/SocialTab'
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
@@ -64,8 +67,8 @@ export default function StudentDashboard() {
   const [partnerTrainedToday, setPartnerTrainedToday] = useState(false)
   const [isPinging, setIsPinging] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [workoutSummary, setWorkoutSummary] = useState(null) // { totalWeight: 0, exercises: [] }
-  const [completedExercises, setCompletedExercises] = useState([]) // IDs dos exercícios concluídos na sessão
+  const [workoutSummary, setWorkoutSummary] = useState(null) 
+  const [completedExercises, setCompletedExercises] = useState([]) 
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -91,7 +94,6 @@ export default function StudentDashboard() {
     
     if (!error) setStudentWorkouts(data)
     
-    // Buscar Biopedância
     const { data: bioData } = await supabase
       .from('gym_biopedance_records')
       .select('*')
@@ -100,7 +102,6 @@ export default function StudentDashboard() {
     
     if (bioData) setBioRecords(bioData)
 
-    // Buscar histórico completo (Para calendário, PRs e Last Performed)
     const { data: allLogs, error: prError } = await supabase
       .from('gym_training_logs')
       .select('exercise_id, weight_kg, reps_done, workout_date, workout_id, created_at, gym_exercises(name)')
@@ -109,11 +110,9 @@ export default function StudentDashboard() {
     let currentPrs = []
     
     if (!prError && allLogs) {
-      // 1. Calendário Geral
       const uniqueDates = Array.from(new Set(allLogs.map(h => h.workout_date)))
       setWorkoutHistory(uniqueDates)
 
-      // 2. Recordes Pessoais (PRs)
       const prMap = {}
       allLogs.forEach(log => {
         const exName = Array.isArray(log.gym_exercises) ? log.gym_exercises[0]?.name : log.gym_exercises?.name
@@ -128,30 +127,22 @@ export default function StudentDashboard() {
       currentPrs = Object.values(prMap).sort((a, b) => b.max_weight - a.max_weight)
       setPersonalRecords(currentPrs)
 
-      // 3. Estatísticas da Semana (Últimos 7 dias)
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]
 
       const weekLogs = allLogs.filter(log => log.workout_date >= sevenDaysAgoStr)
-
-      // Dias de treino na semana
       const uniqueDaysThisWeek = new Set(weekLogs.map(l => l.workout_date)).size
       setWeeklyWorkouts(uniqueDaysThisWeek)
 
-      // Volume da semana
       const vol = weekLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
-      
-      // PRs da semana
       const prsCount = currentPrs.filter(pr => pr.record_date >= sevenDaysAgoStr).length
       
       setWeeklyStats({ volume: vol, prs: prsCount })
 
-      // 3.1 IDs dos treinos concluídos nos últimos 7 dias (Para o Pin)
       const completedIds = new Set(weekLogs.map(l => l.workout_id).filter(Boolean))
       setCompletedWorkoutsThisWeek(completedIds)
 
-      // 4. Última vez que cada treino foi feito
       const lastPerformedAt = {}
       allLogs.forEach(log => {
         if (log.workout_id) {
@@ -164,7 +155,6 @@ export default function StudentDashboard() {
       setWorkoutLastPerformed(lastPerformedAt)
     }
 
-    // Buscar parceiro se houver
     const { data: freshStudent } = await supabase.from('gym_students').select('partner_id').eq('id', studentId).single()
     if (freshStudent?.partner_id) {
       const { data: pData } = await supabase.from('gym_students').select('*').eq('id', freshStudent.partner_id).single()
@@ -179,7 +169,6 @@ export default function StudentDashboard() {
       
       if (notes) setSocialNotifications(notes)
 
-      // Fetch partner's volume and today's workout
       const sevenDaysAgoP = new Date()
       sevenDaysAgoP.setDate(sevenDaysAgoP.getDate() - 7)
       const sevenDaysAgoStrP = sevenDaysAgoP.toISOString().split('T')[0]
@@ -198,7 +187,6 @@ export default function StudentDashboard() {
       }
     }
 
-    // Buscar fotos de evolução
     const { data: photos } = await supabase
       .from('gym_evolution_photos')
       .select('*')
@@ -217,29 +205,23 @@ export default function StudentDashboard() {
       setStudent(parsedUser)
       fetchWorkouts(parsedUser.id)
       
-      // --- rádio REALTIME ---
-      // Aqui ligamos a "escuta" para saber quando alguém nos manda algo
       const channel = supabase
-        .channel('social_updates') // Nome do canal
+        .channel('social_updates') 
         .on(
           'postgres_changes', 
           { 
             event: 'INSERT', 
             schema: 'public', 
             table: 'gym_social_notifications',
-            filter: `receiver_id=eq.${parsedUser.id}` // Só quero ouvir o que é PARA MIM
+            filter: `receiver_id=eq.${parsedUser.id}` 
           }, 
           (payload) => {
-            console.log('Nova notificação em tempo real:', payload)
-            // Quando chegar algo, mostramos o aviso na tela!
             showToast(payload.new.message, 'success')
-            // E atualizamos a lista de notificações para ela aparecer no feed
             fetchWorkouts(parsedUser.id)
           }
         )
         .subscribe()
 
-      // Buscar dados atualizados do aluno (metas)
       const fetchFreshData = async () => {
         try {
           const { data, error } = await supabase
@@ -249,7 +231,6 @@ export default function StudentDashboard() {
             .single()
           if (data && !error) {
             setStudent(data)
-            // Atualizar localStorage com os dados mais recentes (incluindo goals)
             localStorage.setItem('vollonfit_user', JSON.stringify(data))
           }
         } catch (e) {
@@ -258,7 +239,6 @@ export default function StudentDashboard() {
       }
       fetchFreshData()
 
-      // Limpar a rádio quando sair da tela
       return () => {
         supabase.removeChannel(channel)
       }
@@ -275,10 +255,15 @@ export default function StudentDashboard() {
     localStorage.setItem('vollonfit_student_view', currentView)
   }, [currentView])
 
+  useEffect(() => {
+    if (currentView === 'executing' && (!workoutItems || workoutItems.length === 0)) {
+      setCurrentView('home')
+    }
+  }, [currentView, workoutItems])
+
   const startWorkout = async (workout) => {
     setLoading(true)
     try {
-      // 1. Buscar itens do treino
       const { data: items, error: itemsError } = await supabase
         .from('gym_workout_items')
         .select('*, gym_exercises(*)')
@@ -287,7 +272,6 @@ export default function StudentDashboard() {
 
       if (itemsError) throw itemsError
 
-      // 2. Buscar a data da última vez que este treino foi realizado
       const { data: lastDateData } = await supabase
         .from('gym_training_logs')
         .select('workout_date')
@@ -300,7 +284,6 @@ export default function StudentDashboard() {
       let lastLogs = []
 
       if (lastDate) {
-        // 3. Buscar os logs daquela data específica para este treino
         const { data: logs } = await supabase
           .from('gym_training_logs')
           .select('*')
@@ -311,7 +294,6 @@ export default function StudentDashboard() {
         lastLogs = logs || []
       }
 
-      // 4. Mapear itens com seus respectivos logs anteriores
       const itemsWithHistory = (items || []).map(item => ({
         ...item,
         lastPerformance: lastLogs.filter(l => l.exercise_id === item.exercise_id)
@@ -320,7 +302,7 @@ export default function StudentDashboard() {
       setSelectedWorkout(workout)
       setWorkoutItems(itemsWithHistory)
       setWorkoutSummary({ totalWeight: 0, exerciseLogs: [] })
-      setCompletedExercises([]) // Reseta ao iniciar novo treino
+      setCompletedExercises([]) 
       setCurrentView('workout-detail')
     } catch (err) {
       console.error('Erro ao iniciar treino:', err)
@@ -335,15 +317,10 @@ export default function StudentDashboard() {
     setCurrentExerciseIndex(index)
   }
 
-  if (currentView === 'executing' && (!workoutItems || workoutItems.length === 0)) {
-    setCurrentView('home')
-    return null
-  }
-
   if (currentView === 'executing') {
     return (
       <ExecutionView 
-        key={currentExerciseIndex} // Chave para resetar estado interno ao mudar exercício
+        key={currentExerciseIndex}
         workout={selectedWorkout} 
         exercises={workoutItems}
         exerciseIndex={currentExerciseIndex}
@@ -385,12 +362,9 @@ export default function StudentDashboard() {
     )
   }
 
-  // Lógica da Janela Deslizante de 7 Dias (Últimos 7 dias)
   const todayDate = new Date()
-  
   const currentWeekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(todayDate)
-    // Mostra de 6 dias atrás até hoje (total 7 dias)
     d.setDate(todayDate.getDate() - 6 + i)
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     return {
@@ -408,11 +382,7 @@ export default function StudentDashboard() {
     return timeA - timeB
   })
   
-  // Se só existe 1 treino, e ele já foi feito hoje, não precisamos sugerir "outro", mas sugerimos o mesmo (único possível).
-  // A UI mostrará normalmente.
   const suggestedWorkout = sortedWorkouts[0]
-  
-  // Filtros Dinâmicos (Item 4)
   const uniqueFilters = ['Todos', ...new Set((studentWorkouts || []).map(w => w.description || 'Foco').filter(Boolean))]
   const filteredWorkouts = (studentWorkouts || []).filter(w => {
     if (activeFilter === 'Todos') return true;
@@ -422,7 +392,6 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen bg-black font-sans selection:bg-primary/20 flex flex-col items-center">
       <div className="w-full max-w-md bg-black min-h-screen flex flex-col relative pb-32">
-        {/* Premium Header */}
         <header className="px-6 py-8 flex justify-between items-center w-full">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden group active:scale-95 transition-transform cursor-pointer">
@@ -448,7 +417,6 @@ export default function StudentDashboard() {
         </header>
 
         <main className="px-6 pb-10 space-y-8">
-          {/* Toast Notification (Top Layer) */}
           {toast && (
             <div className="fixed top-24 left-8 right-8 z-[100] animate-in slide-in-from-top-10 duration-500">
               <div className={`flex items-center gap-3 px-6 py-5 rounded-[32px] shadow-2xl border backdrop-blur-md ${
@@ -462,8 +430,6 @@ export default function StudentDashboard() {
 
           {currentTab === 'train' && currentView === 'home' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              
-              {/* Calendário Semanal (Sua Frequência) */}
               <section className="mb-8 mt-2">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-black font-display text-white">Sua Frequência</h2>
@@ -485,7 +451,6 @@ export default function StudentDashboard() {
                 </div>
               </section>
 
-              {/* Treino do Dia (Challenge Card) */}
               {suggestedWorkout && (
                 <section className="bg-primary p-6 rounded-[32px] flex items-center justify-between group overflow-hidden relative mb-8 shadow-lg shadow-primary/20">
                   <div className="relative z-10 flex-1">
@@ -509,7 +474,6 @@ export default function StudentDashboard() {
                 </section>
               )}
 
-              {/* Estatísticas da Semana (Item 3) */}
               <div className="grid grid-cols-2 gap-4 mb-10 mt-8">
                 <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex flex-col gap-4 group hover:border-accent/30 transition-all shadow-lg">
                   <div className="flex justify-between items-start">
@@ -540,7 +504,6 @@ export default function StudentDashboard() {
                   <h3 className="text-xl font-black text-white font-display">Seus Treinos</h3>
                 </div>
                 
-                {/* Filtros Dinâmicos */}
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-4">
                   {uniqueFilters.map(filter => (
                     <button
@@ -607,36 +570,33 @@ export default function StudentDashboard() {
         )}
 
         {isBioModalOpen && (
-          <BioModal 
-            studentId={student?.id} 
-            onClose={() => setIsBioModalOpen(false)} 
-            showToast={showToast}
-            onSave={() => {
-              setIsBioModalOpen(false);
-              if (student?.id) fetchWorkouts(student.id);
-            }} 
-          />
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10">
+              <h2 className="text-xl font-black text-white mb-4">Novo Registro de Biopedância</h2>
+              <p className="text-slate-400 mb-6">Funcionalidade de modal em desenvolvimento.</p>
+              <button onClick={() => setIsBioModalOpen(false)} className="w-full bg-primary text-black py-4 rounded-full font-black uppercase">Fechar</button>
+            </div>
+          </div>
         )}
 
         {isConfigModalOpen && (
-          <ConfigModal 
-            student={student} 
-            onClose={() => setIsConfigModalOpen(false)} 
-            showToast={showToast}
-            onSave={(updatedUser) => {
-              setStudent(updatedUser)
-              localStorage.setItem('vollonfit_user', JSON.stringify(updatedUser))
-              setIsConfigModalOpen(false)
-              showToast('Perfil atualizado!')
-            }} 
-          />
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10">
+              <h2 className="text-xl font-black text-white mb-4">Configurações</h2>
+              <p className="text-slate-400 mb-6">Funcionalidade de configuração em desenvolvimento.</p>
+              <button onClick={() => setIsConfigModalOpen(false)} className="w-full bg-primary text-black py-4 rounded-full font-black uppercase">Fechar</button>
+            </div>
+          </div>
         )}
 
         {isGoalsModalOpen && (
-          <GoalsModal 
-            goals={student?.goals} 
-            onClose={() => setIsGoalsModalOpen(false)} 
-          />
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10">
+              <h2 className="text-xl font-black text-white mb-4">Metas</h2>
+              <p className="text-slate-400 mb-6">{student?.goals || 'Nenhuma meta definida.'}</p>
+              <button onClick={() => setIsGoalsModalOpen(false)} className="w-full bg-primary text-black py-4 rounded-full font-black uppercase">Fechar</button>
+            </div>
+          </div>
         )}
 
         {currentTab === 'profile' && (
@@ -745,7 +705,6 @@ export default function StudentDashboard() {
         )}
       </main>
 
-      {/* Floating Pill Bottom Navigation */}
       <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] z-50">
         <div className="pill-nav p-2 flex justify-between items-center px-4">
           <button 
@@ -786,1405 +745,6 @@ export default function StudentDashboard() {
         </div>
       </nav>
     </div>
-    </div>
-  )
-}
-
-function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNext, onBack, onLogSet, showToast }) {
-  const item = (exercises || [])[exerciseIndex]
-  const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
-
-  const [currentSet, setCurrentSet] = useState(1)
-  const [weight, setWeight] = useState('')
-  const [reps, setReps] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [restRemaining, setRestRemaining] = useState(0)
-  const [isTimerActive, setIsTimerActive] = useState(false)
-  const [exerciseNotes, setExerciseNotes] = useState('')
-  const [isSavingNotes, setIsSavingNotes] = useState(false)
-
-  // Carregar notas do exercício
-  useEffect(() => {
-    const fetchNotes = async () => {
-      if (!ex?.id || !studentId) return
-      const { data } = await supabase
-        .from('gym_student_exercise_notes')
-        .select('notes')
-        .eq('student_id', studentId)
-        .eq('exercise_id', ex.id)
-        .single()
-      
-      if (data) setExerciseNotes(data.notes)
-    }
-    fetchNotes()
-  }, [ex?.id, studentId])
-
-  // Lógica do Timer
-  useEffect(() => {
-    let interval = null
-    if (isTimerActive && restRemaining > 0) {
-      interval = setInterval(() => {
-        setRestRemaining(prev => prev - 1)
-      }, 1000)
-    } else if (restRemaining === 0 && isTimerActive) {
-      setIsTimerActive(false)
-      // Vibração ao terminar (se suportado pelo navegador/celular)
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200])
-    }
-    return () => clearInterval(interval)
-  }, [isTimerActive, restRemaining])
-
-  if (!ex) return null;
-
-  const handleSaveNotes = async () => {
-    setIsSavingNotes(true)
-    const { error } = await supabase
-      .from('gym_student_exercise_notes')
-      .upsert({
-        student_id: studentId,
-        exercise_id: ex.id,
-        notes: exerciseNotes,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'student_id,exercise_id' })
-    
-    setIsSavingNotes(false)
-    showToast('Note saved!')
-  }
-
-  const startRestTimer = () => {
-    const timeStr = item?.rest_time || '60s'
-    const seconds = parseInt(timeStr.replace('s', '')) || 60
-    setRestRemaining(seconds)
-    setIsTimerActive(true)
-  }
-
-  const handleNextSet = async () => {
-    if (!weight || !reps) {
-      showToast('Enter weight and reps!', 'error')
-      return
-    }
-
-    setIsSaving(true)
-    
-    // Salvar log da série no Supabase
-    const { error } = await supabase
-      .from('gym_training_logs')
-      .insert([{
-        student_id: studentId,
-        workout_id: workout.id,
-        exercise_id: ex.id,
-        set_number: currentSet,
-        reps_done: parseInt(reps),
-        weight_kg: parseFloat(weight),
-        workout_date: getTodayLocally()
-      }])
-
-    if (!error) {
-      if (onLogSet) onLogSet({ weight: parseFloat(weight), reps: parseInt(reps) })
-      showToast(`Set ${currentSet} saved!`)
-    }
-
-    if (currentSet < (item?.target_sets || 1)) {
-      setCurrentSet(prev => prev + 1)
-      setReps('')
-      startRestTimer()
-    } else {
-      onNext()
-    }
-    setIsSaving(false)
-  }
-
-  const lastPerf = item?.lastPerformance || []
-  const lastBestSet = lastPerf.length > 0 ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] : null
-
-  return (
-    <div className="min-h-screen bg-black flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/5 z-20">
-        <div 
-          className="h-full bg-primary transition-all duration-700 shadow-[0_0_15px_#DFFF5E]" 
-          style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}
-        />
-      </div>
-
-      <header className="px-6 py-8 flex justify-between items-center relative z-10">
-        <button onClick={onBack} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-90">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <div className="text-center">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">Exercício {exerciseIndex + 1} de {exercises.length}</p>
-          <h2 className="text-white font-black text-lg font-display leading-tight uppercase tracking-tight">{ex?.name}</h2>
-        </div>
-        <div className="w-12 h-12" />
-      </header>
-
-      <div className="flex-1 px-6 pb-10 flex flex-col animate-in slide-in-from-bottom-12 duration-700 overflow-y-auto space-y-8">
-        <div className="w-full aspect-video rounded-[32px] bg-[#1A1A1A] overflow-hidden border border-white/5 shadow-inner flex items-center justify-center group relative">
-          {ex?.gif_url ? (
-            <img src={ex.gif_url} className="w-full h-full object-contain p-4" />
-          ) : (
-            <Dumbbell className="w-16 h-16 text-white/10" />
-          )}
-          
-          {lastBestSet && (
-            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Melhor Marca (PR)</p>
-                  <p className="text-sm font-black text-white">{lastBestSet.weight_kg}kg <span className="text-slate-500 font-bold">× {lastBestSet.reps_done}</span></p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 flex flex-col gap-8 shadow-2xl relative">
-          <div className="flex justify-between items-end">
-            <div>
-              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Série Atual</p>
-              <p className="text-5xl font-black text-white font-display">{currentSet}<span className="text-slate-700 text-2xl font-normal ml-2">/ {item?.target_sets || 1}</span></p>
-            </div>
-            <div className={`px-6 py-3 rounded-full flex flex-col items-center border transition-all duration-500 ${isTimerActive ? 'bg-primary text-black border-primary' : 'bg-white/5 border-white/10'}`}>
-               <div className="flex items-center gap-2">
-                  <Timer className={`w-4 h-4 ${isTimerActive ? 'animate-pulse' : 'text-slate-500'}`} />
-                  <p className={`text-sm font-black font-display`}>
-                    {isTimerActive ? `${restRemaining}s` : 'DESCANSO'}
-                  </p>
-               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Carga (KG)</label>
-              <input 
-                type="number" 
-                inputMode="decimal"
-                value={weight}
-                onChange={e => setWeight(e.target.value)}
-                placeholder="0"
-                className="w-full bg-black border-2 border-white/5 rounded-3xl p-6 text-2xl font-black text-primary text-center outline-none focus:border-primary/50 transition-all shadow-inner"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Repetições</label>
-              <input 
-                type="number"
-                inputMode="numeric"
-                value={reps}
-                onChange={e => setReps(e.target.value)}
-                placeholder="0"
-                className="w-full bg-black border-2 border-white/5 rounded-3xl p-6 text-2xl font-black text-primary text-center outline-none focus:border-primary/50 transition-all shadow-inner"
-              />
-            </div>
-          </div>
-
-          {/* Anotações de Ajuste */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anotações de Ajuste</span>
-              </div>
-              <button 
-                onClick={handleSaveNotes}
-                disabled={isSavingNotes}
-                className="text-[10px] font-black text-primary uppercase tracking-widest px-4 py-2 bg-primary/5 rounded-full hover:bg-primary/10 transition-all"
-              >
-                {isSavingNotes ? '...' : 'Salvar'}
-              </button>
-            </div>
-            <textarea 
-              value={exerciseNotes}
-              onChange={e => setExerciseNotes(e.target.value)}
-              placeholder="Ex: Banco no 4, pegada aberta..."
-              className="w-full bg-black/50 border border-white/5 rounded-2xl p-4 text-sm font-medium text-slate-300 focus:outline-none focus:border-primary/30 placeholder:text-slate-600 resize-none min-h-[60px]"
-            />
-          </div>
-        </div>
-
-        <button 
-          onClick={handleNextSet}
-          disabled={isSaving}
-          className="w-full fitness-gradient hover:opacity-90 text-white font-black py-7 rounded-[32px] shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 active:scale-[0.98] transition-all text-xl mt-12 disabled:opacity-50 neon-shadow"
-        >
-          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir Série' : 'Próximo Exercício')} 
-          <CheckCircle2 className="w-7 h-7" />
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function WorkoutSummaryView({ summary, workout, onClose }) {
-  return (
-    <div className="min-h-screen bg-black flex flex-col font-sans max-w-md mx-auto animate-in fade-in duration-500 relative">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
-
-      <main className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-8 relative z-10">
-        <div className="w-24 h-24 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center animate-bounce shadow-lg shadow-primary/20">
-          <CheckCircle2 className="w-12 h-12 text-primary drop-shadow-[0_0_15px_rgba(223,255,94,0.8)]" />
-        </div>
-        
-        <div className="space-y-2">
-          <h2 className="text-3xl font-black text-white font-display">Treino Concluído!</h2>
-          <p className="text-slate-400 font-medium">Você esmagou o {workout?.name} hoje.</p>
-        </div>
-
-        <div className="w-full bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
-          <div>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Volume Total de Carga</p>
-            <p className="text-5xl font-black text-primary font-display">{summary?.totalWeight || 0}<span className="text-xl font-bold ml-1 text-primary/70">kg</span></p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-            <div>
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Exercícios</p>
-              <p className="text-xl font-bold text-white font-display">{(summary?.exerciseLogs || []).length}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Status</p>
-              <p className="text-xl font-bold text-primary font-display">Evoluindo</p>
-            </div>
-          </div>
-        </div>
-
-        <button 
-          onClick={onClose}
-          className="w-full bg-white text-black font-black py-5 rounded-[32px] active:scale-95 transition-all text-lg shadow-xl shadow-white/10 uppercase tracking-widest font-display"
-        >
-          Voltar para Home
-        </button>
-      </main>
-    </div>
-  )
-}
-
-function EvolutionView({ records = [], prs = [], history = [], photos = [], studentId, onNewRecord, onPhotosUpdate, showToast }) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [photoToDelete, setPhotoToDelete] = useState(null)
-  
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    setIsUploading(true)
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${studentId}/${Date.now()}.${fileExt}`
-      const filePath = `${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('evolution_photos')
-        .upload(filePath, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('evolution_photos')
-        .getPublicUrl(filePath)
-
-      const { data: newPhoto, error: dbError } = await supabase
-        .from('gym_evolution_photos')
-        .insert([{
-          student_id: studentId,
-          photo_url: publicUrl,
-          caption: 'Check-in de Evolução'
-        }])
-        .select()
-        .single()
-
-      if (dbError) throw dbError
-      
-      onPhotosUpdate([newPhoto, ...photos])
-      showToast('Foto de evolução salva!', 'success')
-    } catch (err) {
-      console.error('Erro no upload:', err)
-      showToast('Erro no Upload: ' + (err.message || err.error_description || 'Verifique o bucket'), 'error')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const handleDeletePhoto = async () => {
-    if (!photoToDelete) return
-    const { id, url } = photoToDelete
-    setIsUploading(true) 
-    
-    try {
-      const pathParts = url.split('evolution_photos/')
-      const filePath = pathParts[pathParts.length - 1]
-
-      const { error: storageError } = await supabase.storage
-        .from('evolution_photos')
-        .remove([filePath])
-      
-      if (storageError) console.warn('Erro ao remover do storage (pode já não existir):', storageError)
-
-      const { error: dbError } = await supabase
-        .from('gym_evolution_photos')
-        .delete()
-        .eq('id', id)
-      
-      if (dbError) throw dbError
-
-      onPhotosUpdate(photos.filter(p => p.id !== id))
-      showToast('Foto excluída com sucesso.', 'success')
-      setPhotoToDelete(null)
-    } catch (err) {
-      console.error('Erro ao excluir foto:', err)
-      showToast('Erro ao Excluir: ' + (err.message || 'Erro de permissão'), 'error')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const latest = (records || []).length > 0 ? records[records.length - 1] : null
-  
-  const chartData = (records || []).map(r => ({
-    date: r?.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '?',
-    weight: r?.weight || 0,
-    fat: r?.body_fat_pct || 0,
-    muscle: r?.muscle_mass_kg || 0
-  }))
-
-  const today = new Date()
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).getDay()
-  const monthName = today.toLocaleDateString('pt-BR', { month: 'long' })
-  
-  const calendarDays = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1
-    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return {
-      day,
-      hasTrained: (history || []).includes(dateStr)
-    }
-  })
-
-  return (
-    <div className="space-y-12 animate-in fade-in duration-700 pb-20">
-      <header>
-        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Sua Jornada</p>
-        <h1 className="text-4xl font-black text-white font-display">Sua Evolução</h1>
-      </header>
-
-      {/* Calendário de Frequência */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-white font-display capitalize">{monthName}</h3>
-          <span className="text-[10px] font-black text-slate-500 uppercase bg-[#1A1A1A] px-4 py-2 rounded-full border border-white/5">Frequência</span>
-        </div>
-        
-        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl">
-          <div className="grid grid-cols-7 gap-3 mb-4">
-            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-              <div key={d} className="text-[10px] font-black text-slate-500 text-center uppercase">{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-3">
-            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {calendarDays.map(d => (
-              <div 
-                key={d.day}
-                className={`aspect-square rounded-xl flex items-center justify-center text-xs font-black transition-all ${
-                  d.hasTrained 
-                  ? 'bg-primary text-black shadow-lg shadow-primary/20 scale-110' 
-                  : 'bg-black text-slate-600 border border-white/5'
-                }`}
-              >
-                {d.day}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Seção de Recordes Pessoais (Troféus) */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-white font-display">Hall de Recordes</h3>
-          <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20">🏆 {prs.length} Marcas</span>
-        </div>
-
-        {(prs || []).length > 0 ? (
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
-            {prs.map((pr, idx) => (
-              <div key={idx} className="flex-shrink-0 w-40 bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 shadow-lg flex flex-col items-center text-center group hover:border-primary/30 transition-all hover:shadow-xl hover:shadow-primary/5">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-7 h-7" />
-                </div>
-                <h4 className="text-xs font-black text-white font-display mb-1 line-clamp-1">{pr.exercise_name}</h4>
-                <p className="text-2xl font-black text-primary font-display">{pr.max_weight}<span className="text-[10px] ml-1 uppercase text-slate-500">kg</span></p>
-                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-2">{new Date(pr.record_date).toLocaleDateString()}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 text-center shadow-lg">
-            <p className="text-xs text-slate-500 font-bold">Treine para registrar seus primeiros recordes!</p>
-          </div>
-        )}
-      </section>
-
-      <div className="flex justify-between items-center px-1">
-        <h3 className="text-xl font-black text-white font-display">Composição Corporal</h3>
-        <button 
-          onClick={onNewRecord}
-          className="bg-primary/10 text-primary px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center gap-2 border border-primary/20"
-        >
-          <Plus className="w-4 h-4" /> Novo Registro
-        </button>
-      </div>
-
-      {!records || records.length === 0 ? (
-        <div className="bg-[#1A1A1A] p-10 rounded-[40px] border border-white/5 text-center space-y-4 shadow-2xl">
-          <TrendingUp className="w-12 h-12 text-slate-600 mx-auto" />
-          <p className="text-slate-500 text-sm">Registre sua primeira biopedância para começar a ver sua evolução!</p>
-          <button 
-            onClick={onNewRecord}
-            className="bg-primary text-black px-6 py-3 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-primary/20"
-          >
-            Começar Agora
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* Gráfico Principal */}
-          <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-white flex items-center gap-2">
-                <Scale className="w-4 h-4 text-primary" /> Peso Corporal (kg)
-              </h3>
-              <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded-full">
-                Últimos {records.length} registros
-              </span>
-            </div>
-            <div className="h-48 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#DFFF5E" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#DFFF5E" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fontSize: 10, fill: '#64748b'}} 
-                    dy={10}
-                  />
-                  <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                  <Tooltip 
-                    contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}}
-                    itemStyle={{color: '#DFFF5E'}}
-                    labelStyle={{fontWeight: 'bold', marginBottom: '4px', color: '#94a3b8'}}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="weight" 
-                    stroke="#DFFF5E" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorWeight)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
-              <h3 className="font-bold text-white text-xs mb-4 flex items-center gap-2">
-                <Flame className="w-3 h-3 text-orange-500" /> Gordura (%)
-              </h3>
-              <div className="h-32 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <Line type="monotone" dataKey="fat" stroke="#f59e0b" strokeWidth={3} dot={{r: 4, fill: '#f59e0b'}} />
-                    <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl">
-              <h3 className="font-bold text-white text-xs mb-4 flex items-center gap-2">
-                <Activity className="w-3 h-3 text-accent" /> Músculo (kg)
-              </h3>
-              <div className="h-32 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <Line type="monotone" dataKey="muscle" stroke="#C6C4FF" strokeWidth={3} dot={{r: 4, fill: '#C6C4FF'}} />
-                    <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Diário de Evolução (Fotos) */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-xl font-black text-white font-display">Diário Visual</h3>
-          <label className="cursor-pointer bg-primary text-black px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
-            <Camera className="w-4 h-4" />
-            <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={isUploading} />
-            {isUploading ? 'Subindo...' : 'Novo Check-in'}
-          </label>
-        </div>
-
-        {photos.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
-            {photos.map(p => (
-              <div key={p.id} className="relative aspect-[4/5] rounded-[32px] overflow-hidden group border border-white/10 shadow-md">
-                <img src={p.photo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Evolução" />
-                
-                {/* Botão Excluir */}
-                <button 
-                  onClick={() => setPhotoToDelete({ id: p.id, url: p.photo_url })}
-                  className="absolute top-4 right-4 w-10 h-10 bg-black/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-90 border border-white/10"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 pointer-events-none">
-                  <p className="text-[8px] font-bold text-white uppercase tracking-widest">
-                    {new Date(p.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-black border-2 border-dashed border-white/10 p-12 rounded-[40px] text-center space-y-4">
-            <div className="w-16 h-16 bg-[#1A1A1A] rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-white/5">
-              <ImageIcon className="w-8 h-8 text-slate-500" />
-            </div>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-              Sua transformação merece ser vista. <br/> Comece seu histórico hoje!
-            </p>
-          </div>
-        )}
-      </section>
-
-      {records && records.length > 0 && (
-        <section className="mt-8">
-          <h3 className="text-lg font-bold text-white mb-4">Histórico Completo</h3>
-          <div className="space-y-3">
-            {(records || []).slice().reverse().map((r, i) => (
-              <div key={i} className="bg-[#1A1A1A] p-5 rounded-3xl border border-white/5 flex items-center justify-between shadow-lg">
-                <div>
-                  <p className="font-bold text-white">{r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR') : '-'}</p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                    <span className="text-[10px] text-slate-500 font-medium">Peso: <b className="text-slate-300">{r.weight || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Gordura: <b className="text-slate-300">{r.body_fat_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Músculo: <b className="text-slate-300">{r.muscle_mass_kg || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Visceral: <b className="text-slate-300">{r.visceral_fat || '-'}</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Água: <b className="text-slate-300">{r.body_water_pct || 0}%</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Óssea: <b className="text-slate-300">{r.bone_mass_kg || 0}kg</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">Idade: <b className="text-slate-300">{r.body_age || '-'}</b></span>
-                    <span className="text-[10px] text-slate-500 font-medium">IMC: <b className="text-slate-300">{r.bmi || '-'}</b></span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-primary text-sm">{r.tmb || 0} kcal</p>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">TMB</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Modal de Confirmação Customizado */}
-      {photoToDelete && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="bg-[#1A1A1A] w-full max-w-xs rounded-[40px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 text-center border border-white/10">
-            <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-rose-500 border border-rose-500/20">
-              <AlertCircle className="w-10 h-10" />
-            </div>
-            <h3 className="text-xl font-black text-white font-display mb-2">Excluir Foto?</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">Esta ação não pode ser desfeita.</p>
-            
-            <div className="space-y-3">
-              <button 
-                onClick={handleDeletePhoto}
-                disabled={isUploading}
-                className="w-full bg-rose-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-rose-500/20 active:scale-95 transition-all disabled:opacity-50"
-              >
-                {isUploading ? 'Excluindo...' : 'Confirmar Exclusão'}
-              </button>
-              <button 
-                onClick={() => setPhotoToDelete(null)}
-                disabled={isUploading}
-                className="w-full bg-black text-slate-400 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all disabled:opacity-50 border border-white/5"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function BioModal({ studentId, onClose, onSave, showToast }) {
-  const [record, setRecord] = useState({
-    weight: '',
-    body_fat_pct: '',
-    muscle_mass_kg: '',
-    tmb: '',
-    bmi: '',
-    visceral_fat: '',
-    body_water_pct: '',
-    bone_mass_kg: '',
-    body_age: ''
-  })
-  const [isSaving, setIsSaving] = useState(false)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSaving(true)
-
-    const { error } = await supabase
-      .from('gym_biopedance_records')
-      .insert([{
-        student_id: studentId,
-        weight: parseFloat(record.weight),
-        body_fat_pct: parseFloat(record.body_fat_pct),
-        muscle_mass_kg: parseFloat(record.muscle_mass_kg),
-        tmb: parseInt(record.tmb),
-        bmi: record.bmi ? parseFloat(record.bmi) : null,
-        visceral_fat: record.visceral_fat ? parseInt(record.visceral_fat) : null,
-        body_water_pct: record.body_water_pct ? parseFloat(record.body_water_pct) : null,
-        bone_mass_kg: record.bone_mass_kg ? parseFloat(record.bone_mass_kg) : null,
-        body_age: record.body_age ? parseInt(record.body_age) : null,
-        record_date: getTodayLocally()
-      }])
-
-    if (error) {
-      showToast('Erro ao salvar: ' + error.message, 'error')
-    } else {
-      showToast('Evolução registrada!')
-      onSave()
-    }
-    setIsSaving(false)
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
-        <div className="p-8 border-b border-white/5 flex justify-between items-center">
-          <div>
-            <h3 className="text-2xl font-black text-white font-display">Novo Registro</h3>
-            <p className="text-sm text-slate-500">Acompanhe sua evolução corporal</p>
-          </div>
-          <button onClick={onClose} className="p-2 bg-black rounded-full text-slate-500 border border-white/5">
-            <ChevronLeft className="w-6 h-6 rotate-90" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Peso (kg)</label>
-              <input 
-                required type="number" step="0.1" 
-                value={record.weight}
-                onChange={e => setRecord({...record, weight: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Gordura (%)</label>
-              <input 
-                required type="number" step="0.1" 
-                value={record.body_fat_pct}
-                onChange={e => setRecord({...record, body_fat_pct: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Músculo (kg)</label>
-              <input 
-                required type="number" step="0.1" 
-                value={record.muscle_mass_kg}
-                onChange={e => setRecord({...record, muscle_mass_kg: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">TMB (kcal)</label>
-              <input 
-                required type="number" 
-                value={record.tmb}
-                onChange={e => setRecord({...record, tmb: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="0000"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">IMC</label>
-              <input 
-                type="number" step="0.1"
-                value={record.bmi}
-                onChange={e => setRecord({...record, bmi: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Gord. Visceral</label>
-              <input 
-                type="number" 
-                value={record.visceral_fat}
-                onChange={e => setRecord({...record, visceral_fat: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="0-20"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Água (%)</label>
-              <input 
-                type="number" step="0.1"
-                value={record.body_water_pct}
-                onChange={e => setRecord({...record, body_water_pct: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Massa Óssea</label>
-              <input 
-                type="number" step="0.1"
-                value={record.bone_mass_kg}
-                onChange={e => setRecord({...record, bone_mass_kg: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="0.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Idade Corp.</label>
-              <input 
-                type="number" 
-                value={record.body_age}
-                onChange={e => setRecord({...record, body_age: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="00"
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={isSaving}
-            className="w-full bg-primary text-black font-black py-6 rounded-3xl shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
-          >
-            {isSaving ? 'Salvando...' : 'Salvar Evolução'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function ConfigModal({ student, onClose, onSave, showToast }) {
-  const [formData, setFormData] = useState({
-    name: student.name || '',
-    age: student.age || '',
-    height: student.height || '',
-    initial_weight: student.initial_weight || '',
-    password: ''
-  })
-  const [isSaving, setIsSaving] = useState(false)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSaving(true)
-
-    const updates = {
-      name: formData.name,
-      age: formData.age ? parseInt(formData.age) : null,
-      height: formData.height ? parseFloat(formData.height) : null,
-      initial_weight: formData.initial_weight ? parseFloat(formData.initial_weight) : null,
-    }
-
-    if (formData.password.trim()) {
-      updates.password = formData.password
-    }
-
-    const { data, error } = await supabase
-      .from('gym_students')
-      .update(updates)
-      .eq('id', student.id)
-      .select()
-      .single()
-
-    if (error) {
-      showToast('Erro ao atualizar: ' + error.message, 'error')
-    } else {
-      onSave(data)
-    }
-    setIsSaving(false)
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
-        <div className="p-8 border-b border-white/5 flex justify-between items-center">
-          <div>
-            <h3 className="text-2xl font-black text-white font-display">Configurar Conta</h3>
-            <p className="text-sm text-slate-500">Mantenha seus dados atualizados</p>
-          </div>
-          <button onClick={onClose} className="p-2 bg-black rounded-full text-slate-500 border border-white/5">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-              <input 
-                required type="text"
-                value={formData.name}
-                onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Idade</label>
-                <input 
-                  type="number"
-                  value={formData.age}
-                  onChange={e => setFormData({...formData, age: e.target.value})}
-                  className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                  placeholder="Ex: 25"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Altura (m)</label>
-                <input 
-                  type="number" step="0.01"
-                  value={formData.height}
-                  onChange={e => setFormData({...formData, height: e.target.value})}
-                  className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                  placeholder="Ex: 1.75"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Peso Inicial (kg)</label>
-              <input 
-                type="number" step="0.1"
-                value={formData.initial_weight}
-                onChange={e => setFormData({...formData, initial_weight: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="Ex: 80.5"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alterar Senha</label>
-              <input 
-                type="password"
-                value={formData.password}
-                onChange={e => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-black border border-white/5 rounded-2xl p-4 text-lg font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-700"
-                placeholder="Deixe em branco para não alterar"
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={isSaving}
-            className="w-full bg-primary text-black font-black py-5 rounded-[32px] shadow-xl shadow-primary/20 active:scale-95 transition-all text-xl disabled:opacity-50 uppercase tracking-widest font-display"
-          >
-            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function GoalsModal({ goals, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-[#1A1A1A] w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl animate-in slide-in-from-bottom-10 duration-500 overflow-hidden border border-white/10">
-        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-primary/5">
-          <div>
-            <h3 className="text-2xl font-black text-white font-display">Minhas Metas</h3>
-            <p className="text-sm text-slate-500">Definidas pelo seu professor</p>
-          </div>
-          <button onClick={onClose} className="p-2 bg-black border border-white/5 rounded-full text-slate-500 shadow-sm">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        
-        <div className="p-8 pb-12">
-          <div className="bg-black rounded-[32px] p-8 border border-white/5 min-h-[200px] flex items-center justify-center text-center shadow-inner">
-            {goals ? (
-              <p className="text-lg text-primary font-medium leading-relaxed italic font-display">
-                "{goals}"
-              </p>
-            ) : (
-              <p className="text-slate-500 italic">
-                Nenhuma meta definida ainda. <br/> Converse com seu professor!
-              </p>
-            )}
-          </div>
-          
-          <button 
-            onClick={onClose}
-            className="w-full mt-8 bg-white text-black font-black py-5 rounded-[32px] active:scale-95 transition-all text-xl uppercase tracking-widest font-display shadow-lg shadow-white/5"
-          >
-            Entendido!
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProfileTab({ student, onOpenConfig, onOpenGoals, showToast, onLogout }) {
-  const [allStudents, setAllStudents] = useState([])
-  const [isLinking, setIsLinking] = useState(false)
-  const [search, setSearch] = useState('')
-  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
-
-  useEffect(() => {
-    const fetchStudents = async () => {
-      if (!student?.id) return
-      try {
-        const { data } = await supabase.from('gym_students').select('id, name, username').neq('id', student.id)
-        if (data) setAllStudents(data)
-      } catch (e) {
-        console.warn("Erro ao buscar alunos:", e)
-      }
-    }
-    fetchStudents()
-  }, [student?.id])
-
-  const handleLink = async (partnerId) => {
-    if (isLinking) return
-    setIsLinking(true)
-    try {
-      const { error } = await supabase
-        .from('gym_students')
-        .update({ partner_id: partnerId })
-        .eq('id', student.id)
-      
-      if (error) throw error
-
-      // Vínculo recíproco
-      const { error: error2 } = await supabase.from('gym_students').update({ partner_id: student.id }).eq('id', partnerId)
-      if (error2) throw error2
-
-      showToast('Parceiro(a) vinculado com sucesso!', 'success')
-      setTimeout(() => window.location.reload(), 1500)
-    } catch (err) {
-      console.error('Erro ao vincular:', err)
-      showToast('Erro ao vincular. Verifique se as tabelas foram atualizadas.', 'error')
-    } finally {
-      setIsLinking(false)
-    }
-  }
-
-  const handleUnlink = async () => {
-    if (isLinking) return
-    setIsLinking(true)
-    console.log('Iniciando desvínculo para:', student.id, 'Parceiro:', student.partner_id)
-    try {
-      const partnerId = student.partner_id
-      
-      const { error } = await supabase
-        .from('gym_students')
-        .update({ partner_id: null })
-        .eq('id', student.id)
-      
-      if (error) {
-        console.error('Erro ao desvincular self:', error)
-        throw error
-      }
-
-      if (partnerId) {
-        const { error: error2 } = await supabase
-          .from('gym_students')
-          .update({ partner_id: null })
-          .eq('id', partnerId)
-        if (error2) console.warn('Erro ao desvincular parceiro (pode ser RLS):', error2)
-      }
-
-      showToast('Vínculo desfeito com sucesso.', 'success')
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
-    } catch (err) {
-      console.error('Erro fatal no desvínculo:', err)
-      showToast('Erro ao desvincular: ' + (err.message || 'Erro de permissão'), 'error')
-    } finally {
-      setIsLinking(false)
-    }
-  }
-
-  const filteredStudents = allStudents.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.username.toLowerCase().includes(search.toLowerCase())
-  )
-
-  return (
-    <div className="animate-in fade-in duration-500 text-center py-10 space-y-12">
-      <div>
-        <div className="w-32 h-32 fitness-gradient rounded-[40px] flex items-center justify-center mx-auto mb-6 border-4 border-[#1A1A1A] shadow-2xl text-black text-5xl font-black font-display neon-shadow">
-          {student?.name?.[0]}
-        </div>
-        <h2 className="text-3xl font-black text-white font-display">{student?.name}</h2>
-        <p className="text-slate-500 font-bold tracking-widest uppercase text-xs mt-2">@{student?.username}</p>
-      </div>
-      
-      {/* Sistema de Parceria */}
-      {!student?.partner_id ? (
-        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
-          <div className="text-left">
-            <h3 className="font-black text-white font-display text-lg tracking-tight">Vincular Parceiro(a)</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Treinem juntos e motivem-se!</p>
-          </div>
-          <input 
-            type="text"
-            placeholder="Buscar por nome ou @username..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-black border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all shadow-inner placeholder:text-slate-700"
-          />
-          {search && (
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-              {filteredStudents.map(s => (
-                <button 
-                  key={s.id}
-                  onClick={() => handleLink(s.id)}
-                  className="w-full p-4 bg-black hover:bg-primary/5 border border-white/5 rounded-2xl flex items-center justify-between group transition-all"
-                >
-                  <div className="text-left">
-                    <p className="text-sm font-black text-white group-hover:text-primary transition-colors">{s.name}</p>
-                    <p className="text-[10px] text-slate-500 font-bold">@{s.username}</p>
-                  </div>
-                  <Plus className="w-4 h-4 text-slate-600 group-hover:text-primary transition-all" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl space-y-4">
-          <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary text-black flex items-center justify-center font-black shadow-lg shadow-primary/20">
-                <Heart className="w-6 h-6 fill-black" />
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Seu Parceiro</p>
-                <p className="text-lg font-black text-white font-display tracking-tight leading-none">Vínculo Ativo</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowUnlinkConfirm(true)}
-              className="p-3 bg-black text-rose-500 rounded-2xl border border-rose-500/20 hover:bg-rose-500/10 transition-all shadow-sm active:scale-90"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-
-          {showUnlinkConfirm && (
-            <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20 animate-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-rose-500 mb-3">Confirmar desvínculo?</p>
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleUnlink}
-                  disabled={isLinking}
-                  className="flex-1 bg-rose-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20"
-                >
-                  {isLinking ? '...' : 'Sim, Desvincular'}
-                </button>
-                <button 
-                  onClick={() => setShowUnlinkConfirm(false)}
-                  className="flex-1 bg-black text-slate-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <button 
-          onClick={onOpenConfig}
-          className="w-full p-8 text-left bg-[#1A1A1A] rounded-[32px] border border-white/5 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
-        >
-          <div className="flex items-center gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-              <UserIcon className="w-6 h-6" />
-            </div>
-            <span className="font-black text-white font-display text-lg tracking-tight">Configurações da Conta</span>
-          </div>
-          <ChevronRight className="w-6 h-6 text-slate-600 group-hover:text-primary transition-all" />
-        </button>
-
-        <button 
-          onClick={onOpenGoals}
-          className="w-full p-8 text-left bg-[#1A1A1A] rounded-[32px] border border-white/5 flex items-center justify-between group hover:border-primary/30 hover:shadow-xl transition-all"
-        >
-          <div className="flex items-center gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-              <ClipboardList className="w-6 h-6" />
-            </div>
-            <span className="font-black text-white font-display text-lg tracking-tight">Metas e Objetivos</span>
-          </div>
-          <ChevronRight className="w-6 h-6 text-slate-600 group-hover:text-primary transition-all" />
-        </button>
-
-        {/* LOGOUT BUTTON */}
-        <button 
-          onClick={onLogout}
-          className="w-full mt-4 p-6 text-center bg-rose-500/10 rounded-[32px] border border-rose-500/20 flex items-center justify-center gap-3 hover:bg-rose-500 hover:text-white transition-all text-rose-500 active:scale-95 shadow-xl shadow-rose-500/5"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="font-black uppercase tracking-widest font-display text-sm">Sair da Conta</span>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function SocialTab({ student, partner, weeklyStats, partnerWeeklyVolume, partnerTrainedToday, socialNotifications, isPinging, setIsPinging, showToast, fetchWorkouts }) {
-  const handlePing = async () => {
-    if (!partner) return
-    setIsPinging(true)
-    const { error } = await supabase.from('gym_social_notifications').insert([{
-      sender_id: student.id,
-      receiver_id: partner.id,
-      type: 'ping',
-      message: `${student.name} mandou um PING! Bora treinar! 💪`
-    }])
-    setIsPinging(false)
-    if (!error) {
-      showToast('Ping enviado com sucesso!')
-      fetchWorkouts()
-    } else {
-      showToast('Erro ao enviar ping', 'error')
-    }
-  }
-
-  const myVol = weeklyStats?.volume || 0;
-  const pVol = partnerWeeklyVolume || 0;
-  const totalVol = myVol + pVol;
-  const myVolPercent = totalVol > 0 ? (myVol / totalVol) * 100 : 50;
-
-  const urlBase64ToUint8Array = (base64String) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
-  const subscribeToPush = async () => {
-    try {
-      if (!('serviceWorker' in navigator)) {
-        window.alert('Seu navegador não suporta Service Workers (essencial para PWA).');
-        return;
-      }
-
-      if (!('PushManager' in window)) {
-        window.alert('Seu navegador não suporta Notificações Push (PWA).');
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      
-      const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!publicKey) {
-        window.alert('Erro: Chave VAPID não configurada no .env');
-        return;
-      }
-
-      // Tenta pedir a permissão explicitamente antes de assinar
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        window.alert('⚠️ Permissão Negada! Você precisa permitir notificações nas configurações do seu navegador/celular.');
-        return;
-      }
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey)
-      });
-
-      const { endpoint, keys } = subscription.toJSON();
-      
-      const { error } = await supabase.from('gym_push_subscriptions').upsert({
-        user_id: student.id,
-        endpoint: endpoint,
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-        platform: /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) ? 'ios' : 'android'
-      }, { onConflict: 'endpoint' });
-
-      if (!error) {
-        window.alert('✅ Notificações ativadas com sucesso!');
-        window.location.reload();
-      } else {
-        throw error;
-      }
-    } catch (err) {
-      console.error('Erro ao assinar push:', err);
-      // Se o erro for sobre a chave, avisar
-      if (err.message.includes('applicationServerKey')) {
-        window.alert('❌ Erro na Chave de Segurança (VAPID). Talvez o formato no .env esteja incorreto.');
-      } else {
-        window.alert('❌ Falha ao ativar: ' + err.message);
-      }
-    }
-  };
-
-  return (
-    <div className="w-full max-w-md mx-auto p-6 pb-32 animate-in fade-in duration-500">
-      <header className="mb-8">
-        <h1 className="text-4xl font-black text-white font-display uppercase tracking-tight">VollonFit<span className="text-primary"> Social</span></h1>
-        <p className="text-slate-400 font-bold mt-1">Conectado com <span className="text-white">{partner ? partner.name : 'Ninguém'}</span></p>
-      </header>
-
-      {!partner ? (
-        <div className="bg-[#1A1A1A] p-8 rounded-[32px] border border-white/5 text-center">
-          <Dumbbell className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-          <h3 className="text-xl font-black text-white font-display mb-2">Vincule seu parceiro</h3>
-          <p className="text-slate-400 text-sm font-bold">Vá até a aba Perfil e adicione o código do seu parceiro para liberar o VollonFit Social!</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Card de Notificações PWA */}
-          {Notification.permission === 'default' && (
-            <div className="bg-primary/10 border border-primary/20 p-6 rounded-[32px] flex items-center justify-between animate-in zoom-in duration-500">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary text-black flex items-center justify-center">
-                  <Activity className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-white uppercase tracking-tight">Ativar Notificações</h4>
-                  <p className="text-[10px] text-slate-400 font-bold">Receba PINGS do seu parceiro!</p>
-                </div>
-              </div>
-              <button 
-                onClick={subscribeToPush}
-                className="bg-primary text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
-              >
-                Permitir
-              </button>
-            </div>
-          )}
-
-          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <UserIcon className="w-24 h-24 text-primary" />
-            </div>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-primary text-black flex items-center justify-center font-black text-2xl shadow-lg shadow-primary/20">
-                {partner.name?.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-white font-display">{partner.name}</h3>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${partnerTrainedToday ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                  {partnerTrainedToday ? 'Treinou Hoje! 🔥' : 'Não treinou hoje 😴'}
-                </span>
-              </div>
-            </div>
-
-            <button 
-              onClick={handlePing}
-              disabled={isPinging}
-              className="w-full fitness-gradient text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
-              <Activity className="w-5 h-5" /> {isPinging ? 'Enviando...' : 'Mandar um Ping'}
-            </button>
-          </div>
-
-          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5">
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-6 text-center">Batalha de Carga (7 Dias)</h3>
-            
-            <div className="flex justify-between items-end mb-3">
-              <div className="text-left">
-                <p className="text-[10px] font-black text-white uppercase tracking-widest">Você</p>
-                <p className="text-2xl font-black text-white font-display">{myVol} <span className="text-xs text-slate-500">kg</span></p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{partner.name}</p>
-                <p className="text-2xl font-black text-primary font-display">{pVol} <span className="text-xs text-primary/50">kg</span></p>
-              </div>
-            </div>
-
-            <div className="h-4 bg-white/5 rounded-full overflow-hidden flex shadow-inner">
-              <div 
-                className="h-full bg-white transition-all duration-1000"
-                style={{ width: `${myVolPercent}%` }}
-              />
-              <div 
-                className="h-full bg-primary transition-all duration-1000 shadow-[0_0_15px_#DFFF5E]"
-                style={{ width: `${100 - myVolPercent}%` }}
-              />
-            </div>
-            
-            {myVol > pVol && <p className="text-center text-xs font-bold text-white mt-4">Você está ganhando! 🚀</p>}
-            {myVol < pVol && <p className="text-center text-xs font-bold text-primary mt-4">Corra atrás do prejuízo! 🏃‍♂️</p>}
-            {myVol === pVol && totalVol > 0 && <p className="text-center text-xs font-bold text-slate-400 mt-4">Empate técnico! 🤝</p>}
-          </div>
-
-          <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5">
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-6">Feed de Atividades</h3>
-            <div className="space-y-4">
-              {socialNotifications?.length === 0 ? (
-                <p className="text-slate-500 text-sm font-bold text-center py-4">Nenhuma atividade recente.</p>
-              ) : (
-                socialNotifications?.map(note => (
-                  <div key={note.id} className="flex gap-4 items-start p-3 bg-black rounded-2xl border border-white/5">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      {note.type === 'ping' ? <Activity className="w-5 h-5 text-primary" /> : <Dumbbell className="w-5 h-5 text-primary" />}
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-sm leading-snug">{note.message}</p>
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1 block">
-                        {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
