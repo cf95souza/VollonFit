@@ -7,9 +7,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 overflow-x-hidden">
-      <div className="bg-rose-600 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest sticky top-0 z-[100]">
-        Versão Nova Detectada (Fase 33)
-      </div>
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
