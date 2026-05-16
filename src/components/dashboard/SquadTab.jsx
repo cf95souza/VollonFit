@@ -396,9 +396,9 @@ export default function SquadTab({ student, showToast }) {
 
   return (
     <div className="animate-in fade-in duration-500 py-6 space-y-8">
-      {/* Squad Header */}
-      <div className="bg-[#1A1A1A] rounded-[40px] border border-white/5 shadow-2xl overflow-hidden relative">
-        <div className="h-24 fitness-gradient w-full opacity-20 absolute top-0 left-0"></div>
+      {/* Header do Squad com Placar */}
+      <div className="bg-[#1A1A1A] rounded-[40px] border border-white/5 shadow-2xl relative mb-10">
+        <div className="h-24 fitness-gradient w-full opacity-20 absolute top-0 left-0 rounded-t-[40px]"></div>
         <div className="p-8 relative z-10 text-center space-y-4">
           <div className="w-20 h-20 bg-black border-[3px] border-[#1A1A1A] rounded-full flex items-center justify-center mx-auto shadow-2xl -mt-14 text-primary neon-shadow transition-transform hover:scale-110 duration-500">
             <Trophy className="w-10 h-10 drop-shadow-[0_0_10px_rgba(223,255,94,0.8)]" />
