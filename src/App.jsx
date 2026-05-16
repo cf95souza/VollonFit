@@ -10,18 +10,25 @@ import { loadTheme, applyTheme } from './utils/themeLoader'
 
 function App() {
   useEffect(() => {
-    // Detectar professor logado ou professor do aluno logado
-    const student = localStorage.getItem('vollonfit_user')
-    const teacher = localStorage.getItem('vollonfit_teacher')
-    
-    if (student) {
-      const parsed = JSON.parse(student)
-      if (parsed.teacher_id) loadTheme(parsed.teacher_id)
-    } else if (teacher) {
-      const parsed = JSON.parse(teacher)
-      if (parsed.id) loadTheme(parsed.id)
-    } else {
-      applyTheme() // Carrega o Verde Neon padrão para visitantes
+    try {
+      // Detectar professor logado ou professor do aluno logado
+      const student = localStorage.getItem('vollonfit_user')
+      const teacher = localStorage.getItem('vollonfit_teacher')
+      
+      if (student) {
+        const parsed = JSON.parse(student)
+        if (parsed?.teacher_id) loadTheme(parsed.teacher_id)
+        else applyTheme()
+      } else if (teacher) {
+        const parsed = JSON.parse(teacher)
+        if (parsed?.id) loadTheme(parsed.id)
+        else applyTheme()
+      } else {
+        applyTheme() // Carrega o Verde Neon padrão para visitantes
+      }
+    } catch (e) {
+      console.warn("Erro ao carregar tema inicial:", e)
+      applyTheme() // Fallback seguro
     }
   }, [])
 
