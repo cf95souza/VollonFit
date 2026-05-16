@@ -174,6 +174,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden bg-black">
+      <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-[10px] font-black text-center py-1 uppercase tracking-widest z-[100]">
+        Login da Versão Nova Ativo
+      </div>
       {/* Background Image with Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105"
