@@ -440,7 +440,7 @@ export default function StudentDashboard() {
           )}
 
           {currentTab === 'train' && currentView === 'home' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full">
               <section className="mb-8 mt-2">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-black font-display text-white">Sua Frequência</h2>
@@ -531,38 +531,44 @@ export default function StudentDashboard() {
                   ))}
                 </div>
 
-                {filteredWorkouts.map(workout => (
-                  <button 
-                    key={workout.id}
-                    onClick={() => startWorkout(workout)}
-                    className="w-full bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
-                  >
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                        <Dumbbell className="w-7 h-7" />
-                      </div>
-                      <div className="text-left relative">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-base font-black text-white font-display mb-1">{workout.name}</h4>
-                          {completedWorkoutsThisWeek.has(workout.id) && (
-                            <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30">
-                              <CheckCircle2 className="w-3 h-3 text-primary" />
-                              <span className="text-[8px] font-black text-primary uppercase">Feito</span>
-                            </div>
-                          )}
+                {filteredWorkouts.length === 0 ? (
+                  <div className="bg-[#1A1A1A] p-10 rounded-[32px] border border-white/5 text-center">
+                    <p className="text-slate-500 font-bold text-sm">Nenhum treino encontrado nesta categoria.</p>
+                  </div>
+                ) : (
+                  filteredWorkouts.map(workout => (
+                    <button 
+                      key={workout.id}
+                      onClick={() => startWorkout(workout)}
+                      className="w-full bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+                    >
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                          <Dumbbell className="w-7 h-7" />
                         </div>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{workout.description || 'Foco'}</span>
-                           <span className="w-1 h-1 rounded-full bg-slate-700"></span>
-                           <span className="text-[10px] font-bold text-primary uppercase">30 min</span>
+                        <div className="text-left relative">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-base font-black text-white font-display mb-1">{workout.name}</h4>
+                            {completedWorkoutsThisWeek.has(workout.id) && (
+                              <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30">
+                                <CheckCircle2 className="w-3 h-3 text-primary" />
+                                <span className="text-[8px] font-black text-primary uppercase">Feito</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{workout.description || 'Foco'}</span>
+                             <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                             <span className="text-[10px] font-bold text-primary uppercase">30 min</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:bg-primary group-hover:text-black transition-all">
-                      <ChevronRight className="w-5 h-5" />
-                    </div>
-                  </button>
-                ))}
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:bg-primary group-hover:text-black transition-all">
+                        <ChevronRight className="w-5 h-5" />
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           )}
