@@ -45,8 +45,6 @@ import WorkoutSummaryView from '../components/dashboard/WorkoutSummaryView'
 import EvolutionView from '../components/dashboard/EvolutionView'
 import ProfileTab from '../components/dashboard/ProfileTab'
 import SquadTab from '../components/dashboard/SquadTab'
-import NutritionTab from '../components/dashboard/NutritionTab'
-import MarketplaceTab from '../components/dashboard/MarketplaceTab'
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
