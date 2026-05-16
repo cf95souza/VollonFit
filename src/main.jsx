@@ -12,8 +12,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registrado!', reg))
-      .catch(err => console.log('Erro ao registrar Service Worker', err));
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Novo conteúdo disponível, recarrega a página
+            window.location.reload();
+          }
+        });
+      });
+    });
   });
 }

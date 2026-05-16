@@ -1,9 +1,8 @@
-const CACHE_NAME = 'vollonfit-pwa-v2';
+const CACHE_NAME = 'vollonfit-pwa-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/assets/icon-512.png'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -29,10 +28,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// ESTRATÉGIA: NETWORK FIRST (Tenta rede, se falhar usa cache)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
