@@ -66,7 +66,7 @@ export default function MasterSettings({ showToast }) {
                 min="0"
                 value={price}
                 onChange={e => setPrice(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-lg text-lg font-bold text-white focus:outline-none focus:border-[#DFFF5E]/50"
+                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-lg text-lg font-bold text-white focus:outline-none focus:border-primary/50"
               />
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function MasterSettings({ showToast }) {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanged}
-            className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black py-3 rounded-lg font-bold text-sm disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-dark text-black py-3 rounded-lg font-bold text-sm disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Salvando...' : 'Salvar Alteração'}

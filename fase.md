@@ -127,8 +127,8 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 
 ### Fase 15: Gestão de Quotas e Bloqueios (futuro) 🚫💳
 - [x] Lógica de verificação de limite de alunos por professor
-- [ ] Interface de "Upgrade de Plano" para professores
-- [ ] Notificações de cobrança e vencimento
+- [>] **Movido para Fase 33**: Interface de "Upgrade de Plano" para professores
+- [>] **Movido para Fase 33**: Notificações de cobrança e vencimento
 - **Status:** Parcialmente concluído
 
 ### Fase 16: Redesign Visual Premium VollonFit (Dark Neon) 🎨✨
@@ -202,3 +202,66 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] Otimização da estrutura de renderização do painel do professor.
 - [x] Refinamento visual das tabelas e modais de exercícios no Admin.
 - **Status:** ✅ Concluído
+
+- **Status:** ✅ Concluído
+
+### Fase 27: Squads e Competição em Grupo (Conceito GymRats) 👥🔥
+- [x] **Etapa 1: Grupos e Desafios**
+    - [x] Modelagem de Banco (`gym_squads`, `gym_squad_members`, `gym_squad_challenges`).
+    - [x] Interface de Squad: Criação de grupos com `invite_code` e gestão de membros.
+- [ ] **Etapa 2: Sistema de Pontos**
+    - [ ] Lógica de pontuação: Constância (presença), Intensidade (carga) e Tempo.
+    - [>] **Movido para Fase 32**: Tabela de Logs de Pontos (`gym_squad_score_logs`).
+- [x] **Etapa 3: Check-in de Atividades**
+    - [x] Feed Social: Painel de Responsabilidade com fotos e comentários (Automático no final do treino).
+    - [>] **Movido para Fase 32**: Fluxo de postagem com marcação de grupo muscular (`gym_squad_posts`).
+- [x] **Etapa 4: Rankings e Acompanhamento**
+    - [x] Leaderboard dinâmico: Ranking semanal e mensal do Squad.
+    - [x] Gráficos de desempenho coletivo vs individual (Barras verticais no Leaderboard).
+- [x] **Notificações & Engajamento**
+    - [x] "Cobrança Amigável": Notificação Push para inatividade (> 3 dias).
+    - [x] "Ping" motivacional coletivo para o Squad.
+- **Status:** ✅ Concluído
+
+### Fase 28: Usabilidade e Estabilização Crítica 🛠️🛡️
+- [x] **Persistência do Timer**: Alterar lógica do Smart Rest Timer para usar `timestamp` final (evita pausa em background).
+- [x] **Correção de Encoding**: Varredura global para eliminar caracteres estranhos residuais em botões e labels.
+- [x] **Botão "Atualizar App"**: Implementação de funcionalidade de `Force Refresh` e limpeza de cache do Service Worker.
+- [x] **Notificação de Nova Versão**: Alerta visual quando houver atualização disponível (via botão manual).
+- **Status:** ✅ Concluído
+
+### Fase 29: Automação Financeira e Checkout (SaaS Pro) 💰🏧
+- [x] Integração com Gateway de Pagamento (Stripe/Asaas) para cobrança recorrente (Simulado/Mock).
+- [x] Sistema de "Trial" de 7 dias para novos professores.
+- [x] Geração automática de notas fiscais/recibos para professores (Interface de Histórico).
+- [x] Painel de métricas financeiras (MRR, Churn, LTV) para o Master Admin.
+- **Status:** ✅ Concluído
+
+### Fase 30: IA Engine e Personalização Premium 🤖🎨
+- [x] **IA Coach**: Algoritmo que sugere aumento de carga baseado nos logs de treino.
+- [x] **Módulo White Label**: Permitir que o professor altere logo e cores (CSS dinâmico).
+- [x] **Integração Nutricional**: Contador simples de macros e hidratação.
+- [x] **Sistema de Achievements**: Badge engine para premiar constância e metas batidas.
+- **Status:** ✅ Concluído
+
+### Fase 31: Ecossistema B2B e Marketplaces 🏢🛒
+- [x] **Portal de Academias**: Gestão de múltiplos professores sob uma mesma conta empresarial.
+- [x] **Engine de Monetização SaaS**: Bloqueios visuais por Tier (Basic vs Premium) e recálculo do faturamento no MasterBilling.
+- [x] **Landing Page Automática**: Página de vendas moderna (Sales Page) para captar clientes para a VollonFit.
+- **Status:** ✅ Concluído (Homologado)
+
+### Fase 32: Gamificação e Marketplace 🏆🛒
+- [x] **Sistema de Pontuação GymRats**: Lógica real de pontos por constância, peso levantado e frequência semanal.
+- [x] **Leaderboard Avançado**: Ranking com filtros (7D/30D) por Squad e placar coletivo.
+- [x] **Marketplace de Afiliados**: Integração de vitrine de suplementos e acessórios com links personalizados.
+- [x] **Refinamento White Label**: Solução definitiva para persistência de cores customizadas (Injeção de CSS Root).
+- **Status:** ✅ Concluído
+
+### Fase 33: Automação e Checkout Real 💳🤖
+- [ ] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
+- [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
+- [ ] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
+- **Status:** 📅 Planejado
+
+### Backlog de Correções Futuras 🐛
+- [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.

@@ -1,0 +1,106 @@
+# Documentação Técnica - VollonFit (CasalGym) 🏆
+
+O VollonFit é uma plataforma SaaS (Software as a Service) de alta performance projetada para personal trainers e academias que buscam modernizar a gestão de treinos e aumentar o engajamento dos alunos através de uma experiência social e gamificada.
+
+## 🎯 Escopo do Projeto
+A plataforma resolve a lacuna de comunicação entre professor e aluno, fornecendo ferramentas de alta precisão para prescrição de exercícios e um aplicativo PWA intuitivo para o aluno registrar sua evolução em tempo real.
+
+### Arquitetura de Acesso:
+- **Master Admin:** Gestão financeira global e controle de professores (Tenants).
+- **Professor (Tenant):** Gestão técnica e comercial de sua base de alunos.
+- **Aluno (User):** Execução de treinos, biopedância e interação social.
+
+### Principais Funcionalidades:
+- **Painel Master:** Gestão global de faturamento SaaS e controle de parceiros.
+- **Painel do Professor:** Gestão técnica e comercial de alunos.
+- **PWA do Aluno:** Registro de evolução e execução de treinos.
+- **Squads & CasalGym:** Hub social para treinar em dupla ou em grupos (Squads), com "Batalha de Carga" e notificações motivacionais coletivas.
+
+### 🚀 Evolução GymRats (Social Hub 2.0)
+Inspirado no conceito de "Painel de Responsabilidade", esta evolução foca em:
+- **Feed de Squad:** Postagens de check-in com fotos, comentários e marcação de grupo muscular.
+- **Desafios Customizados:** Criação de competições internas no squad (ex: "Quem treina mais no mês").
+- **Leaderboard Semanal:** Ranking dinâmico baseado em frequência e volume de carga.
+- **Responsabilidade Social:** Notificações automáticas para membros que estão há mais de 3 dias sem treinar ("Cobrança amigável").
+
+### 📋 Guia de Participação (Workflow)
+1. **Grupos e Desafios**: Criação de espaços coletivos onde os desafios ditam o ritmo.
+2. **Sistema de Pontos**: Gamificação baseada em constância, intensidade e tempo.
+3. **Check-in Fluido**: Registro manual no PWA ou automático (simulado/integrado).
+4. **Rankings Dinâmicos**: Acompanhamento em tempo real da liderança do Squad.
+
+## 🎨 Design System (`ui-design-system`)
+O design segue uma estética **Dark Neon / Cyberpunk Premium**, otimizada para ambientes de academia com baixa luminosidade e alta necessidade de contraste.
+
+- **Paleta de Cores**:
+  - `Primary`: `#DFFF5E` (Lime Neon) - Usado para CTAs, estados ativos e progresso.
+  - `Secondary`: `#000000` (Deep Black) - Base do layout, garantindo profundidade.
+  - `Accent`: `#C6C4FF` (Lavender) - Usado para informações secundárias e badges.
+- **Tipografia**: Inter (Sans-serif) para legibilidade técnica.
+- **Componentes**: Glassmorphism, bordas arredondadas (`4xl`), e micro-animações suaves.
+
+## 🛠️ Stack Tecnológica
+- **Frontend**: React 19 + Vite (Rápido, Moderno e Modular).
+- **Estilização**: Tailwind CSS + Custom Vanilla CSS.
+- **Backend-as-a-Service**: Supabase (PostgreSQL, Realtime, Edge Functions).
+- **Infraestrutura**: Vercel (Deploy contínuo e PWA support).
+
+## 🗄️ Estrutura de Dados (`estrutura_db.md`)
+O banco de dados é gerido via Supabase com foco em segurança via **Row Level Security (RLS)**.
+- `gym_teachers`: Dados dos professores e limites de cota.
+- `gym_students`: Perfis de alunos, metas e vínculo de parceiros (Casal).
+- `gym_workouts` & `gym_workout_items`: Prescrição pedagógica de treinos.
+- `gym_training_logs`: Histórico de cargas e repetições reais.
+- `gym_billing_records`: Implementação do Gateway de Pagamento e regras de Checkout SaaS.
+- Refatoração do App para PWA, cache-first e timers resilientes em background.
+
+### Atualizações Mais Recentes (Fase 30)
+- **IA Coach**: Integração de dicas inteligentes na tela de execução, sugerindo progressão de carga com base no histórico de performance.
+- **Módulo White Label**: Personalização dinâmica de cores e branding via variáveis CSS, injetadas pelo Supabase em tempo real no Dashboard do Aluno.
+- **Integração Nutricional**: Criação do `NutritionTab.jsx` para acompanhamento de hidratação e metas de macronutrientes.
+- **Sistema de Conquistas**: A aba de Perfil (`ProfileTab.jsx`) agora exibe badges de progresso para retenção de usuários.
+
+### Ecossistema B2B e Modelagem SaaS (Fase 31)
+A aplicação evoluiu para uma plataforma SaaS completa com Múltiplos Planos de Assinatura, permitindo uma escalabilidade de faturamento:
+- **Plano Basic (Professores)**: Foco na gestão de alunos (R$ 30,00 por aluno/mês). Sem personalização de marca.
+- **Plano Premium (Professores)**: Desbloqueia a customização White Label (Cores e Logo) e os recursos de Nutrição e IA Coach para os alunos (R$ 45,00 por aluno/mês).
+- **Plano Enterprise (Academias)**: Gestão unificada (`gym_academies`) onde um Gestor (`gym_academy_admins`) administra múltiplos Personal Trainers sob uma licença fixa mensal (R$ 899,00/mês).
+- **Landing Page de Vendas SaaS**: A aplicação contará com uma página institucional de vendas (`LandingPage.jsx`) focada em conversão, exibindo as tabelas de preços, features e a proposta de valor B2B para captar Professores e Redes de Academia.
+
+## 📲 PWA & Notificações (`responsive-design`)
+O VollonFit é um **Progressive Web App** nativo:
+- **Offline Ready**: Cache básico para funcionamento sem rede.
+- **Web Push**: Notificações automáticas de treino do parceiro e avisos do professor.
+- **Standalone**: Ícone na home do celular e remoção das barras de navegação do browser.
+
+## 💰 Modelo de Negócio (SaaS)
+- **Custo**: R$ 30,00 por aluno ativo vinculado ao professor.
+- **Faturamento**: Gerado mensalmente pelo Master Admin.
+- **Regra de Bloqueio**: Professores inadimplentes têm o acesso (e de seus alunos) suspenso automaticamente.
+
+## 🧭 Guia de Manutenção
+1. **Logs**: Acompanhar via Supabase Edge Functions logs.
+2. **Push**: Chaves VAPID configuradas no ambiente de produção.
+3. **Atualizações**: Push para `main` no GitHub dispara o deploy automático na Vercel.
+4. **Cache Busting**: O sistema possui um botão de "Atualizar App" para forçar a limpeza do Service Worker e recarregar a versão mais recente, corrigindo problemas de encoding e cache persistente.
+
+## 🚀 Visão de Escalabilidade (Roadmap 2026)
+Para transformar o VollonFit em uma solução líder de mercado, o roadmap estratégico foca em três pilares:
+
+### 1. Monetização e Finanças
+- **Checkout Recorrente**: Automação total da cobrança dos professores (SaaS B2C).
+- **Modelo B2B**: Venda de licenças em lote para academias físicas e estúdios.
+- **Marketplace**: Monetização via afiliados para suplementos e equipamentos.
+
+### 2. Inteligência e Retenção
+- **IA Coach**: Motor de análise de dados para sugerir progressão de carga e evitar o platô do aluno.
+- **Recuperador de Churn**: Automação de marketing para reconquistar alunos inativos.
+- **Gamificação Avançada**: Sistema de conquistas (Achievements) para aumentar a retenção diária.
+
+### 3. Personalização e Branding
+- **White Label**: Permitir que grandes treinadores tenham "seu próprio app" dentro da estrutura VollonFit.
+- **LP Generator**: Páginas de captura profissionais geradas automaticamente para cada professor.
+
+---
+*Documentação gerada em 15/05/2026*
+*Status: Homologado para Produção*

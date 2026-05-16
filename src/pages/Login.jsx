@@ -35,6 +35,12 @@ export default function Login() {
           navigate('/admin', { replace: true })
           return
         }
+
+        const academy = localStorage.getItem('vollonfit_academy')
+        if (academy) {
+          navigate('/academy', { replace: true })
+          return
+        }
       } finally {
         setCheckingSession(false)
       }
@@ -60,6 +66,20 @@ export default function Login() {
         navigate('/master', { replace: true })
 
       } else if (isEmail) {
+        // Tenta logar como Gestor de Academia (B2B)
+        const { data: admin } = await supabase
+          .from('gym_academy_admins')
+          .select('*')
+          .eq('email', identifier.trim().toLowerCase())
+          .eq('password', password.trim())
+          .maybeSingle()
+
+        if (admin) {
+          localStorage.setItem('vollonfit_academy', JSON.stringify(admin))
+          navigate('/academy', { replace: true })
+          return
+        }
+
         // Teacher Login (tabela gym_teachers)
         const { data: teacher, error } = await supabase
           .from('gym_teachers')
@@ -73,6 +93,39 @@ export default function Login() {
         if (teacher.status === 'blocked') {
           throw new Error('Sua conta está suspensa. Entre em contato com o administrador.')
         }
+
+        // [SaaS Pro] Lógica de Trial e Assinatura
+        let { data: sub } = await supabase
+          .from('gym_subscriptions')
+          .select('*')
+          .eq('teacher_id', teacher.id)
+          .maybeSingle()
+
+        if (!sub) {
+          // Se não tem assinatura, inicia Trial de 7 dias
+          const endDate = new Date()
+          endDate.setDate(endDate.getDate() + 7)
+          
+          const { data: newSub } = await supabase
+            .from('gym_subscriptions')
+            .insert([{
+              teacher_id: teacher.id,
+              status: 'trialing',
+              current_period_end: endDate.toISOString()
+            }])
+            .select()
+            .single()
+            
+          sub = newSub
+        }
+
+        // Verifica expiração do trial
+        if (sub && sub.status === 'trialing' && new Date() > new Date(sub.current_period_end)) {
+          await supabase.from('gym_subscriptions').update({ status: 'past_due' }).eq('id', sub.id)
+          sub.status = 'past_due'
+        }
+
+        teacher.subscription = sub
 
         localStorage.setItem('vollonfit_teacher', JSON.stringify(teacher))
         navigate('/admin', { replace: true })
@@ -113,7 +166,7 @@ export default function Login() {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#DFFF5E] animate-spin mb-4" />
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
         <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Iniciando VollonFit...</p>
       </div>
     )
@@ -126,19 +179,19 @@ export default function Login() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105"
         style={{ backgroundImage: 'url("/assets/login-bg.png")' }}
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-[#DFFF5E]/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-primary/20" />
       
       {/* Animated Elements */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#DFFF5E] to-transparent opacity-50" />
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#DFFF5E] to-transparent opacity-50" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center bg-[#DFFF5E] p-4 rounded-3xl mb-6 shadow-2xl shadow-[#DFFF5E]/40 animate-bounce-subtle text-black">
+          <div className="inline-flex items-center justify-center bg-primary p-4 rounded-3xl mb-6 shadow-2xl shadow-primary/40 animate-bounce-subtle text-black">
             <Dumbbell className="text-white w-8 h-8" />
           </div>
           <h1 className="text-5xl font-black text-white tracking-tighter mb-2 font-display uppercase">
-            VOLLON<span className="text-[#DFFF5E]">FIT</span>
+            VOLLON<span className="text-primary">FIT</span>
           </h1>
           <p className="text-slate-400 font-medium tracking-widest text-[10px] uppercase">Evolution Management System</p>
         </div>
@@ -148,7 +201,7 @@ export default function Login() {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Acesso do Usuário</label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
@@ -165,7 +218,7 @@ export default function Login() {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chave de Segurança</label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <input
@@ -188,7 +241,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black font-black py-5 rounded-2xl shadow-xl shadow-[#DFFF5E]/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
+              className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
             >
               {loading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />

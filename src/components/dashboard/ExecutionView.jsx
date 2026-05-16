@@ -19,6 +19,7 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
   const [isSaving, setIsSaving] = useState(false)
   const [restRemaining, setRestRemaining] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
+  const [finishTime, setFinishTime] = useState(null)
   const [exerciseNotes, setExerciseNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
@@ -38,20 +39,24 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
     fetchNotes()
   }, [ex?.id, studentId])
 
-  // Lógica do Timer
+  // Lógica do Timer Persistente
   useEffect(() => {
     let interval = null
-    if (isTimerActive && restRemaining > 0) {
+    if (isTimerActive && finishTime) {
       interval = setInterval(() => {
-        setRestRemaining(prev => prev - 1)
+        const now = Date.now()
+        const remaining = Math.max(0, Math.ceil((finishTime - now) / 1000))
+        setRestRemaining(remaining)
+        
+        if (remaining === 0) {
+          setIsTimerActive(false)
+          setFinishTime(null)
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200])
+        }
       }, 1000)
-    } else if (restRemaining === 0 && isTimerActive) {
-      setIsTimerActive(false)
-      // Vibração ao terminar (se suportado pelo navegador/celular)
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200])
     }
     return () => clearInterval(interval)
-  }, [isTimerActive, restRemaining])
+  }, [isTimerActive, finishTime])
 
   if (!ex) return null;
 
@@ -67,19 +72,21 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
       }, { onConflict: 'student_id,exercise_id' })
     
     setIsSavingNotes(false)
-    showToast('Note saved!')
+    showToast('Anotação salva!')
   }
 
   const startRestTimer = () => {
     const timeStr = item?.rest_time || '60s'
     const seconds = parseInt(timeStr.replace('s', '')) || 60
+    const end = Date.now() + (seconds * 1000)
+    setFinishTime(end)
     setRestRemaining(seconds)
     setIsTimerActive(true)
   }
 
   const handleNextSet = async () => {
     if (!weight || !reps) {
-      showToast('Enter weight and reps!', 'error')
+      showToast('Insira carga e reps!', 'error')
       return
     }
 
@@ -100,7 +107,7 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
 
     if (!error) {
       if (onLogSet) onLogSet({ weight: parseFloat(weight), reps: parseInt(reps) })
-      showToast(`Set ${currentSet} saved!`)
+      showToast(`Série ${currentSet} salva!`)
     }
 
     if (currentSet < (item?.target_sets || 1)) {
@@ -160,7 +167,7 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
         </div>
 
         <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 flex flex-col gap-8 shadow-2xl relative">
-          <div className="flex justify-between items-end">
+          <div className="flex justify-between items-end mb-2">
             <div>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Série Atual</p>
               <p className="text-5xl font-black text-white font-display">{currentSet}<span className="text-slate-700 text-2xl font-normal ml-2">/ {item?.target_sets || 1}</span></p>
@@ -174,6 +181,24 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
                </div>
             </div>
           </div>
+
+          {item?.iaSuggestion && currentSet === 1 && (
+            <div className="bg-primary/10 border border-primary/20 p-4 rounded-3xl flex items-start gap-4 animate-in slide-in-from-top-4 duration-500 shadow-lg">
+               <div className="bg-primary text-black p-2.5 rounded-xl mt-1 shadow-[0_0_15px_rgba(223,255,94,0.3)]">
+                 <TrendingUp className="w-5 h-5" />
+               </div>
+               <div>
+                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">IA Coach Intelligence</p>
+                 <p className="text-sm font-bold text-slate-200 leading-tight mb-3">Notamos que você atingiu a meta de repetições com facilidade na última vez. Que tal subir para <span className="text-primary font-black">{item.iaSuggestion.weight}kg</span>?</p>
+                 <button 
+                   onClick={() => setWeight(item.iaSuggestion.weight.toString())} 
+                   className="text-[10px] font-black text-black bg-primary hover:bg-primary-dark px-4 py-2 rounded-full uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
+                 >
+                   Aplicar {item.iaSuggestion.weight}kg
+                 </button>
+               </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

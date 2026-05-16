@@ -8,6 +8,7 @@ import MasterOverview from '../components/master/MasterOverview'
 import MasterTeachers from '../components/master/MasterTeachers'
 import MasterBilling from '../components/master/MasterBilling'
 import MasterSettings from '../components/master/MasterSettings'
+import MasterAcademies from '../components/master/MasterAcademies'
 
 // Reutilizar o ExercisesManagement que já existe
 import { Dumbbell, Plus, X, Search } from 'lucide-react'
@@ -37,17 +38,18 @@ export default function MasterDashboard() {
   if (checking) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#DFFF5E] animate-spin mb-4" />
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
         <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Autenticando Master...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#DFFF5E]/30">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30">
       <MasterShell activeTab={activeTab} setActiveTab={setActiveTab}>
         <div className="max-w-7xl mx-auto">
           {activeTab === 'overview' && <MasterOverview onNavigate={setActiveTab} />}
+          {activeTab === 'academies' && <MasterAcademies showToast={showToast} />}
           {activeTab === 'teachers' && <MasterTeachers showToast={showToast} />}
           {activeTab === 'billing' && <MasterBilling showToast={showToast} />}
           {activeTab === 'exercises' && <ExercisesManagement showToast={showToast} />}
@@ -61,7 +63,7 @@ export default function MasterDashboard() {
           <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
             toast.type === 'error' 
               ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
-              : 'bg-[#DFFF5E]/10 border-[#DFFF5E]/20 text-[#DFFF5E]'
+              : 'bg-primary/10 border-primary/20 text-primary'
           }`}>
             {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
             <span className="text-sm font-black uppercase tracking-widest">{toast.message}</span>
@@ -132,18 +134,18 @@ function ExercisesManagement({ showToast }) {
         
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div className="relative group flex-1 md:w-64">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
               placeholder="Filtrar acervo..." 
               value={searchTerm} 
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-[#111111] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50 focus:ring-1 focus:ring-[#DFFF5E]/20 transition-all font-bold" 
+              className="w-full pl-12 pr-4 py-3.5 bg-[#111111] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-bold" 
             />
           </div>
           <button 
             onClick={() => { setEditingId(null); setNewExercise({ name: '', category: 'Peito', description: '', gif_url: '' }); setIsModalOpen(true) }}
-            className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#DFFF5E]/20 active:scale-95"
+            className="bg-primary hover:bg-primary-dark text-black px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
             <Plus className="w-4 h-4" /> Novo Exercício
           </button>
@@ -158,7 +160,7 @@ function ExercisesManagement({ showToast }) {
             onClick={() => setSelectedCategory(cat)}
             className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
               selectedCategory === cat
-                ? 'bg-[#DFFF5E] text-black border-[#DFFF5E] shadow-[0_0_15px_rgba(223,255,94,0.3)]'
+                ? 'bg-primary text-black border-primary shadow-[0_0_15px_rgba(223,255,94,0.3)]'
                 : 'bg-white/5 text-slate-400 border-white/5 hover:border-white/20 hover:text-white'
             }`}
           >
@@ -182,7 +184,7 @@ function ExercisesManagement({ showToast }) {
               {loading ? (
                 <tr>
                   <td colSpan="4" className="py-20 text-center">
-                    <Loader2 className="w-10 h-10 animate-spin mx-auto text-[#DFFF5E]/50" />
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary/50" />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -196,14 +198,14 @@ function ExercisesManagement({ showToast }) {
                   <tr key={ex.id} className="hover:bg-white/10 transition-all group">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-black rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center shrink-0 group-hover:border-[#DFFF5E]/50 transition-colors">
+                        <div className="w-14 h-14 bg-black rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
                           {ex.gif_url ? <img src={ex.gif_url} className="w-full h-full object-cover" /> : <Dumbbell className="w-6 h-6 text-slate-700" />}
                         </div>
                         <span className="font-black text-white text-base tracking-tight uppercase">{ex.name}</span>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <span className="bg-[#DFFF5E]/10 text-[#DFFF5E] px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-[#DFFF5E]/20">
+                      <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">
                         {ex.category}
                       </span>
                     </td>
@@ -253,7 +255,7 @@ function ExercisesManagement({ showToast }) {
                     placeholder="Ex: Leg Press 45" 
                     value={newExercise.name} 
                     onChange={e => setNewExercise({...newExercise, name: e.target.value})}
-                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold" 
+                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold" 
                   />
                 </div>
                 <div className="space-y-2">
@@ -261,7 +263,7 @@ function ExercisesManagement({ showToast }) {
                   <select 
                     value={newExercise.category} 
                     onChange={e => setNewExercise({...newExercise, category: e.target.value})}
-                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold appearance-none cursor-pointer"
+                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold appearance-none cursor-pointer"
                   >
                     {['Peito','Costas','Pernas','Ombros','Bíceps','Tríceps','Abdômen'].map(c => <option key={c} className="bg-[#111111]">{c}</option>)}
                   </select>
@@ -274,7 +276,7 @@ function ExercisesManagement({ showToast }) {
                   placeholder="https://exemplo.com/gif-animado.gif" 
                   value={newExercise.gif_url} 
                   onChange={e => setNewExercise({...newExercise, gif_url: e.target.value})}
-                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold" 
+                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold" 
                 />
               </div>
 
@@ -284,14 +286,14 @@ function ExercisesManagement({ showToast }) {
                   placeholder="Descreva a técnica correta..." 
                   value={newExercise.description} 
                   onChange={e => setNewExercise({...newExercise, description: e.target.value})}
-                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold h-32 resize-none" 
+                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold h-32 resize-none" 
                 />
               </div>
 
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#DFFF5E]/10 active:scale-[0.98] disabled:opacity-50"
+                className="w-full bg-primary hover:bg-primary-dark text-black py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/10 active:scale-[0.98] disabled:opacity-50"
               >
                 {isSaving ? 'Processando...' : editingId ? 'Salvar Alterações' : 'Cadastrar Exercício'}
               </button>

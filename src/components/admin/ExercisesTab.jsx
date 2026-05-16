@@ -82,7 +82,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
             onClick={() => setSelectedCategory(cat)}
             className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
               selectedCategory === cat
-                ? 'bg-[#DFFF5E] text-black border-[#DFFF5E] shadow-[0_0_15px_rgba(223,255,94,0.3)]'
+                ? 'bg-primary text-black border-primary shadow-[0_0_15px_rgba(223,255,94,0.3)]'
                 : 'bg-white/5 text-slate-400 border-white/5 hover:border-white/20 hover:text-white'
             }`}
           >
@@ -123,7 +123,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                     className="hover:bg-white/5 transition-colors group cursor-pointer"
                   >
                     <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center overflow-hidden group-hover:border-[#DFFF5E] transition-colors">
+                      <div className="w-12 h-12 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center overflow-hidden group-hover:border-primary transition-colors">
                         {ex.gif_url ? (
                           <img src={ex.gif_url} alt={ex.name} className="w-full h-full object-cover" />
                         ) : (
@@ -175,7 +175,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                     type="text" 
                     value={newExercise.name}
                     onChange={e => setNewExercise({...newExercise, name: e.target.value})}
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 outline-none"
                     placeholder="Ex: Supino Reto"
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                   <select 
                     value={newExercise.category}
                     onChange={e => setNewExercise({...newExercise, category: e.target.value})}
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 outline-none"
                   >
                     <option>Peito</option>
                     <option>Costas</option>
@@ -202,7 +202,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                   type="url" 
                   value={newExercise.gif_url}
                   onChange={e => setNewExercise({...newExercise, gif_url: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 outline-none"
                   placeholder="https://exemplo.com/exercicio.gif"
                 />
               </div>
@@ -212,7 +212,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                   rows="3"
                   value={newExercise.description}
                   onChange={e => setNewExercise({...newExercise, description: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 outline-none resize-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 outline-none resize-none"
                   placeholder="Instruções de execução..."
                 />
               </div>
@@ -227,7 +227,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-[#DFFF5E] text-black rounded-xl font-bold text-sm hover:bg-[#B8E600] transition-all disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-primary text-black rounded-xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Salvar Exercício'}
                 </button>
@@ -243,7 +243,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
           <div className="bg-[#111111] border border-white/10 rounded-[32px] max-w-xl w-full overflow-hidden shadow-2xl animate-in zoom-in duration-300">
             <div className="p-8 border-b border-white/5 flex justify-between items-center bg-[#111111]">
               <div>
-                <span className="bg-[#DFFF5E]/10 text-[#DFFF5E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-[#DFFF5E]/20 mb-2 inline-block">
+                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20 mb-2 inline-block">
                   {selectedGif.category}
                 </span>
                 <h3 className="font-black text-2xl text-white font-display uppercase tracking-tight">{selectedGif.name}</h3>
@@ -271,7 +271,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
             <div className="p-8 bg-[#111111]">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-[#DFFF5E]" />
+                  <ClipboardList className="w-4 h-4 text-primary" />
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instruções de Execução</p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
@@ -285,7 +285,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
             <div className="p-8 pt-0">
               <button 
                 onClick={() => setSelectedGif(null)}
-                className="w-full py-4 bg-[#DFFF5E] text-black font-black rounded-2xl hover:bg-[#B8E600] transition-all shadow-[0_0_20px_rgba(223,255,94,0.15)] uppercase text-xs tracking-widest"
+                className="w-full py-4 bg-primary text-black font-black rounded-2xl hover:bg-primary-dark transition-all shadow-[0_0_20px_rgba(223,255,94,0.15)] uppercase text-xs tracking-widest"
               >
                 Entendido, fechar
               </button>

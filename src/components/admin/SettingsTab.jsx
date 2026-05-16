@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { User, TrendingUp } from 'lucide-react'
+import { User, TrendingUp, Shield, Zap } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
+import { hexToRgbString } from '../../utils/colorUtils'
 
 export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) {
   const [loading, setLoading] = useState(false)
@@ -8,16 +9,31 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
   const [formData, setFormData] = useState({
     name: teacherInfo?.name || '',
     password: teacherInfo?.password || '',
-    confirmPassword: teacherInfo?.password || ''
+    confirmPassword: teacherInfo?.password || '',
+    themeColor: '#DFFF5E'
   })
+
+  // Carregar cor real
+  useEffect(() => {
+    const fetchTheme = async () => {
+      if (!teacherInfo?.id) return
+      const { data } = await supabase.from('gym_settings').select('value').eq('key', `theme_${teacherInfo.id}`).maybeSingle()
+      if (data) {
+        setFormData(prev => ({ ...prev, themeColor: data.value }))
+        document.documentElement.style.setProperty('--color-primary', hexToRgbString(data.value))
+      }
+    }
+    fetchTheme()
+  }, [teacherInfo?.id])
 
   useEffect(() => {
     if (teacherInfo) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: teacherInfo.name,
         password: teacherInfo.password,
         confirmPassword: teacherInfo.password
-      })
+      }))
     }
   }, [teacherInfo])
 
@@ -53,13 +69,22 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
     if (error) {
       showToast('Erro ao atualizar perfil', 'error')
       setLoading(false)
-    } else {
-      const updatedTeacher = { ...teacherInfo, name: formData.name, password: formData.password }
-      localStorage.setItem('vollonfit_teacher', JSON.stringify(updatedTeacher))
-      setTeacherInfo(updatedTeacher)
-      showToast('Perfil atualizado com sucesso!')
-      setLoading(false)
+      return
     }
+
+    // Salvar cor no gym_settings
+    await supabase.from('gym_settings').upsert({ 
+      key: `theme_${teacherInfo.id}`, 
+      value: formData.themeColor 
+    }, { onConflict: 'key' })
+    
+    document.documentElement.style.setProperty('--color-primary', hexToRgbString(formData.themeColor))
+
+    const updatedTeacher = { ...teacherInfo, name: formData.name, password: formData.password }
+    localStorage.setItem('vollonfit_teacher', JSON.stringify(updatedTeacher))
+    setTeacherInfo(updatedTeacher)
+    showToast('Perfil e marca atualizados com sucesso!')
+    setLoading(false)
   }
 
   const usagePercent = Math.min((studentCount / (teacherInfo?.quota_limit || 1)) * 100, 100)
@@ -68,7 +93,7 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
     <div className="max-w-4xl space-y-10 animate-in fade-in duration-500 pb-20">
       <section className="bg-[#111111] p-8 rounded-[40px] border border-white/5 shadow-sm">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-[#DFFF5E]">
+          <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
             <User className="w-6 h-6" />
           </div>
           <div>
@@ -85,7 +110,7 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                 type="text" 
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold"
+                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
                 placeholder="Seu nome"
               />
             </div>
@@ -104,7 +129,7 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                 type="password" 
                 value={formData.password}
                 onChange={e => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold"
+                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
                 placeholder="••••••••"
               />
             </div>
@@ -114,9 +139,58 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                 type="password" 
                 value={formData.confirmPassword}
                 onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold"
+                className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
                 placeholder="••••••••"
               />
+            </div>
+            
+            <div className="space-y-2 md:col-span-2 mt-4 pt-6 border-t border-white/5 relative">
+              <h4 className="text-white font-black uppercase tracking-tight flex items-center gap-2 mb-4">
+                Módulo White Label 
+                {teacherInfo?.plan_type === 'premium' ? (
+                  <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[9px]">PRO</span>
+                ) : (
+                  <span className="bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded text-[9px] flex items-center gap-1">
+                    <Shield className="w-2 h-2" /> PREMIUM
+                  </span>
+                )}
+              </h4>
+              
+              {teacherInfo?.plan_type !== 'premium' && (
+                <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center text-center p-6 border border-amber-500/20">
+                   <Zap className="w-8 h-8 text-amber-500 mb-2 animate-pulse" />
+                   <p className="text-white font-black text-sm uppercase tracking-tight">Recurso Exclusivo Premium</p>
+                   <p className="text-[10px] text-slate-400 font-bold max-w-[200px] mt-1">Personalize as cores e a marca do seu aplicativo para encantar seus alunos.</p>
+                   <button 
+                    type="button"
+                    className="mt-4 bg-amber-500 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-amber-500/20"
+                   >
+                     Fazer Upgrade Agora
+                   </button>
+                </div>
+              )}
+
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${teacherInfo?.plan_type !== 'premium' ? 'blur-[2px] pointer-events-none' : ''}`}>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cor Principal (Tema)</label>
+                  <div className="flex items-center gap-4 mt-2">
+                    <input 
+                      type="color" 
+                      value={formData.themeColor}
+                      onChange={e => setFormData({...formData, themeColor: e.target.value})}
+                      className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 cursor-pointer"
+                    />
+                    <input 
+                      type="text" 
+                      value={formData.themeColor}
+                      onChange={e => setFormData({...formData, themeColor: e.target.value})}
+                      className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold uppercase"
+                      placeholder="#DFFF5E"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2">Seus alunos verão o aplicativo com esta cor de destaque.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -124,7 +198,7 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
             <button 
               type="submit"
               disabled={loading}
-              className="px-10 py-4 bg-[#DFFF5E] text-black font-black rounded-2xl hover:bg-[#B8E600] transition-all shadow-[0_0_20px_rgba(223,255,94,0.2)] disabled:opacity-50 active:scale-95"
+              className="px-10 py-4 bg-primary text-black font-black rounded-2xl hover:bg-primary-dark transition-all shadow-[0_0_20px_rgba(223,255,94,0.2)] disabled:opacity-50 active:scale-95"
             >
               {loading ? 'Salvando...' : 'Salvar Alterações'}
             </button>
@@ -153,15 +227,15 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-black text-[#DFFF5E] uppercase tracking-widest mb-1">Ocupação</p>
-                <p className="text-lg font-black text-[#DFFF5E] font-display">{usagePercent.toFixed(0)}%</p>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Ocupação</p>
+                <p className="text-lg font-black text-primary font-display">{usagePercent.toFixed(0)}%</p>
               </div>
             </div>
 
             <div className="h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
               <div 
                 className={`h-full rounded-full transition-all duration-1000 ${
-                  usagePercent > 90 ? 'bg-rose-500' : usagePercent > 70 ? 'bg-amber-500' : 'bg-[#DFFF5E]'
+                  usagePercent > 90 ? 'bg-rose-500' : usagePercent > 70 ? 'bg-amber-500' : 'bg-primary'
                 }`}
                 style={{ width: `${usagePercent}%` }}
               />

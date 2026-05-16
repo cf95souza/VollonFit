@@ -18,10 +18,16 @@ import {
   AlertCircle,
   Heart,
   Camera,
-  Image as ImageIcon
+  ImageIcon,
+  Users,
+  Shield,
+  ShoppingBag
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { getTodayLocally } from '../utils/dateUtils'
+import NutritionTab from '../components/dashboard/NutritionTab'
+import MarketplaceTab from '../components/dashboard/MarketplaceTab'
+import { loadTheme } from '../utils/themeLoader'
 import { 
   LineChart, 
   Line, 
@@ -38,11 +44,14 @@ import ExecutionView from '../components/dashboard/ExecutionView'
 import WorkoutSummaryView from '../components/dashboard/WorkoutSummaryView'
 import EvolutionView from '../components/dashboard/EvolutionView'
 import ProfileTab from '../components/dashboard/ProfileTab'
-import SocialTab from '../components/dashboard/SocialTab'
+import SquadTab from '../components/dashboard/SquadTab'
+import NutritionTab from '../components/dashboard/NutritionTab'
+import MarketplaceTab from '../components/dashboard/MarketplaceTab'
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
   const [student, setStudent] = useState(null)
+  const [teacherPlan, setTeacherPlan] = useState('basic')
   const [currentTab, setCurrentTab] = useState(() => localStorage.getItem('vollonfit_student_tab') || 'train')
   const [currentView, setCurrentView] = useState(() => localStorage.getItem('vollonfit_student_view') || 'home') // 'home', 'workout-detail', 'executing'
   const [selectedWorkout, setSelectedWorkout] = useState(null)
@@ -232,6 +241,8 @@ export default function StudentDashboard() {
           if (data && !error) {
             setStudent(data)
             localStorage.setItem('vollonfit_user', JSON.stringify(data))
+            fetchTeacherPlan(data.teacher_id)
+            loadTheme(data.teacher_id)
           }
         } catch (e) {
           console.warn("Erro ao carregar dados do aluno:", e)
@@ -246,6 +257,12 @@ export default function StudentDashboard() {
       navigate('/', { replace: true })
     }
   }, [navigate])
+
+  const fetchTeacherPlan = async (teacherId) => {
+    if (!teacherId) return
+    const { data } = await supabase.from('gym_teachers').select('plan_type').eq('id', teacherId).maybeSingle()
+    if (data?.plan_type) setTeacherPlan(data.plan_type)
+  }
 
   useEffect(() => {
     localStorage.setItem('vollonfit_student_tab', currentTab)
@@ -294,10 +311,32 @@ export default function StudentDashboard() {
         lastLogs = logs || []
       }
 
-      const itemsWithHistory = (items || []).map(item => ({
-        ...item,
-        lastPerformance: lastLogs.filter(l => l.exercise_id === item.exercise_id)
-      }))
+      const itemsWithHistory = (items || []).map(item => {
+        const history = lastLogs.filter(l => l.exercise_id === item.exercise_id)
+        
+        let iaSuggestion = null;
+        if (history.length > 0) {
+          const maxWeight = Math.max(...history.map(l => l.weight_kg || 0));
+          const avgReps = history.reduce((acc, l) => acc + (l.reps_done || 0), 0) / history.length;
+          let targetMax = 12;
+          if (item.target_reps) {
+             const match = item.target_reps.match(/\d+$/);
+             if (match) targetMax = parseInt(match[0], 10);
+          }
+          if (avgReps >= targetMax && maxWeight > 0) {
+            iaSuggestion = {
+               weight: maxWeight + 2,
+               message: "IA Coach: Tente aumentar a carga (+2kg)"
+            }
+          }
+        }
+
+        return {
+          ...item,
+          lastPerformance: history,
+          iaSuggestion
+        }
+      })
 
       setSelectedWorkout(workout)
       setWorkoutItems(itemsWithHistory)
@@ -569,6 +608,14 @@ export default function StudentDashboard() {
           />
         )}
 
+        {currentTab === 'nutrition' && (
+          <NutritionTab studentId={student?.id} showToast={showToast} />
+        )}
+
+        {currentTab === 'marketplace' && (
+          <MarketplaceTab showToast={showToast} />
+        )}
+
         {isBioModalOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10">
@@ -602,6 +649,7 @@ export default function StudentDashboard() {
         {currentTab === 'profile' && (
           <ProfileTab 
             student={student} 
+            totalWorkouts={workoutHistory.length}
             onOpenConfig={() => setIsConfigModalOpen(true)} 
             onOpenGoals={() => setIsGoalsModalOpen(true)}
             showToast={showToast}
@@ -610,17 +658,9 @@ export default function StudentDashboard() {
         )}
 
         {currentTab === 'social' && (
-          <SocialTab 
+          <SquadTab 
             student={student} 
-            partner={partner} 
-            weeklyStats={weeklyStats} 
-            partnerWeeklyVolume={partnerWeeklyVolume} 
-            partnerTrainedToday={partnerTrainedToday} 
-            socialNotifications={socialNotifications} 
-            isPinging={isPinging} 
-            setIsPinging={setIsPinging} 
             showToast={showToast} 
-            fetchWorkouts={() => fetchWorkouts(student.id)} 
           />
         )}
 
@@ -695,6 +735,72 @@ export default function StudentDashboard() {
                   }])
                 }
 
+                // GymRats: Postar no Feed do Squad
+                const { data: squadMember, error: squadErr } = await supabase
+                  .from('gym_squad_members')
+                  .select('squad_id')
+                  .eq('student_id', student.id)
+                  .maybeSingle()
+
+                if (squadErr) console.error("Erro ao buscar squad do aluno:", squadErr)
+
+                 if (squadMember?.squad_id) {
+                  try {
+                    // 1. Postar no Feed
+                    await supabase.from('gym_squad_posts').insert([{
+                      squad_id: squadMember.squad_id,
+                        student_id: student.id,
+                      type: 'check-in',
+                      content: `Finalizou o treino: ${selectedWorkout.name}! 🔥💪 Volume: ${totalWeight}kg.`
+                    }])
+
+                    // 2. Calcular e Salvar Pontos
+                    const pointsConstancy = 100
+                    const pointsIntensity = Math.min(200, Math.floor(totalWeight / 10))
+                    
+                    // Bônus de Frequência (4x na semana)
+                    let pointsBonus = 0
+                    const today = new Date()
+                    const startOfWeek = new Date(today)
+                    startOfWeek.setDate(today.getDate() - today.getDay())
+                    const dateStr = startOfWeek.toISOString().split('T')[0]
+
+                    const { count } = await supabase
+                      .from('gym_training_logs')
+                      .select('*', { count: 'exact', head: true })
+                      .eq('student_id', student.id)
+                      .gte('workout_date', dateStr)
+
+                    if (count === 4) { // No 4º treino ele ganha o bônus
+                      pointsBonus = 500
+                    }
+
+                    const totalPoints = pointsConstancy + pointsIntensity + pointsBonus
+
+                    console.log("Calculando pontos GymRats:", { totalWeight, totalPoints, bonus: pointsBonus })
+
+                    const { error: scoreError } = await supabase.from('gym_squad_score_logs').insert([{
+                      squad_id: squadMember.squad_id,
+                      student_id: student.id,
+                      points: totalPoints,
+                      category: 'workout_completion',
+                      reason: `Concluiu o treino: ${selectedWorkout.name}`
+                    }])
+
+                    if (scoreError) {
+                      console.error("Erro ao salvar pontos:", scoreError)
+                      showToast('Erro ao salvar seus pontos no Squad.', 'error')
+                    } else {
+                      showToast(`+${totalPoints} PONTOS! ${pointsBonus > 0 ? '🎁 BÔNUS DE CONSTÂNCIA!' : '🏆🔥'}`)
+                    }
+                  } catch (err) {
+                    console.error("Falha no processo de pontos:", err)
+                  }
+                } else {
+                  console.log("Aluno não está em um Squad. Pontos ignorados.")
+                  showToast('Treino finalizado! Entre em um Squad para ganhar pontos. 🔥')
+                }
+
                 setCurrentView('summary')
               }}
               className="w-full fitness-gradient hover:opacity-90 text-black font-black py-6 rounded-[32px] shadow-2xl shadow-primary/20 flex items-center justify-center gap-4 active:scale-[0.98] transition-all text-xl mt-8 neon-shadow font-display uppercase"
@@ -712,35 +818,62 @@ export default function StudentDashboard() {
               setCurrentTab('train')
               setCurrentView('home')
             }}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               currentTab === 'train' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
             }`}
           >
-            <Activity className="w-6 h-6" />
+            <Activity className="w-5 h-5" />
           </button>
           <button 
             onClick={() => setCurrentTab('evolution')}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               currentTab === 'evolution' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
             }`}
           >
-            <TrendingUp className="w-6 h-6" />
+            <TrendingUp className="w-5 h-5" />
           </button>
           <button 
             onClick={() => setCurrentTab('social')}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               currentTab === 'social' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
             }`}
           >
-            <Dumbbell className="w-6 h-6" />
+            <Users className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => {
+              if (teacherPlan !== 'premium') {
+                showToast('Funcionalidade disponível apenas para alunos de professores Premium 🔥', 'error')
+                return
+              }
+              setCurrentTab('nutrition')
+            }}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all relative ${
+              currentTab === 'nutrition' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
+          >
+            <Flame className="w-5 h-5" />
+            {teacherPlan !== 'premium' && (
+              <div className="absolute -top-1 -right-1 bg-amber-500 text-black rounded-full p-0.5 border border-black shadow-sm">
+                <Shield className="w-2 h-2" />
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setCurrentTab('marketplace')}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+              currentTab === 'marketplace' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
+            }`}
+          >
+            <ShoppingBag className="w-5 h-5" />
           </button>
           <button 
             onClick={() => setCurrentTab('profile')}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               currentTab === 'profile' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'
             }`}
           >
-            <UserIcon className="w-6 h-6" />
+            <UserIcon className="w-5 h-5" />
           </button>
         </div>
       </nav>

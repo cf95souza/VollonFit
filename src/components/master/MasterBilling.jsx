@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import { Receipt, CheckCircle2, AlertCircle, Clock, Search, Filter, X, Loader2 } from 'lucide-react'
+import { Receipt, CheckCircle2, AlertCircle, Clock, Search, Filter, X, Loader2, Building2 } from 'lucide-react'
 
 export default function MasterBilling({ showToast }) {
   const [records, setRecords] = useState([])
   const [teachers, setTeachers] = useState([])
+  const [academies, setAcademies] = useState([])
   const [loading, setLoading] = useState(true)
   const [pricePerStudent, setPricePerStudent] = useState(30)
+  const [pricePremium, setPricePremium] = useState(45)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -19,23 +21,31 @@ export default function MasterBilling({ showToast }) {
     setLoading(true)
     const { data: sData } = await supabase.from('gym_settings').select('value').eq('key', 'price_per_student').single()
     if (sData) setPricePerStudent(parseFloat(sData.value))
+    
+    const { data: pData } = await supabase.from('gym_settings').select('value').eq('key', 'price_premium').single()
+    if (pData) setPricePremium(parseFloat(pData.value))
 
     const { data: bData } = await supabase
       .from('gym_billing_records')
-      .select('*, gym_teachers(name, email)')
+      .select('*, gym_teachers(name, email), gym_academies(name)')
       .eq('reference_month', selectedMonth)
       .order('due_date')
     setRecords(bData || [])
 
     const { data: tData } = await supabase.from('gym_teachers').select('*').eq('status', 'active')
     setTeachers(tData || [])
+
+    const { data: aData } = await supabase.from('gym_academies').select('*')
+    setAcademies(aData || [])
+
     setLoading(false)
   }
 
   const generateAll = async () => {
     setGenerating(true)
-    const price = pricePerStudent
     let count = 0
+    
+    // 1. Cobranças de Professores
     for (const t of teachers) {
       const existing = records.find(r => r.teacher_id === t.id)
       if (existing) continue
@@ -44,7 +54,9 @@ export default function MasterBilling({ showToast }) {
       const studentCount = stCount || 0
       if (studentCount === 0) continue
 
-      const cd = new Date((t.contract_start_date || new Date().toISOString().split('T')[0]) + 'T00:00:00')
+      const price = t.plan_type === 'premium' ? pricePremium : pricePerStudent
+
+      const cd = new Date((t.contract_start_date || new Date().toISOString().split('T00:00:00')) + 'T00:00:00')
       const today = new Date()
       const days = Math.floor((today - cd) / (1000*60*60*24))
       const cycle = Math.floor(days / 30)
@@ -62,6 +74,27 @@ export default function MasterBilling({ showToast }) {
       }])
       count++
     }
+
+    // 2. Cobranças de Academias (B2B)
+    for (const acc of academies) {
+      const existing = records.find(r => r.academy_id === acc.id)
+      if (existing) continue
+
+      const dueDate = new Date()
+      dueDate.setDate(10) // Vencimento padrão dia 10 para academias
+
+      await supabase.from('gym_billing_records').insert([{
+        academy_id: acc.id,
+        reference_month: selectedMonth,
+        student_count: 0, // Ignorado para academias
+        price_per_student: 0,
+        total_amount: acc.monthly_fee || 899,
+        status: 'pending',
+        due_date: dueDate.toISOString().split('T')[0]
+      }])
+      count++
+    }
+
     showToast(`${count} cobrança(s) gerada(s)!`)
     setGenerating(false)
     fetchAll()
@@ -103,12 +136,12 @@ export default function MasterBilling({ showToast }) {
         <div className="flex gap-2 flex-wrap">
           {months.map(m => (
             <button key={m} onClick={() => setSelectedMonth(m)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${selectedMonth === m ? 'bg-[#DFFF5E] text-black' : 'bg-[#111111] border border-white/10 text-slate-400 hover:bg-white/5'}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${selectedMonth === m ? 'bg-primary text-black' : 'bg-[#111111] border border-white/10 text-slate-400 hover:bg-white/5'}`}
             >{formatMonth(m)}</button>
           ))}
         </div>
         <button onClick={generateAll} disabled={generating}
-          className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-4 py-2 rounded-lg font-bold text-xs disabled:opacity-50 transition-colors whitespace-nowrap">
+          className="bg-primary hover:bg-primary-dark text-black px-4 py-2 rounded-lg font-bold text-xs disabled:opacity-50 transition-colors whitespace-nowrap">
           {generating ? 'Gerando...' : 'Gerar Cobranças do Mês'}
         </button>
       </div>
@@ -121,9 +154,9 @@ export default function MasterBilling({ showToast }) {
         </div>
         <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
           <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Recebido</p>
-          <p className="text-xl font-bold text-[#DFFF5E]">R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className="text-xl font-bold text-primary">R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2">
-            <div className="h-full bg-[#DFFF5E] rounded-full transition-all" style={{ width: `${paidPct}%` }} />
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${paidPct}%` }} />
           </div>
         </div>
         <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
@@ -159,8 +192,19 @@ export default function MasterBilling({ showToast }) {
               ) : records.map(r => (
                 <tr key={r.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-white text-sm">{r.gym_teachers?.name || '-'}</p>
-                    <p className="text-xs text-slate-400">{r.gym_teachers?.email}</p>
+                    {r.academy_id ? (
+                      <>
+                        <p className="font-semibold text-primary text-sm flex items-center gap-1">
+                          <Building2 className="w-3 h-3" /> {r.gym_academies?.name || 'Academia'}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-black uppercase">Plano Enterprise</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-white text-sm">{r.gym_teachers?.name || '-'}</p>
+                        <p className="text-xs text-slate-400">{r.gym_teachers?.email}</p>
+                      </>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center text-sm font-semibold text-slate-300">{r.student_count}</td>
                   <td className="px-4 py-3 text-right text-sm text-slate-400">R$ {Number(r.price_per_student).toFixed(2)}</td>

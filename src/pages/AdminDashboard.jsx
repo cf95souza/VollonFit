@@ -26,6 +26,8 @@ import StudentsTab from '../components/admin/StudentsTab'
 import StudentDetailView from '../components/admin/StudentDetailView'
 import FinanceiroTab from '../components/admin/FinanceiroTab'
 import SettingsTab from '../components/admin/SettingsTab'
+import { getTodayLocally } from '../utils/dateUtils'
+import { loadTheme } from '../utils/themeLoader'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -54,16 +56,28 @@ export default function AdminDashboard() {
     const info = JSON.parse(saved)
     setTeacherInfo(info)
     setLoading(false)
-
-    // Sincronizar dados do banco em tempo real
     const syncData = async () => {
       const { data } = await supabase.from('gym_teachers').select('*').eq('id', info.id).single()
       if (data) {
+        // Fetch subscription too
+        const { data: sub } = await supabase.from('gym_subscriptions').select('*').eq('teacher_id', data.id).maybeSingle()
+        data.subscription = sub
+        
         setTeacherInfo(data)
         localStorage.setItem('vollonfit_teacher', JSON.stringify(data))
+        loadTheme(data.id)
+
+        if (sub && (sub.status === 'past_due' || sub.status === 'canceled')) {
+          setActiveTab('financeiro')
+        }
       }
     }
     syncData()
+
+    // Inicial check from localstorage
+    if (info.subscription && (info.subscription.status === 'past_due' || info.subscription.status === 'canceled')) {
+      setActiveTab('financeiro')
+    }
   }, [navigate])
 
   const handleLogout = () => {
@@ -92,34 +106,45 @@ export default function AdminDashboard() {
   if (loading || !teacherInfo) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#DFFF5E] animate-spin mb-4" />
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
         <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Autenticando Professor...</p>
       </div>
     )
   }
 
-  const SidebarLink = ({ id, icon: Icon, label }) => (
-    <button
-      onClick={() => {
-        setActiveTab(id)
-        setSelectedStudentProfile(null)
-        setIsSidebarOpen(false)
-      }}
-      className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-bold text-xs uppercase tracking-widest ${
-        activeTab === id && !selectedStudentProfile
-          ? 'bg-[#DFFF5E] text-black shadow-lg shadow-[#DFFF5E]/20 scale-[1.02]'
-          : 'text-slate-400 hover:text-white hover:bg-white/5'
-      }`}
-    >
-      <Icon className="w-5 h-5" />
-      <span>{label}</span>
-    </button>
-  )
+  const isBlocked = teacherInfo?.subscription?.status === 'past_due' || teacherInfo?.subscription?.status === 'canceled'
+
+  const SidebarLink = ({ id, icon: Icon, label }) => {
+    const disabled = isBlocked && id !== 'financeiro' && id !== 'settings'
+    
+    return (
+      <button
+        onClick={() => {
+          if (disabled) {
+            showToast('Regularize sua assinatura para acessar', 'error')
+            return
+          }
+          setActiveTab(id)
+          setSelectedStudentProfile(null)
+          setIsSidebarOpen(false)
+        }}
+        disabled={disabled}
+        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-bold text-xs uppercase tracking-widest ${
+          activeTab === id && !selectedStudentProfile
+            ? 'bg-primary text-black shadow-lg shadow-primary/20 scale-[1.02]'
+            : 'text-slate-400 hover:text-white hover:bg-white/5'
+        } ${disabled ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
+      >
+        <Icon className="w-5 h-5" />
+        <span>{label}</span>
+      </button>
+    )
+  }
 
   const SidebarContent = () => (
     <div className="h-full flex flex-col p-6">
       <div className="mb-10 px-4">
-        <h1 className="text-2xl font-black text-white font-display tracking-tighter uppercase italic">Vollon<span className="text-[#DFFF5E]">Fit</span></h1>
+        <h1 className="text-2xl font-black text-white font-display tracking-tighter uppercase italic">Vollon<span className="text-primary">Fit</span></h1>
         <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Admin Panel</p>
       </div>
 
@@ -134,7 +159,7 @@ export default function AdminDashboard() {
 
       <div className="pt-6 border-t border-white/5">
         <div className="bg-white/5 rounded-3xl p-4 mb-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#DFFF5E] rounded-xl flex items-center justify-center font-black text-black">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black">
             {teacherInfo.name[0]}
           </div>
           <div className="flex-1 overflow-hidden">
@@ -154,11 +179,11 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#DFFF5E]/30">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 w-full z-40 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-black text-white font-display uppercase italic">Vollon<span className="text-[#DFFF5E]">Fit</span></h1>
-        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-[#DFFF5E]">
+        <h1 className="text-xl font-black text-white font-display uppercase italic">Vollon<span className="text-primary">Fit</span></h1>
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-primary">
           <Menu className="w-6 h-6" />
         </button>
       </header>
@@ -203,13 +228,13 @@ export default function AdminDashboard() {
             </div>
 
             <div className="relative group w-full md:w-80">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#DFFF5E] transition-colors" />
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
               <input 
                 type="text" 
                 placeholder="Buscar em todo painel..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-[#111111] border border-white/5 rounded-2xl text-xs text-white focus:outline-none focus:border-[#DFFF5E]/50 focus:ring-1 focus:ring-[#DFFF5E]/20 transition-all font-bold placeholder:text-slate-700" 
+                className="w-full pl-12 pr-4 py-4 bg-[#111111] border border-white/5 rounded-2xl text-xs text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-bold placeholder:text-slate-700" 
               />
             </div>
           </div>
@@ -293,12 +318,12 @@ export default function AdminDashboard() {
                   value={motivationModal.message}
                   onChange={(e) => setMotivationModal({ ...motivationModal, message: e.target.value })}
                   placeholder="Ex: Não desista! Foco no objetivo..."
-                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#DFFF5E]/50 transition-all font-bold h-32 resize-none"
+                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold h-32 resize-none"
                 />
               </div>
               <button 
                 onClick={handleSendMotivation}
-                className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#DFFF5E]/10 flex items-center justify-center gap-3 active:scale-95"
+                className="w-full bg-primary hover:bg-primary-dark text-black py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 active:scale-95"
               >
                 <Send className="w-4 h-4" /> Enviar Agora
               </button>
@@ -313,7 +338,7 @@ export default function AdminDashboard() {
           <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
             toast.type === 'error' 
               ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
-              : 'bg-[#DFFF5E]/10 border-[#DFFF5E]/20 text-[#DFFF5E]'
+              : 'bg-primary/10 border-primary/20 text-primary'
           }`}>
             {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
             <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>

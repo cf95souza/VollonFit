@@ -124,14 +124,14 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <Users className="w-5 h-5 text-[#DFFF5E]" />
+            <Users className="w-5 h-5 text-primary" />
             <h3 className="font-bold text-white">Alunos Recentes</h3>
           </div>
           <div className="space-y-4">
             {filteredRecent.map((student) => (
-              <div key={student.id} onClick={() => onViewProfile(student)} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-[#DFFF5E]/30 transition-all cursor-pointer group">
+              <div key={student.id} onClick={() => onViewProfile(student)} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer group">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300 border border-white/5 group-hover:border-[#DFFF5E]/30">
+                  <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300 border border-white/5 group-hover:border-primary/30">
                     {student.name[0]}
                   </div>
                   <div>
@@ -140,7 +140,7 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
                   </div>
                 </div>
                 <button 
-                  className="text-[10px] font-bold text-[#DFFF5E] hover:text-[#B8E600]"
+                  className="text-[10px] font-bold text-primary hover:text-primary-dark"
                 >
                   Ver Perfil ›
                 </button>
@@ -154,13 +154,13 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
 
         <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <ClipboardList className="w-5 h-5 text-[#DFFF5E]" />
+            <ClipboardList className="w-5 h-5 text-primary" />
             <h3 className="font-bold text-white">Atividades Recentes</h3>
           </div>
           <div className="space-y-6">
             {recentActivities.map(log => (
               <div key={log.id} className="flex gap-4 relative">
-                <div className="w-2 h-2 bg-[#DFFF5E] rounded-full mt-1.5 ring-4 ring-[#DFFF5E]/20 shrink-0" />
+                <div className="w-2 h-2 bg-primary rounded-full mt-1.5 ring-4 ring-primary/20 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-slate-400">
                     <span className="font-bold text-white">{log.gym_students?.name}</span> treinou 
@@ -232,7 +232,7 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
         ) : (
           <div className="text-center py-20 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
             <div className="w-16 h-16 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-white/5">
-              <CheckCircle2 className="w-8 h-8 text-[#DFFF5E]" />
+              <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
             <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Todos os alunos estão ativos! 🚀</p>
           </div>

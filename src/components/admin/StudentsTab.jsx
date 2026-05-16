@@ -85,7 +85,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(223,255,94,0.2)]"
+          className="bg-primary hover:bg-primary-dark text-black px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(223,255,94,0.2)]"
         >
           <Plus className="w-4 h-4" /> Novo Aluno
         </button>
@@ -98,9 +98,9 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredStudents.map(s => (
-            <div key={s.id} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex items-center justify-between group hover:border-[#DFFF5E]/30 transition-all">
+            <div key={s.id} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex items-center justify-between group hover:border-primary/30 transition-all">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-300 group-hover:bg-[#DFFF5E]/10 group-hover:text-[#DFFF5E] transition-colors border border-white/5">
+                <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-white/5">
                   {s.name[0]}
                 </div>
                 <div>
@@ -110,7 +110,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
               </div>
               <button 
                 onClick={() => onViewProfile(s)}
-                className="p-3 bg-white/5 text-slate-400 rounded-xl hover:bg-[#DFFF5E] hover:text-black transition-all group-hover:scale-110 flex items-center gap-2"
+                className="p-3 bg-white/5 text-slate-400 rounded-xl hover:bg-primary hover:text-black transition-all group-hover:scale-110 flex items-center gap-2"
               >
                 <span className="text-xs font-bold px-1">Ver Perfil</span>
                 <ChevronRight className="w-5 h-5" />
@@ -131,7 +131,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
           <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
             <div className="p-6 border-b border-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-[#DFFF5E]" /> Cadastrar Novo Aluno
+                <Plus className="w-5 h-5 text-primary" /> Cadastrar Novo Aluno
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-300 transition-colors">Fechar</button>
             </div>
@@ -143,7 +143,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
                   type="text" 
                   value={newStudent.name}
                   onChange={e => setNewStudent({...newStudent, name: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
                   placeholder="Ex: Caio França"
                 />
               </div>
@@ -154,7 +154,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
                   type="text" 
                   value={newStudent.username}
                   onChange={e => setNewStudent({...newStudent, username: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
                   placeholder="Ex: caio.franca"
                 />
               </div>
@@ -165,7 +165,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
                   type="password" 
                   value={newStudent.password}
                   onChange={e => setNewStudent({...newStudent, password: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-[#DFFF5E]/50 transition-all outline-none"
+                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
                   placeholder="Defina uma senha"
                 />
               </div>
@@ -180,7 +180,7 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-[#DFFF5E] text-black rounded-xl font-bold text-sm hover:bg-[#B8E600] transition-all disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-primary text-black rounded-xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : 'Cadastrar Aluno'}
                 </button>

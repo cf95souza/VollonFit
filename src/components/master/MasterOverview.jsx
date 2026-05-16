@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import { Users2, Dumbbell, Receipt, TrendingUp, AlertTriangle, Bell, ChevronRight } from 'lucide-react'
+import { Users2, Dumbbell, Receipt, TrendingUp, AlertTriangle, Bell, ChevronRight, Activity, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 export default function MasterOverview({ onNavigate }) {
-  const [stats, setStats] = useState({ teachers: 0, students: 0, revenue: 0, pending: 0 })
+  const [stats, setStats] = useState({ teachers: 0, students: 0, mrr: 0, churn: 0, ltv: 0, pending: 0 })
   const [alerts, setAlerts] = useState([])
   const [recentTeachers, setRecentTeachers] = useState([])
   const [pricePerStudent, setPricePerStudent] = useState(30)
@@ -44,11 +45,21 @@ export default function MasterOverview({ onNavigate }) {
 
       const activeTeachers = (teachers || []).filter(t => t.status === 'active')
       const totalStudents = studentCount || 0
+      
+      const { data: subs } = await supabase.from('gym_subscriptions').select('*')
+      const totalSubs = (subs || []).length
+      const canceledSubs = (subs || []).filter(s => s.status === 'canceled').length
+      
+      const churnRate = totalSubs > 0 ? (canceledSubs / totalSubs) * 100 : 0
+      const currentMRR = totalStudents * price // Simplificado para fins do SaaS
+      const ltvValue = churnRate > 0 ? currentMRR / (churnRate / 100) : currentMRR * 12 // LTV Estimado
 
       setStats({
         teachers: activeTeachers.length,
         students: totalStudents,
-        revenue: totalStudents * price,
+        mrr: currentMRR,
+        churn: churnRate,
+        ltv: ltvValue,
         pending: pendingCount || 0
       })
 
@@ -90,16 +101,65 @@ export default function MasterOverview({ onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
+      {/* SaaS KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="Professores Ativos" value={stats.teachers} icon={Users2} color="text-sky-400" bg="bg-sky-500/10" />
-        <KPICard title="Alunos Total" value={stats.students} icon={Dumbbell} color="text-violet-400" bg="bg-violet-500/10" />
-        <KPICard
-          title="Faturamento/Mês"
-          value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={TrendingUp} color="text-[#DFFF5E]" bg="bg-[#DFFF5E]/10"
+        <KPICard 
+          title="MRR Estimado" 
+          value={`R$ ${stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          icon={TrendingUp} color="text-primary" bg="bg-primary/10"
+        />
+        <KPICard 
+          title="LTV (Ciclo de Vida)" 
+          value={`R$ ${stats.ltv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          icon={DollarSign} color="text-emerald-400" bg="bg-emerald-500/10" 
+        />
+        <KPICard 
+          title="Churn Rate" 
+          value={`${stats.churn.toFixed(1)}%`} 
+          icon={Activity} color={stats.churn > 5 ? "text-rose-400" : "text-sky-400"} bg={stats.churn > 5 ? "bg-rose-500/10" : "bg-sky-500/10"} 
         />
         <KPICard title="Cobranças Pendentes" value={stats.pending} icon={Receipt} color="text-amber-400" bg="bg-amber-500/10" />
+      </div>
+
+      {/* Gráfico de Evolução de MRR (Simulado) */}
+      <div className="bg-[#111111] rounded-[32px] border border-white/5 p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-black text-white font-display uppercase tracking-tight">Evolução do MRR</h3>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Crescimento da Receita Recorrente</p>
+          </div>
+          <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-black">
+            <ArrowUpRight className="w-4 h-4" /> +12.5%
+          </div>
+        </div>
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={[
+              { month: 'Jan', mrr: stats.mrr * 0.5 },
+              { month: 'Fev', mrr: stats.mrr * 0.6 },
+              { month: 'Mar', mrr: stats.mrr * 0.75 },
+              { month: 'Abr', mrr: stats.mrr * 0.85 },
+              { month: 'Mai', mrr: stats.mrr }
+            ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#DFFF5E" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#DFFF5E" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 700}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 700}} tickFormatter={(val) => `R$${val/1000}k`} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#0A0A0A', border: '1px solid #ffffff1a', borderRadius: '16px' }}
+                itemStyle={{ color: '#DFFF5E', fontWeight: 900 }}
+                labelStyle={{ color: '#94a3b8', fontWeight: 700, marginBottom: '4px' }}
+                formatter={(value) => [`R$ ${value.toFixed(2)}`, 'MRR']}
+              />
+              <Area type="monotone" dataKey="mrr" stroke="#DFFF5E" strokeWidth={3} fillOpacity={1} fill="url(#colorMrr)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Preço global */}
@@ -110,7 +170,7 @@ export default function MasterOverview({ onNavigate }) {
         </div>
         <button
           onClick={() => onNavigate('settings')}
-          className="text-xs font-semibold text-[#DFFF5E] hover:text-[#B8E600] flex items-center gap-1"
+          className="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1"
         >
           Alterar <ChevronRight className="w-3 h-3" />
         </button>

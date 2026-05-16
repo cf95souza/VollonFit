@@ -161,7 +161,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
             <select 
               value={selectedStudent}
               onChange={e => { setSelectedStudent(e.target.value); resetForm(); }}
-              className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-[#DFFF5E]/20"
+              className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="">Selecione um aluno...</option>
               {filteredStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -172,7 +172,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
             <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm space-y-4 animate-in slide-in-from-left duration-300">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Treinos do Aluno</label>
-                <button onClick={resetForm} className="text-[10px] font-bold text-[#DFFF5E] hover:underline">Novo Treino</button>
+                <button onClick={resetForm} className="text-[10px] font-bold text-primary hover:underline">Novo Treino</button>
               </div>
               <div className="space-y-2">
                 {studentWorkouts.map(w => (
@@ -180,7 +180,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                     key={w.id}
                     onClick={() => loadWorkoutForEdit(w)}
                     className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
-                      editingWorkoutId === w.id ? 'bg-[#DFFF5E]/10 border-[#DFFF5E] text-[#DFFF5E]' : 'bg-white/5 border-white/5 text-slate-300 hover:border-white/20'
+                      editingWorkoutId === w.id ? 'bg-primary/10 border-primary text-primary' : 'bg-white/5 border-white/5 text-slate-300 hover:border-white/20'
                     }`}
                   >
                     <span className="font-bold text-sm">{w.name}</span>
@@ -199,7 +199,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
               <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <ClipboardList className="w-6 h-6 text-[#DFFF5E]" /> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
+                    <ClipboardList className="w-6 h-6 text-primary" /> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
                   </h3>
                   {editingWorkoutId && (
                     <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20">Existente</span>
@@ -213,7 +213,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                     value={workoutName}
                     onChange={e => setWorkoutName(e.target.value)}
                     placeholder="Ex: Treino A - Superior (Foco Peito)"
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-[#DFFF5E]/20 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
 
@@ -224,7 +224,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                     value={workoutDescription}
                     onChange={e => setWorkoutDescription(e.target.value)}
                     placeholder="Ex: Foco Peito, Superior, Cardio..."
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-[#DFFF5E]/20 outline-none"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
               </section>
@@ -234,9 +234,9 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                   <h3 className="text-lg font-bold text-white">Exercícios da Rotina</h3>
                   <button 
                     onClick={addExercise}
-                    className="flex items-center gap-2 text-[#DFFF5E] hover:text-[#B8E600] font-bold text-sm transition-colors"
+                    className="flex items-center gap-2 text-primary hover:text-primary-dark font-bold text-sm transition-colors"
                   >
-                    <Plus className="w-4 h-4 p-0.5 bg-[#DFFF5E]/10 rounded-full" /> Adicionar Exercício
+                    <Plus className="w-4 h-4 p-0.5 bg-primary/10 rounded-full" /> Adicionar Exercício
                   </button>
                 </div>
 
@@ -248,7 +248,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                         <select 
                           value={item.exercise_id}
                           onChange={e => updateItem(index, 'exercise_id', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm outline-none focus:border-[#DFFF5E]/50"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm outline-none focus:border-primary/50"
                         >
                           <option value="">Selecione...</option>
                           {exercises.map(ex => (
@@ -263,7 +263,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                           type="number" 
                           value={item.target_sets}
                           onChange={e => updateItem(index, 'target_sets', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-[#DFFF5E]/50"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-primary/50"
                         />
                       </div>
 
@@ -273,7 +273,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                           type="text" 
                           value={item.target_reps}
                           onChange={e => updateItem(index, 'target_reps', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-[#DFFF5E]/50"
+                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-primary/50"
                         />
                       </div>
 
@@ -292,7 +292,7 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                 <button 
                   onClick={handleSaveWorkout}
                   disabled={isSaving}
-                  className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-10 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50"
+                  className="bg-primary hover:bg-primary-dark text-black px-10 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : editingWorkoutId ? 'Salvar Alterações' : 'Criar Treino'}
                 </button>

@@ -128,13 +128,13 @@ export default function StudentDetailView({ student, onBack, showToast }) {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-right duration-300">
-      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-[#DFFF5E] transition-colors font-bold text-sm">
+      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors font-bold text-sm">
         <ChevronLeft className="w-4 h-4" /> Voltar para Alunos
       </button>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#111111] p-6 sm:p-8 rounded-3xl border border-white/5 shadow-sm gap-6">
         <div className="flex items-center gap-4 sm:gap-6">
-          <div className="w-16 h-16 sm:w-20 h-20 bg-[#DFFF5E]/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-bold text-[#DFFF5E]">
+          <div className="w-16 h-16 sm:w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-bold text-primary">
             {student?.name?.[0] || 'A'}
           </div>
           <div>
@@ -148,7 +148,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
             <button 
               key={tab}
               onClick={() => setCurrentSubTab(tab)}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === tab ? 'bg-[#DFFF5E] text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === tab ? 'bg-primary text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
             >
               {tab === 'overview' ? 'Visão Geral' : tab === 'workouts' ? 'Treinos' : 'Evolução'}
             </button>
@@ -162,7 +162,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
             <div className="lg:col-span-2 space-y-8">
               <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm">
                 <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-[#DFFF5E]" /> Evolução Recente
+                  <TrendingUp className="w-5 h-5 text-primary" /> Evolução Recente
                 </h3>
                 {bioRecords.length > 0 ? (
                   <div className="h-64 w-full">
@@ -216,12 +216,12 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                     value={goals}
                     onChange={(e) => setGoals(e.target.value)}
                     placeholder="Defina metas para o aluno..."
-                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-[#DFFF5E]/50 transition-all min-h-[120px] resize-none"
+                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-primary/50 transition-all min-h-[120px] resize-none"
                   />
                   <button 
                     onClick={handleSaveGoals}
                     disabled={isSavingGoals}
-                    className="w-full bg-[#DFFF5E]/10 text-[#DFFF5E] font-bold py-3 rounded-xl text-xs hover:bg-[#DFFF5E] hover:text-black transition-all disabled:opacity-50"
+                    className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl text-xs hover:bg-primary hover:text-black transition-all disabled:opacity-50"
                   >
                     {isSavingGoals ? 'Salvando...' : 'Atualizar Metas'}
                   </button>
@@ -234,24 +234,24 @@ export default function StudentDetailView({ student, onBack, showToast }) {
         {currentSubTab === 'workouts' && (
           <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-[#DFFF5E]" /> Treinos do Aluno
+              <ClipboardList className="w-5 h-5 text-primary" /> Treinos do Aluno
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workouts.map((w, idx) => (
                 <div key={w.id} className="relative group">
                   <button 
                     onClick={() => handleViewWorkoutDetail(w)}
-                    className="w-full p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-[#DFFF5E]/30 transition-all shadow-sm text-left active:scale-95 relative overflow-hidden"
+                    className="w-full p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-primary/30 transition-all shadow-sm text-left active:scale-95 relative overflow-hidden"
                   >
                     <div className="mb-6 pr-24">
-                      <p className="font-bold text-white text-xl mb-1 group-hover:text-[#DFFF5E] transition-colors line-clamp-2">{w.name}</p>
+                      <p className="font-bold text-white text-xl mb-1 group-hover:text-primary transition-colors line-clamp-2">{w.name}</p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                         Criado em {new Date(w.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
-                      <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-[#DFFF5E] transition-colors" />
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
+                      <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-primary transition-colors" />
                     </div>
                   </button>
 
@@ -259,14 +259,14 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                     <button 
                       disabled={idx === 0}
                       onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'up'); }}
-                      className="p-2.5 bg-black/60 rounded-xl text-[#DFFF5E] hover:bg-[#DFFF5E] hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
+                      className="p-2.5 bg-black/60 rounded-xl text-primary hover:bg-primary hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
                     >
                       <ChevronLeft className="w-4 h-4 rotate-90" />
                     </button>
                     <button 
                       disabled={idx === workouts.length - 1}
                       onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'down'); }}
-                      className="p-2.5 bg-black/60 rounded-xl text-[#DFFF5E] hover:bg-[#DFFF5E] hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
+                      className="p-2.5 bg-black/60 rounded-xl text-primary hover:bg-primary hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
                     >
                       <ChevronLeft className="w-4 h-4 -rotate-90" />
                     </button>
@@ -285,7 +285,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
         {currentSubTab === 'evolution' && (
           <div className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <History className="w-5 h-5 text-[#DFFF5E]" /> Histórico de Evolução
+              <History className="w-5 h-5 text-primary" /> Histórico de Evolução
             </h3>
             <div className="space-y-4">
               {bioRecords.slice().reverse().map((r, i) => (
@@ -296,7 +296,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                       <p className="text-lg font-black text-white">{new Date(r.record_date).getDate()}</p>
                     </div>
                     <div>
-                      <p className="font-bold text-[#DFFF5E] text-lg">{r.weight}kg</p>
+                      <p className="font-bold text-primary text-lg">{r.weight}kg</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                         <span className="text-[10px] text-slate-400 font-medium">Gordura: <b className="text-white">{r.body_fat_pct}%</b></span>
                         <span className="text-[10px] text-slate-400 font-medium">Músculo: <b className="text-white">{r.muscle_mass_kg}kg</b></span>
@@ -332,7 +332,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
             <div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">
               {loadingItems ? (
                 <div className="py-20 text-center">
-                  <Activity className="w-10 h-10 text-[#DFFF5E] animate-spin mx-auto mb-4" />
+                  <Activity className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
                   <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando Itens...</p>
                 </div>
               ) : (
@@ -350,7 +350,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                       <div className="flex-1">
                         <p className="font-bold text-white">{ex?.name || 'Exercício'}</p>
                         <div className="flex gap-3 mt-1">
-                          <span className="text-[10px] font-bold text-[#DFFF5E] bg-[#DFFF5E]/10 px-2 py-0.5 rounded-md uppercase">{item.target_sets} Sets</span>
+                          <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase">{item.target_sets} Sets</span>
                           <span className="text-[10px] font-bold text-[#C6C4FF] bg-[#C6C4FF]/10 px-2 py-0.5 rounded-md uppercase">{item.target_reps} Reps</span>
                         </div>
                       </div>
@@ -363,7 +363,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
             <div className="p-8 bg-black/50 border-t border-white/5">
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="w-full bg-[#DFFF5E] text-black font-bold py-4 rounded-2xl hover:bg-[#B8E600] transition-all"
+                className="w-full bg-primary text-black font-bold py-4 rounded-2xl hover:bg-primary-dark transition-all"
               >
                 Fechar Detalhes
               </button>

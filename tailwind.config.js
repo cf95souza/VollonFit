@@ -8,9 +8,9 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#DFFF5E', // Lime Neon
-          dark: '#B8E600',
-          light: '#E9FF8A',
+          DEFAULT: 'rgb(var(--color-primary, 223 255 94) / <alpha-value>)', // Lime Neon
+          dark: 'var(--color-primary-dark, #B8E600)',
+          light: 'var(--color-primary-light, #E9FF8A)',
         },
         secondary: {
           DEFAULT: '#000000', // Deep Black

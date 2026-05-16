@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
 import {
   LayoutDashboard, Users2, Receipt, Dumbbell, Settings,
-  LogOut, Gem, Menu, X, ChevronRight
+  LogOut, Gem, Menu, X, ChevronRight, Building2
 } from 'lucide-react'
 
 export default function MasterShell({ children, activeTab, setActiveTab }) {
@@ -17,6 +17,7 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'academies', label: 'Academias (B2B)', icon: Building2 },
     { id: 'teachers', label: 'Professores', icon: Users2 },
     { id: 'billing', label: 'Faturamento', icon: Receipt },
     { id: 'exercises', label: 'Exercícios', icon: Dumbbell },
@@ -26,11 +27,11 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
   const NavContent = () => (
     <>
       <div className="p-5 border-b border-slate-700/50 flex items-center gap-3">
-        <div className="bg-[#DFFF5E] p-2 rounded-lg text-black">
+        <div className="bg-primary p-2 rounded-lg text-black">
           <Gem className="w-5 h-5" />
         </div>
         <span className="text-white font-bold tracking-tight text-lg">
-          VOLLON<span className="text-[#DFFF5E] text-xs font-normal ml-0.5">FIT</span>
+          VOLLON<span className="text-primary text-xs font-normal ml-0.5">FIT</span>
         </span>
       </div>
       <nav className="flex-1 px-3 py-6 space-y-1">
@@ -40,7 +41,7 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
             onClick={() => { setActiveTab(item.id); setDrawerOpen(false) }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
               activeTab === item.id
-                ? 'bg-[#DFFF5E] text-black font-bold'
+                ? 'bg-primary text-black font-bold'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -96,7 +97,7 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
               {navItems.find(n => n.id === activeTab)?.label || 'VollonFit'}
             </h2>
           </div>
-          <div className="w-8 h-8 rounded-full bg-[#DFFF5E] flex items-center justify-center text-black font-bold text-xs shadow-[0_0_10px_rgba(223,255,94,0.3)]">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-black font-bold text-xs shadow-[0_0_10px_rgba(223,255,94,0.3)]">
             CS
           </div>
         </header>

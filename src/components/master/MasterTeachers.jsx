@@ -126,10 +126,10 @@ export default function MasterTeachers({ showToast }) {
           <input
             type="text" placeholder="Buscar professor..."
             value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[#111111] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#DFFF5E]/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#111111] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-primary/50"
           />
         </div>
-        <button onClick={openCreate} className="bg-[#DFFF5E] hover:bg-[#B8E600] text-black px-4 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-colors">
+        <button onClick={openCreate} className="bg-primary hover:bg-primary-dark text-black px-4 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-colors">
           <Plus className="w-4 h-4" /> Novo Professor
         </button>
       </div>
@@ -167,12 +167,12 @@ export default function MasterTeachers({ showToast }) {
                     <p className="text-[10px] font-semibold text-slate-400 uppercase">Alunos</p>
                     <p className="text-sm font-bold text-white">{t.studentCount} <span className="text-slate-500 font-normal">/ {t.quota_limit}</span></p>
                     <div className="w-full h-1.5 bg-slate-800 rounded-full mt-1">
-                      <div className={`h-full rounded-full transition-all ${quotaPct >= 90 ? 'bg-rose-500' : quotaPct >= 70 ? 'bg-amber-500' : 'bg-[#DFFF5E]'}`} style={{ width: `${quotaPct}%` }} />
+                      <div className={`h-full rounded-full transition-all ${quotaPct >= 90 ? 'bg-rose-500' : quotaPct >= 70 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${quotaPct}%` }} />
                     </div>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold text-slate-400 uppercase">Mensalidade</p>
-                    <p className="text-sm font-bold text-[#DFFF5E]">R$ {(t.studentCount * pricePerStudent).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-sm font-bold text-primary">R$ {(t.studentCount * pricePerStudent).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
@@ -249,7 +249,7 @@ export default function MasterTeachers({ showToast }) {
               <Field label="Observações">
                 <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field h-20 resize-none" placeholder="Anotações internas..." />
               </Field>
-              <button type="submit" disabled={isSaving} className="w-full bg-[#DFFF5E] hover:bg-[#B8E600] text-black py-3 rounded-lg font-bold text-sm disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={isSaving} className="w-full bg-primary hover:bg-primary-dark text-black py-3 rounded-lg font-bold text-sm disabled:opacity-50 transition-colors">
                 {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar Professor'}
               </button>
             </form>
