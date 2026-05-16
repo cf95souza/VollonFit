@@ -68,6 +68,7 @@ export default function StudentDashboard() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false)
   const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(new Set())
+  const [activeFilter, setActiveFilter] = useState('Todos')
   const [isPinging, setIsPinging] = useState(false)
   const [loading, setLoading] = useState(true)
   const [workoutSummary, setWorkoutSummary] = useState(null) 
@@ -697,15 +698,6 @@ export default function StudentDashboard() {
                 }, 0)
                 setWorkoutSummary(prev => ({ ...prev, totalWeight }))
                 
-                if (student?.partner_id) {
-                  await supabase.from('gym_social_notifications').insert([{
-                    sender_id: student.id,
-                    receiver_id: student.partner_id,
-                    type: 'workout_finished',
-                    message: `${student.name} just crushed ${selectedWorkout.name}! 🔥`
-                  }])
-                }
-
                 // GymRats: Postar no Feed do Squad
                 const { data: squadMember, error: squadErr } = await supabase
                   .from('gym_squad_members')
