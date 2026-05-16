@@ -59,6 +59,7 @@ O banco de dados é gerido via Supabase com foco em segurança via **Row Level S
 - **Módulo White Label**: Personalização dinâmica de cores e branding via variáveis CSS, injetadas pelo Supabase em tempo real no Dashboard do Aluno.
 - **Integração Nutricional**: Criação do `NutritionTab.jsx` para acompanhamento de hidratação e metas de macronutrientes.
 - **Sistema de Conquistas**: A aba de Perfil (`ProfileTab.jsx`) agora exibe badges de progresso para retenção de usuários.
+- **GymRats & Squads (Fase 32)**: Implementação do motor de gamificação por Squads, sistema de marketplace de afiliados e remoção da funcionalidade legada de parceiro individual em favor do bando coletivo.
 
 ### Ecossistema B2B e Modelagem SaaS (Fase 31)
 A aplicação evoluiu para uma plataforma SaaS completa com Múltiplos Planos de Assinatura, permitindo uma escalabilidade de faturamento:
@@ -102,5 +103,5 @@ Para transformar o VollonFit em uma solução líder de mercado, o roadmap estra
 - **LP Generator**: Páginas de captura profissionais geradas automaticamente para cada professor.
 
 ---
-*Documentação gerada em 15/05/2026*
-*Status: Homologado para Produção*
+*Documentação atualizada em 16/05/2026*
+*Status: Fase 32 Concluída | Fase 33 Iniciada*

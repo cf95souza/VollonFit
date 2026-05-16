@@ -29,74 +29,11 @@ export default function ProfileTab({ student, totalWorkouts = 0, onOpenConfig, o
     fetchStudents()
   }, [student?.id])
 
-  const handleLink = async (partnerId) => {
-    if (isLinking) return
-    setIsLinking(true)
-    try {
-      const { error } = await supabase
-        .from('gym_students')
-        .update({ partner_id: partnerId })
-        .eq('id', student.id)
-      
-      if (error) throw error
-
-      // Vínculo recíproco
-      const { error: error2 } = await supabase.from('gym_students').update({ partner_id: student.id }).eq('id', partnerId)
-      if (error2) throw error2
-
-      showToast('Parceiro(a) vinculado com sucesso!', 'success')
-      setTimeout(() => window.location.reload(), 1500)
-    } catch (err) {
-      console.error('Erro ao vincular:', err)
-      showToast('Erro ao vincular. Verifique se as tabelas foram atualizadas.', 'error')
-    } finally {
-      setIsLinking(false)
-    }
-  }
-
-  const handleUnlink = async () => {
-    if (isLinking) return
-    setIsLinking(true)
-    try {
-      const partnerId = student.partner_id
-      
-      const { error } = await supabase
-        .from('gym_students')
-        .update({ partner_id: null })
-        .eq('id', student.id)
-      
-      if (error) throw error
-
-      if (partnerId) {
-        const { error: error2 } = await supabase
-          .from('gym_students')
-          .update({ partner_id: null })
-          .eq('id', partnerId)
-        if (error2) console.warn('Erro ao desvincular parceiro (pode ser RLS):', error2)
-      }
-
-      showToast('Vínculo desfeito com sucesso.', 'success')
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
-    } catch (err) {
-      console.error('Erro fatal no desvínculo:', err)
-      showToast('Erro ao desvincular: ' + (err.message || 'Erro de permissão'), 'error')
-    } finally {
-      setIsLinking(false)
-    }
-  }
-
-  const filteredStudents = allStudents.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.username.toLowerCase().includes(search.toLowerCase())
-  )
-
   const achievements = [
     { id: 1, name: 'Primeiro Passo', desc: 'Completou 1 treino', icon: <Star className="w-6 h-6 text-yellow-500" />, unlocked: totalWorkouts >= 1 },
     { id: 2, name: 'Constância', desc: 'Completou 10 treinos', icon: <Medal className="w-6 h-6 text-slate-300" />, unlocked: totalWorkouts >= 10 },
     { id: 3, name: 'Rato de Academia', desc: 'Completou 50 treinos', icon: <Trophy className="w-6 h-6 text-amber-500" />, unlocked: totalWorkouts >= 50 },
-    { id: 4, name: 'Dupla Dinâmica', desc: 'Vinculou um parceiro', icon: <Shield className="w-6 h-6 text-blue-500" />, unlocked: !!student?.partner_id },
+    { id: 4, name: 'Membro do Bando', desc: 'Entrou em um Squad', icon: <Users className="w-6 h-6 text-blue-500" />, unlocked: !!student?.id },
   ]
 
   return (
@@ -109,80 +46,6 @@ export default function ProfileTab({ student, totalWorkouts = 0, onOpenConfig, o
         <p className="text-slate-500 font-bold tracking-widest uppercase text-xs mt-2">@{student?.username}</p>
       </div>
       
-      {/* Sistema de Parceria */}
-      {!student?.partner_id ? (
-        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
-          <div className="text-left">
-            <h3 className="font-black text-white font-display text-lg tracking-tight">Vincular Parceiro(a)</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Treinem juntos e motivem-se!</p>
-          </div>
-          <input 
-            type="text"
-            placeholder="Buscar por nome ou @username..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-black border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all shadow-inner placeholder:text-slate-700"
-          />
-          {search && (
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-              {filteredStudents.map(s => (
-                <button 
-                  key={s.id}
-                  onClick={() => handleLink(s.id)}
-                  className="w-full p-4 bg-black hover:bg-primary/5 border border-white/5 rounded-2xl flex items-center justify-between group transition-all"
-                >
-                  <div className="text-left">
-                    <p className="text-sm font-black text-white group-hover:text-primary transition-colors">{s.name}</p>
-                    <p className="text-[10px] text-slate-500 font-bold">@{s.username}</p>
-                  </div>
-                  <Plus className="w-4 h-4 text-slate-600 group-hover:text-primary transition-all" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl space-y-4">
-          <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary text-black flex items-center justify-center font-black shadow-lg shadow-primary/20">
-                <Heart className="w-6 h-6 fill-black" />
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Seu Parceiro</p>
-                <p className="text-lg font-black text-white font-display tracking-tight leading-none">Vínculo Ativo</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowUnlinkConfirm(true)}
-              className="p-3 bg-black text-rose-500 rounded-2xl border border-rose-500/20 hover:bg-rose-500/10 transition-all shadow-sm active:scale-90"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-
-          {showUnlinkConfirm && (
-            <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20 animate-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-rose-500 mb-3">Confirmar desvínculo?</p>
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleUnlink}
-                  disabled={isLinking}
-                  className="flex-1 bg-rose-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20"
-                >
-                  {isLinking ? '...' : 'Sim, Desvincular'}
-                </button>
-                <button 
-                  onClick={() => setShowUnlinkConfirm(false)}
-                  className="flex-1 bg-black text-slate-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* CONQUISTAS */}
       <div className="bg-[#1A1A1A] p-6 rounded-[40px] border border-white/5 shadow-2xl space-y-6">

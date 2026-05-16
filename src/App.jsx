@@ -6,7 +6,7 @@ import StudentDashboard from './pages/StudentDashboard'
 import AcademyDashboard from './pages/AcademyDashboard'
 import LandingPage from './pages/LandingPage'
 import { useEffect } from 'react'
-import { loadTheme } from './utils/themeLoader'
+import { loadTheme, applyTheme } from './utils/themeLoader'
 
 function App() {
   useEffect(() => {
@@ -20,6 +20,8 @@ function App() {
     } else if (teacher) {
       const parsed = JSON.parse(teacher)
       if (parsed.id) loadTheme(parsed.id)
+    } else {
+      applyTheme() // Carrega o Verde Neon padrão para visitantes
     }
   }, [])
 

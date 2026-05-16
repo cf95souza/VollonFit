@@ -59,7 +59,6 @@ export default function StudentDashboard() {
   const [bioRecords, setBioRecords] = useState([])
   const [personalRecords, setPersonalRecords] = useState([])
   const [workoutHistory, setWorkoutHistory] = useState([])
-  const [partner, setPartner] = useState(null)
   const [socialNotifications, setSocialNotifications] = useState([])
   const [evolutionPhotos, setEvolutionPhotos] = useState([])
   const [weeklyWorkouts, setWeeklyWorkouts] = useState(0)
@@ -69,9 +68,6 @@ export default function StudentDashboard() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false)
   const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(new Set())
-  const [activeFilter, setActiveFilter] = useState('Todos')
-  const [partnerWeeklyVolume, setPartnerWeeklyVolume] = useState(0)
-  const [partnerTrainedToday, setPartnerTrainedToday] = useState(false)
   const [isPinging, setIsPinging] = useState(false)
   const [loading, setLoading] = useState(true)
   const [workoutSummary, setWorkoutSummary] = useState(null) 
@@ -162,37 +158,14 @@ export default function StudentDashboard() {
       setWorkoutLastPerformed(lastPerformedAt)
     }
 
-    const { data: freshStudent } = await supabase.from('gym_students').select('partner_id').eq('id', studentId).single()
-    if (freshStudent?.partner_id) {
-      const { data: pData } = await supabase.from('gym_students').select('*').eq('id', freshStudent.partner_id).single()
-      if (pData) setPartner(pData)
-      
-      const { data: notes } = await supabase
-        .from('gym_social_notifications')
-        .select('*, sender:gym_students!sender_id(name)')
-        .eq('receiver_id', studentId)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      
-      if (notes) setSocialNotifications(notes)
-
-      const sevenDaysAgoP = new Date()
-      sevenDaysAgoP.setDate(sevenDaysAgoP.getDate() - 7)
-      const sevenDaysAgoStrP = sevenDaysAgoP.toISOString().split('T')[0]
-      const todayStr = getTodayLocally()
-      
-      const { data: pLogs } = await supabase
-        .from('gym_training_logs')
-        .select('weight_kg, reps_done, workout_date')
-        .eq('student_id', freshStudent.partner_id)
-        .gte('workout_date', sevenDaysAgoStrP)
-        
-      if (pLogs) {
-        const pVol = pLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
-        setPartnerWeeklyVolume(pVol)
-        setPartnerTrainedToday(pLogs.some(log => log.workout_date === todayStr))
-      }
-    }
+    const { data: notes } = await supabase
+      .from('gym_social_notifications')
+      .select('*, sender:gym_students!sender_id(name)')
+      .eq('receiver_id', studentId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    
+    if (notes) setSocialNotifications(notes)
 
     const { data: photos } = await supabase
       .from('gym_evolution_photos')

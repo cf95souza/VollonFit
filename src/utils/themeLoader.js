@@ -2,10 +2,12 @@ import { supabase } from '../supabaseClient';
 import { hexToRgbString } from './colorUtils';
 
 export const applyTheme = (colorHex) => {
-  if (!colorHex) return;
-  const rgb = hexToRgbString(colorHex);
+  const defaultColor = '#DFFF5E'; // Verde Neon oficial
+  const colorToApply = colorHex || defaultColor;
+  
+  const rgb = hexToRgbString(colorToApply);
   document.documentElement.style.setProperty('--color-primary', rgb);
-  localStorage.setItem('vollonfit_theme_color', colorHex);
+  localStorage.setItem('vollonfit_theme_color', colorToApply);
 };
 
 export const loadTheme = async (teacherId) => {

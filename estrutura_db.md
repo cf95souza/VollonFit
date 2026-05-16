@@ -254,7 +254,20 @@ CREATE TABLE IF NOT EXISTS gym_subscriptions (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 19. NUTRIÇÃO (Macros e Água)
+-- 19. MARKETPLACE (Produtos e Afiliados)
+CREATE TABLE IF NOT EXISTS gym_marketplace_products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    price NUMERIC(10,2),
+    image_url TEXT,
+    affiliate_url TEXT,
+    category TEXT DEFAULT 'suplementos', -- 'suplementos', 'equipamentos', 'acessorios'
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 20. NUTRIÇÃO (Macros e Água)
 CREATE TABLE IF NOT EXISTS gym_nutrition_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     student_id UUID REFERENCES gym_students(id) ON DELETE CASCADE,

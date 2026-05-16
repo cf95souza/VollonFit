@@ -255,13 +255,14 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] **Leaderboard Avançado**: Ranking com filtros (7D/30D) por Squad e placar coletivo.
 - [x] **Marketplace de Afiliados**: Integração de vitrine de suplementos e acessórios com links personalizados.
 - [x] **Refinamento White Label**: Solução definitiva para persistência de cores customizadas (Injeção de CSS Root).
+- [x] **Remoção de Legado**: Eliminação da funcionalidade de "Parceiro" individual em favor do sistema de Squads.
 - **Status:** ✅ Concluído
 
 ### Fase 33: Automação e Checkout Real 💳🤖
-- [ ] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
+- [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
 - [ ] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
-- **Status:** 📅 Planejado
+- **Status:** 🚀 Em Andamento
 
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.
