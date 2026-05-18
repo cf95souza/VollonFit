@@ -22,6 +22,7 @@ import {
 } from 'recharts'
 
 export default function StudentDetailView({ student, onBack, showToast }) {
+  const themeColor = localStorage.getItem('vollonfit_theme_color') || '#DFFF5E';
   const [workouts, setWorkouts] = useState([])
   const [bioRecords, setBioRecords] = useState([])
   const [goals, setGoals] = useState(student?.goals || '')
@@ -172,7 +173,7 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
                         <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
                         <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', backgroundColor: '#111', color: '#fff'}} />
-                        <Area type="monotone" dataKey="weight" stroke="#DFFF5E" fill="#DFFF5E" fillOpacity={0.1} strokeWidth={3} />
+                        <Area type="monotone" dataKey="weight" stroke={themeColor} fill={themeColor} fillOpacity={0.1} strokeWidth={3} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>

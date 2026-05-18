@@ -557,7 +557,7 @@ export default function StudentDashboard() {
                       }`}>
                         {d.dayNum}
                         {d.hasTrained && (
-                          <div className={`w-1.5 h-1.5 rounded-full absolute bottom-1.5 ${d.isToday ? 'bg-black' : 'bg-primary shadow-[0_0_5px_#DFFF5E]'}`} />
+                          <div className={`w-1.5 h-1.5 rounded-full absolute bottom-1.5 ${d.isToday ? 'bg-black' : 'bg-primary shadow-[0_0_5px_rgb(var(--color-primary))]'}`} />
                         )}
                       </div>
                     </div>

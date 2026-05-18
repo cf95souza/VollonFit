@@ -191,7 +191,7 @@ export default function SocialTab({
                 style={{ width: `${myVolPercent}%` }}
               />
               <div 
-                className="h-full bg-primary transition-all duration-1000 shadow-[0_0_15px_#DFFF5E]"
+                className="h-full bg-primary transition-all duration-1000 shadow-[0_0_15px_rgb(var(--color-primary))]"
                 style={{ width: `${100 - myVolPercent}%` }}
               />
             </div>

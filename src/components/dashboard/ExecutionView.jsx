@@ -127,7 +127,7 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
     <div className="min-h-screen bg-black flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/5 z-20">
         <div 
-          className="h-full bg-primary transition-all duration-700 shadow-[0_0_15px_#DFFF5E]" 
+          className="h-full bg-primary transition-all duration-700 shadow-[0_0_15px_rgb(var(--color-primary))]" 
           style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}
         />
       </div>

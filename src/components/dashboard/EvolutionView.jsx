@@ -24,6 +24,7 @@ import {
 import { supabase } from '../../supabaseClient'
 
 export default function EvolutionView({ records = [], prs = [], history = [], photos = [], studentId, onNewRecord, onPhotosUpdate, showToast }) {
+  const themeColor = localStorage.getItem('vollonfit_theme_color') || '#DFFF5E';
   const [isUploading, setIsUploading] = useState(false)
   const [photoToDelete, setPhotoToDelete] = useState(null)
   
@@ -230,8 +231,8 @@ export default function EvolutionView({ records = [], prs = [], history = [], ph
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#DFFF5E" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#DFFF5E" stopOpacity={0}/>
+                      <stop offset="5%" stopColor={themeColor} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={themeColor} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
@@ -245,13 +246,13 @@ export default function EvolutionView({ records = [], prs = [], history = [], ph
                   <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
                   <Tooltip 
                     contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: '#fff'}}
-                    itemStyle={{color: '#DFFF5E'}}
+                    itemStyle={{color: themeColor}}
                     labelStyle={{fontWeight: 'bold', marginBottom: '4px', color: '#94a3b8'}}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="weight" 
-                    stroke="#DFFF5E" 
+                    stroke={themeColor} 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorWeight)" 

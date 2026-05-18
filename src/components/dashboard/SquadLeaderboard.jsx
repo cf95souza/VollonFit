@@ -100,10 +100,10 @@ export default function SquadLeaderboard({ squadId, studentId }) {
       <div className="space-y-3">
         {leaderboard.map((user, index) => (
           <div key={user.id} className="flex items-center gap-4 bg-black p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_#DFFF5E]"></div>}
+            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgb(var(--color-primary))]"></div>}
             
             <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              {index === 0 ? <Medal className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(223,255,94,0.5)]" /> : 
+              {index === 0 ? <Medal className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(var(--color-primary),0.5)]" /> : 
                index === 1 ? <Medal className="w-6 h-6 text-slate-300" /> : 
                index === 2 ? <Medal className="w-6 h-6 text-amber-600" /> : 
                <span className="font-black text-slate-600 text-sm">{index + 1}º</span>}
@@ -129,8 +129,9 @@ export default function SquadLeaderboard({ squadId, studentId }) {
         const othersPoints = others.reduce((acc, u) => acc + u.points, 0);
         const avgOthersPoints = others.length > 0 ? Math.round(othersPoints / others.length) : 0;
 
+        const themeColor = localStorage.getItem('vollonfit_theme_color') || '#DFFF5E';
         const chartData = [
-          { name: 'Você', points: myPoints, fill: '#DFFF5E' }, 
+          { name: 'Você', points: myPoints, fill: themeColor }, 
           { name: 'Média', points: avgOthersPoints, fill: '#334155' }
         ]
 
