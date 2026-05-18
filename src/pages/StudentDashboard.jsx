@@ -207,12 +207,37 @@ export default function StudentDashboard() {
 
     const { data: notes } = await supabase
       .from('gym_social_notifications')
-      .select('*, sender:gym_students!sender_id(name)')
+      .select('*')
       .eq('receiver_id', studentId)
       .order('created_at', { ascending: false })
       .limit(20)
     
-    if (notes) setSocialNotifications(notes)
+    if (notes && notes.length > 0) {
+      const senderIds = [...new Set(notes.map(n => n.sender_id).filter(Boolean))]
+      if (senderIds.length > 0) {
+        const { data: senders } = await supabase
+          .from('gym_students')
+          .select('id, name')
+          .in('id', senderIds)
+        
+        const senderMap = {}
+        if (senders) {
+          senders.forEach(s => {
+            senderMap[s.id] = s.name
+          })
+        }
+
+        const notesWithSender = notes.map(n => ({
+          ...n,
+          sender: senderMap[n.sender_id] ? { name: senderMap[n.sender_id] } : { name: 'Sistema/Bando' }
+        }))
+        setSocialNotifications(notesWithSender)
+      } else {
+        setSocialNotifications(notes.map(n => ({ ...n, sender: { name: 'Sistema/Bando' } })))
+      }
+    } else {
+      setSocialNotifications([])
+    }
 
     const { data: photos } = await supabase
       .from('gym_evolution_photos')

@@ -260,7 +260,7 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 
 ### Fase 33: Automação e Checkout Real 💳🤖
 - [x] **Redirecionamento PWA (Start URL)**: Correção da rota `/` para usuários logados, redirecionando-os da Landing Page direto para seus respectivos dashboards (`/student`, `/admin`, `/master` ou `/academy`).
-- [x] **Correção da Tela de Configurações (Logout e Perfil)**: Resolução do crash causado pela importação ausente de `Users` no perfil do aluno (`ProfileTab.jsx`) e implementação completa e funcional do modal de configurações no `StudentDashboard.jsx` (permitindo atualizar dados e fazer logout com segurança).
+- [x] **Correção da Tela de Configurações, Perfil e Notificações**: Resolução do crash causado pela importação ausente de `Users` no perfil do aluno (`ProfileTab.jsx`), implementação completa e funcional do modal de configurações no `StudentDashboard.jsx` (permitindo atualizar dados e fazer logout com segurança) e correção do erro `400 Bad Request` no fetch de notificações sociais no Supabase, desacoplando os Joins de relacionamento implícito que causavam falhas no carregamento de dados do painel do aluno.
 - [x] **Responsividade da Landing Page (Safe Area / Notch)**: Ajuste da barra de navegação superior com `env(safe-area-inset-top)` e compensação no Hero, garantindo área de toque perfeita em iPhones no modo standalone do PWA.
 - [x] **Ajuste Fino de Design & Responsividade (Mobile Perfect)**:
   - *Status Dormindo Premium*: Substituição do emoji cru no bando/Squad por um badge premium animado com ícone `Moon` da Lucide.
