@@ -8,7 +8,7 @@ import {
   ClipboardList 
 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
-import { Trophy, Medal, Star, Shield } from 'lucide-react'
+import { Trophy, Medal, Star, Shield, Users } from 'lucide-react'
 
 export default function ProfileTab({ student, totalWorkouts = 0, onOpenConfig, onOpenGoals, showToast, onLogout }) {
   const [allStudents, setAllStudents] = useState([])

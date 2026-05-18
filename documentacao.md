@@ -54,11 +54,13 @@ O banco de dados é gerido via Supabase com foco em segurança via **Row Level S
 - `gym_billing_records`: Implementação do Gateway de Pagamento e regras de Checkout SaaS.
 - Refatoração do App para PWA, cache-first e timers resilientes em background.
 
-### Atualizações Mais Recentes (Fase 30)
-- **IA Coach**: Integração de dicas inteligentes na tela de execução, sugerindo progressão de carga com base no histórico de performance.
-- **Módulo White Label**: Personalização dinâmica de cores e branding via variáveis CSS, injetadas pelo Supabase em tempo real no Dashboard do Aluno.
-- **Integração Nutricional**: Criação do `NutritionTab.jsx` para acompanhamento de hidratação e metas de macronutrientes.
-- **Sistema de Conquistas**: A aba de Perfil (`ProfileTab.jsx`) agora exibe badges de progresso para retenção de usuários.
+### Atualizações Mais Recentes (Fase 33)
+- **Redirecionamento PWA (Start URL)**: Correção da rota inicial `/` para usuários autenticados, evitando a exibição desnecessária da Landing Page e abrindo direto o painel correspondente (`/student`, `/admin` ou `/academy`).
+- **Tela de Configurações Funcional**: Correção do crash no import de `Users` em `ProfileTab.jsx` e reestruturação completa do modal de configurações (`isConfigModalOpen` no `StudentDashboard.jsx`) com formulário para atualizar dados cadastrais e botão direto de Logout (Sair da Conta).
+- **Responsividade Safe-Area / Notch**: Adaptação da barra de navegação no `LandingPage.jsx` com a variável CSS `env(safe-area-inset-top)` para empurrar o layout e os botões de ação para baixo de forma inteligente em celulares com notch/câmera dinâmica (iPhones), garantindo cliques perfeitos.
+- **IA Coach 2.0 (Motor de Análise Preditiva)**: 
+  - *Carga Preditiva*: Novo algoritmo baseado na fórmula científica de 1RM de Epley para projetar a carga de trabalho ideal baseada no histórico de treino e na faixa de repetições estipulada pelo professor.
+  - *Nutricional Preditiva*: Nova aba de nutrição inteligente integrada com a equação Mifflin-St Jeor, que calcula automaticamente as necessidades energéticas de TDEE, o consumo de água por quilo de peso corporal (35ml/kg) e a divisão ideal de macronutrientes (Proteínas, Carboidratos e Gorduras) a partir do perfil biológico do aluno (idade, altura, peso e objetivos).
 - **GymRats & Squads (Fase 32)**: Implementação do motor de gamificação por Squads, sistema de marketplace de afiliados e remoção da funcionalidade legada de parceiro individual em favor do bando coletivo.
 
 ### Ecossistema B2B e Modelagem SaaS (Fase 31)
@@ -103,5 +105,5 @@ Para transformar o VollonFit em uma solução líder de mercado, o roadmap estra
 - **LP Generator**: Páginas de captura profissionais geradas automaticamente para cada professor.
 
 ---
-*Documentação atualizada em 16/05/2026*
-*Status: Fase 32 Concluída | Fase 33 Iniciada*
+*Documentação atualizada em 18/05/2026*
+*Status: Fase 33 em Andamento (Redirecionamento PWA e Configurações Concluídos)*

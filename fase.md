@@ -260,9 +260,11 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 
 ### Fase 33: Automação e Checkout Real 💳🤖
 - [x] **Redirecionamento PWA (Start URL)**: Correção da rota `/` para usuários logados, redirecionando-os da Landing Page direto para seus respectivos dashboards (`/student`, `/admin`, `/master` ou `/academy`).
+- [x] **Correção da Tela de Configurações (Logout e Perfil)**: Resolução do crash causado pela importação ausente de `Users` no perfil do aluno (`ProfileTab.jsx`) e implementação completa e funcional do modal de configurações no `StudentDashboard.jsx` (permitindo atualizar dados e fazer logout com segurança).
+- [x] **Responsividade da Landing Page (Safe Area / Notch)**: Ajuste da barra de navegação superior com `env(safe-area-inset-top)` e compensação no Hero, garantindo área de toque perfeita em iPhones no modo standalone do PWA.
 - [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
-- [ ] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
+- [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
 - **Status:** 🚀 Em Andamento
 
 ### Backlog de Correções Futuras 🐛

@@ -183,13 +183,13 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
           </div>
 
           {item?.iaSuggestion && currentSet === 1 && (
-            <div className="bg-primary/10 border border-primary/20 p-4 rounded-3xl flex items-start gap-4 animate-in slide-in-from-top-4 duration-500 shadow-lg">
+            <div className="bg-primary/10 border border-primary/20 p-6 rounded-3xl flex items-start gap-4 animate-in slide-in-from-top-4 duration-500 shadow-xl">
                <div className="bg-primary text-black p-2.5 rounded-xl mt-1 shadow-[0_0_15px_rgba(223,255,94,0.3)]">
                  <TrendingUp className="w-5 h-5" />
                </div>
                <div>
-                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">IA Coach Intelligence</p>
-                 <p className="text-sm font-bold text-slate-200 leading-tight mb-3">Notamos que você atingiu a meta de repetições com facilidade na última vez. Que tal subir para <span className="text-primary font-black">{item.iaSuggestion.weight}kg</span>?</p>
+                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">IA Coach 2.0 (Motor de Carga)</p>
+                 <p className="text-sm font-bold text-slate-200 leading-tight mb-3">{item.iaSuggestion.message}</p>
                  <button 
                    onClick={() => setWeight(item.iaSuggestion.weight.toString())} 
                    className="text-[10px] font-black text-black bg-primary hover:bg-primary-dark px-4 py-2 rounded-full uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"

@@ -46,7 +46,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 overflow-x-hidden">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
+      <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-primary p-2 rounded-xl text-black shadow-[0_0_15px_rgba(223,255,94,0.3)]">
@@ -64,7 +64,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-center relative">
+      <section className="pb-20 px-6 max-w-7xl mx-auto text-center relative animate-in fade-in duration-1000" style={{ paddingTop: 'calc(10rem + env(safe-area-inset-top))' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
         <h1 className="text-5xl md:text-7xl font-black text-white font-display leading-tight mb-8 relative z-10">
           A Plataforma Definitiva para <br className="hidden md:block" />

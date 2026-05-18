@@ -75,6 +75,52 @@ export default function StudentDashboard() {
   const [completedExercises, setCompletedExercises] = useState([]) 
   const [toast, setToast] = useState(null)
 
+  const [editName, setEditName] = useState('')
+  const [editAge, setEditAge] = useState('')
+  const [editHeight, setEditHeight] = useState('')
+  const [editPassword, setEditPassword] = useState('')
+  const [isSavingConfig, setIsSavingConfig] = useState(false)
+
+  const openConfigModal = () => {
+    if (student) {
+      setEditName(student.name || '')
+      setEditAge(student.age || '')
+      setEditHeight(student.height || '')
+      setEditPassword(student.password || '')
+    }
+    setIsConfigModalOpen(true)
+  }
+
+  const handleSaveConfig = async (e) => {
+    if (e) e.preventDefault()
+    setIsSavingConfig(true)
+    try {
+      const { data, error } = await supabase
+        .from('gym_students')
+        .update({
+          name: editName,
+          age: parseInt(editAge) || null,
+          height: parseFloat(editHeight) || null,
+          password: editPassword
+        })
+        .eq('id', student.id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setStudent(data)
+      localStorage.setItem('vollonfit_user', JSON.stringify(data))
+      showToast('Configurações salvas com sucesso!')
+      setIsConfigModalOpen(false)
+    } catch (err) {
+      console.error(err)
+      showToast('Erro ao salvar configurações.', 'error')
+    } finally {
+      setIsSavingConfig(false)
+    }
+  }
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
@@ -288,17 +334,45 @@ export default function StudentDashboard() {
         
         let iaSuggestion = null;
         if (history.length > 0) {
-          const maxWeight = Math.max(...history.map(l => l.weight_kg || 0));
-          const avgReps = history.reduce((acc, l) => acc + (l.reps_done || 0), 0) / history.length;
-          let targetMax = 12;
+          // Calcula 1RM estimado para cada série executada usando a fórmula de Epley: 1RM = W * (1 + R/30)
+          const logsWith1RM = history.map(l => {
+            const w = parseFloat(l.weight_kg) || 0;
+            const r = parseInt(l.reps_done) || 0;
+            const oneRepMax = r > 0 ? w * (1 + r / 30) : w;
+            return { ...l, oneRepMax };
+          });
+
+          const maxEstimated1RM = Math.max(...logsWith1RM.map(l => l.oneRepMax), 0);
+          
+          // Extrai o número máximo de repetições alvo do treino (ex: "8-10" -> 10)
+          let targetRepsNum = 10;
           if (item.target_reps) {
-             const match = item.target_reps.match(/\d+$/);
-             if (match) targetMax = parseInt(match[0], 10);
+            const match = item.target_reps.match(/\d+$/); // Pega o último número da faixa (ex: 10 de "8-10")
+            if (match) targetRepsNum = parseInt(match[0], 10);
           }
-          if (avgReps >= targetMax && maxWeight > 0) {
-            iaSuggestion = {
-               weight: maxWeight + 2,
-               message: "IA Coach: Tente aumentar a carga (+2kg)"
+
+          if (maxEstimated1RM > 0) {
+            // Peso sugerido para bater as repetições alvo com base no 1RM: Peso = 1RM / (1 + RepsAlvo / 30)
+            let suggestedWeight = maxEstimated1RM / (1 + targetRepsNum / 30);
+            
+            // Arredonda para o mais próximo de 0.5kg
+            suggestedWeight = Math.round(suggestedWeight * 2) / 2;
+
+            // Se o peso sugerido for menor ou igual à carga máxima já levantada, mas a média de repetições
+            // no histórico foi muito alta, sugere um pequeno incremento para progressão de carga.
+            const maxHistoricalWeight = Math.max(...history.map(l => parseFloat(l.weight_kg) || 0), 0);
+            const avgReps = history.reduce((acc, l) => acc + (parseInt(l.reps_done) || 0), 0) / history.length;
+            
+            if (suggestedWeight <= maxHistoricalWeight && avgReps >= targetRepsNum) {
+              suggestedWeight = maxHistoricalWeight + (maxHistoricalWeight >= 50 ? 2.5 : 1.0);
+            }
+
+            if (suggestedWeight > 0) {
+              iaSuggestion = {
+                oneRepMax: Math.round(maxEstimated1RM * 10) / 10,
+                weight: suggestedWeight,
+                message: `Com base no seu 1RM preditivo de ${Math.round(maxEstimated1RM)}kg neste exercício, recomendamos ${suggestedWeight}kg para a sua meta de ${targetRepsNum} repetições.`
+              };
             }
           }
         }
@@ -587,7 +661,7 @@ export default function StudentDashboard() {
         )}
 
         {currentTab === 'nutrition' && (
-          <NutritionTab studentId={student?.id} showToast={showToast} />
+          <NutritionTab studentId={student?.id} student={student} showToast={showToast} />
         )}
 
         {currentTab === 'marketplace' && (
@@ -605,11 +679,90 @@ export default function StudentDashboard() {
         )}
 
         {isConfigModalOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10">
-              <h2 className="text-xl font-black text-white mb-4">Configurações</h2>
-              <p className="text-slate-400 mb-6">Funcionalidade de configuração em desenvolvimento.</p>
-              <button onClick={() => setIsConfigModalOpen(false)} className="w-full bg-primary text-black py-4 rounded-full font-black uppercase">Fechar</button>
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+            <div className="bg-[#1A1A1A] w-full max-w-md rounded-[40px] p-8 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300">
+              <h2 className="text-2xl font-black text-white font-display mb-2">Configurações da Conta</h2>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">Mantenha seu perfil atualizado</p>
+              
+              <form onSubmit={handleSaveConfig} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Nome Completo</label>
+                  <input 
+                    type="text" 
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    required
+                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-primary/50 outline-none transition-all"
+                    placeholder="Seu nome"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Idade</label>
+                    <input 
+                      type="number" 
+                      value={editAge}
+                      onChange={(e) => setEditAge(e.target.value)}
+                      className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-primary/50 outline-none transition-all"
+                      placeholder="Ex: 25"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Altura (m)</label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      value={editHeight}
+                      onChange={(e) => setEditHeight(e.target.value)}
+                      className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-primary/50 outline-none transition-all"
+                      placeholder="Ex: 1.75"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Senha de Acesso</label>
+                  <input 
+                    type="text" 
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    required
+                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-primary/50 outline-none transition-all"
+                    placeholder="Sua senha"
+                  />
+                </div>
+
+                <div className="space-y-3 pt-4">
+                  <button 
+                    type="submit"
+                    disabled={isSavingConfig}
+                    className="w-full bg-primary text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {isSavingConfig ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsConfigModalOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/20 text-rose-500 py-4 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sair da Conta (Logout)
+                  </button>
+
+                  <button 
+                    type="button"
+                    onClick={() => setIsConfigModalOpen(false)}
+                    className="w-full bg-black hover:bg-white/5 border border-white/10 text-slate-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -628,7 +781,7 @@ export default function StudentDashboard() {
           <ProfileTab 
             student={student} 
             totalWorkouts={workoutHistory.length}
-            onOpenConfig={() => setIsConfigModalOpen(true)} 
+            onOpenConfig={openConfigModal} 
             onOpenGoals={() => setIsGoalsModalOpen(true)}
             showToast={showToast}
             onLogout={handleLogout}
