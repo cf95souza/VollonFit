@@ -11,6 +11,12 @@ export default function Login() {
   const navigate = useNavigate()
   const [checkingSession, setCheckingSession] = useState(true)
 
+  // Invite & Register Flow States
+  const [inviteId, setInviteId] = useState(null)
+  const [inviteTeacher, setInviteTeacher] = useState(null)
+  const [isRegisterMode, setIsRegisterMode] = useState(false)
+  const [regForm, setRegForm] = useState({ name: '', username: '', password: '' })
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -47,6 +53,50 @@ export default function Login() {
     }
     checkSession()
   }, [navigate])
+
+  // Extract invite code and load invited teacher info
+  useEffect(() => {
+    const fetchInviteData = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const invId = params.get('invite')
+      if (invId) {
+        setInviteId(invId)
+        
+        try {
+          const { data, error } = await supabase
+            .from('gym_teachers')
+            .select('name, plan_type')
+            .eq('id', invId)
+            .maybeSingle()
+          
+          if (data) {
+            // Check if teacher is premium (Plano 2) to allow registration!
+            if (data.plan_type === 'premium') {
+              setInviteTeacher(data)
+              setIsRegisterMode(true)
+              
+              // Load custom theme
+              const { data: themeSetting } = await supabase
+                .from('gym_settings')
+                .select('value')
+                .eq('key', `theme_${invId}`)
+                .maybeSingle()
+              
+              if (themeSetting) {
+                const { hexToRgbString } = await import('../utils/colorUtils')
+                document.documentElement.style.setProperty('--color-primary', hexToRgbString(themeSetting.value))
+              }
+            } else {
+              setError('O link de convite é inválido ou o professor está no plano básico.')
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar dados do convite:', e)
+        }
+      }
+    }
+    fetchInviteData()
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -163,6 +213,67 @@ export default function Login() {
     }
   }
 
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const usernameClean = regForm.username.toLowerCase().trim()
+      
+      // 1. Validar se o nome de usuário já existe
+      const { data: existingStudent } = await supabase
+        .from('gym_students')
+        .select('id')
+        .eq('username', usernameClean)
+        .maybeSingle()
+
+      if (existingStudent) {
+        throw new Error('Este nome de usuário já está sendo usado. Tente outro!')
+      }
+
+      // 2. Validar cota de alunos do professor
+      const { data: teacher } = await supabase
+        .from('gym_teachers')
+        .select('quota_limit')
+        .eq('id', inviteId)
+        .single()
+
+      const { count } = await supabase
+        .from('gym_students')
+        .select('*', { count: 'exact', head: true })
+        .eq('teacher_id', inviteId)
+
+      if (teacher && count >= teacher.quota_limit) {
+        throw new Error('O limite de alunos deste professor foi atingido. Entre em contato com ele!')
+      }
+
+      // 3. Criar o aluno no banco
+      const { data: newStudent, error: insertErr } = await supabase
+        .from('gym_students')
+        .insert([{
+          name: regForm.name.trim(),
+          username: usernameClean,
+          password: regForm.password.trim(),
+          teacher_id: inviteId,
+          status: 'active'
+        }])
+        .select()
+        .single()
+
+      if (insertErr) throw insertErr
+
+      // 4. Logar automaticamente
+      localStorage.setItem('vollonfit_user', JSON.stringify(newStudent))
+      navigate('/student', { replace: true })
+
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
@@ -197,62 +308,174 @@ export default function Login() {
         </div>
 
         <div className="bg-white/10 backdrop-blur-2xl p-10 rounded-[40px] border border-white/10 shadow-2xl shadow-black/50">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Acesso do Usuário</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                  <User className="w-5 h-5" />
+          
+          {isRegisterMode ? (
+            /* AUTO-REGISTRATION FORM */
+            <div className="space-y-6">
+              <div className="text-center mb-4">
+                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Auto-Cadastro de Aluno</h2>
+                {inviteTeacher && (
+                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                    Você foi convidado pelo professor <span className="text-primary font-bold">{inviteTeacher.name}</span>! Preencha seus dados abaixo para iniciar sua jornada.
+                  </p>
+                )}
+              </div>
+
+              <form onSubmit={handleRegister} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regForm.name}
+                      onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
+                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
+                      placeholder="Ex: João da Silva"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  required
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
-                  placeholder="Email ou Username"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chave de Segurança</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome de Usuário (Login)</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regForm.username}
+                      onChange={(e) => setRegForm({ ...regForm, username: e.target.value })}
+                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
+                      placeholder="Ex: joao.silva"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
-                  placeholder="••••••••"
-                />
-              </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Senha de Acesso</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      value={regForm.password}
+                      onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-md active:scale-95 disabled:opacity-50 group"
+                >
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <>
+                      CRIAR CONTA & ENTRAR
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsRegisterMode(false)}
+                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Já tem cadastro? Entrar na conta
+                  </button>
+                </div>
+              </form>
             </div>
-
-            {error && (
-              <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
-                {error}
+          ) : (
+            /* STANDARD LOGIN FORM */
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Acesso do Usuário</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
+                    placeholder="Email ou Username"
+                  />
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
-            >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  ACESSAR SISTEMA
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chave de Segurança</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
+                  {error}
+                </div>
               )}
-            </button>
-          </form>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
+              >
+                {loading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    ACESSAR SISTEMA
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+
+              {inviteId && (
+                <div className="text-center pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsRegisterMode(true)}
+                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Não tem conta? Cadastrar-se
+                  </button>
+                </div>
+              )}
+            </form>
+          )}
         </div>
 
         <p className="mt-8 text-slate-500 text-[10px] text-center font-bold uppercase tracking-[0.3em]">

@@ -279,13 +279,21 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - **Status:** 🚀 Em Andamento
 
 ### Fase 34: Portal B2B - Painel do Gestor de Academia 🏢💼
-- [/] **Desenvolvimento do Painel de Academia (`AcademyDashboard.jsx`)**:
+- [x] **Desenvolvimento do Painel de Academia (`AcademyDashboard.jsx`)**:
   - *Visão Geral (Overview)*: KPIs de professores vinculados, limite contratado (`max_teachers`), total de alunos matriculados e mensalidade do plano Enterprise. Barra de progresso para a cota de professores.
   - *Gestão de Professores*: Lista de professores associados à academia, com modal para cadastrar/editar dados, limite de cota ativo para prevenir cadastro extra, exclusão e bloqueio.
   - *Listagem de Alunos*: Painel centralizado mostrando todos os alunos de todos os professores vinculados à academia B2B, facilitando o controle macro.
   - *Configurações do Perfil B2B*: Formulário para atualizar nome, CNPJ e URL da Logo da academia corporativa.
   - *Toast Premium & Segurança*: Notificações customizadas e validação de sessão robusta.
-- **Status:** 🚀 Em Andamento
+- **Status:** ✅ Concluído (Homologado)
+
+### Fase 35: Link de Auto-Cadastro de Alunos para Professor Premium (Plano 2) 🔗👥
+- [x] **Link de Compartilhamento Exclusivo**: Exibição na aba de configurações do Professor Premium de uma seção com seu link de convite exclusivo (ex: `/login?invite=teacher_id`) com botão de copiar em 1 clique.
+- [x] **Formulário de Auto-Cadastro de Aluno**: Adaptação da tela de `Login.jsx` para suportar o fluxo de criação de conta caso o parâmetro `?invite=` esteja na URL. O aluno preenche Nome, E-mail, Senha e Celular de forma simples e autônoma.
+- [x] **Associação Automática**: Processamento no banco de dados vinculando o aluno recém-criado diretamente ao `teacher_id` recebido no link de convite.
+- [x] **Bloqueio no Plano Basic**: Para professores no plano Basic, a seção exibe um bloqueio elegante incentivando o upgrade para o plano Premium para liberar o link.
+- [x] **Validação de Quota do Professor**: O fluxo de auto-cadastro valida a cota de alunos ativa do professor (`quota_limit`) antes de concluir o registro, prevenindo excedentes indesejados.
+- **Status:** ✅ Concluído (Homologado)
 
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.

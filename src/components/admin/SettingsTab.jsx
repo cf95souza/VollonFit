@@ -210,6 +210,69 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
         </form>
       </section>
 
+      {/* SEÇÃO: Link de Auto-Cadastro (Disponível para Premium - Plano 2) */}
+      <section className="bg-[#111111] p-8 rounded-[40px] border border-white/5 shadow-sm relative overflow-hidden">
+        <div className="flex items-center gap-3 mb-8 relative z-10">
+          <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+            <Zap className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-white font-display flex items-center gap-2">
+              Link de Auto-Cadastro
+              {teacherInfo?.plan_type === 'premium' ? (
+                <span className="bg-primary/25 text-primary border border-primary/25 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">Premium</span>
+              ) : (
+                <span className="bg-amber-500/25 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">Bloqueado</span>
+              )}
+            </h3>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Permita que seus alunos se cadastrem sozinhos</p>
+          </div>
+        </div>
+
+        {teacherInfo?.plan_type !== 'premium' && (
+          <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-[2px] rounded-[40px] flex flex-col items-center justify-center text-center p-6 border border-amber-500/25">
+             <Zap className="w-8 h-8 text-amber-500 mb-2 animate-pulse" />
+             <p className="text-white font-black text-sm uppercase tracking-tight">Recurso Exclusivo Premium (Plano 2)</p>
+             <p className="text-[10px] text-slate-400 font-bold max-w-[280px] mt-1 mb-4">Crie um link exclusivo para enviar aos seus alunos pelo WhatsApp e permita o cadastro automático!</p>
+             <button 
+              type="button"
+              onClick={() => {
+                const msg = "Olá, vim solicitar o upgrade da minha assinatura do VollonFit para o plano Professor Premium!";
+                window.open(`https://wa.me/5511922928343?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+              }}
+              className="bg-amber-500 hover:bg-amber-600 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+             >
+               Fazer Upgrade Agora
+             </button>
+          </div>
+        )}
+
+        <div className={`space-y-6 relative z-10 ${teacherInfo?.plan_type !== 'premium' ? 'blur-[2px] pointer-events-none' : ''}`}>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Envie este link exclusivo para seus novos alunos. Ao abrir o link, eles poderão se cadastrar na plataforma por conta própria e serão **automaticamente associados ao seu perfil de professor**!
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input 
+              type="text" 
+              readOnly
+              value={`${window.location.origin}/login?invite=${teacherInfo?.id || ''}`}
+              className="flex-1 bg-black border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold text-primary select-all focus:outline-none"
+            />
+            <button 
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/login?invite=${teacherInfo?.id || ''}`)
+                showToast('Link de convite copiado para a área de transferência!')
+              }}
+              className="px-6 py-4 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              Copiar Link
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#111111] p-8 rounded-[40px] border border-white/5 shadow-sm overflow-hidden relative">
         <div className="flex items-center gap-3 mb-8 relative z-10">
           <div className="w-12 h-12 bg-[#C6C4FF]/10 rounded-2xl flex items-center justify-center text-[#C6C4FF]">
