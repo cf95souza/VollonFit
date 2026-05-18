@@ -266,42 +266,42 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
   - *Status Dormindo Premium*: Substituição do emoji cru no bando/Squad por um badge premium animado com ícone `Moon` da Lucide.
   - *Marketplace Responsivo*: Empilhamento vertical inteligente dos cards de produto em aparelhos móveis com proporção de imagem panorâmica de alta qualidade (`aspect-[16/10]`).
   - *Navbar da Landing Page Limpo*: Ocultação do volumoso botão "Assinar Agora" no mobile e redimensionamento de botões para evitar esmagamento do header.
-  - *Redução de Vão Preto nos Planos*: Diminuição de paddings e margens em telas menores para aproximar os cards de preço do título principal e evitar sensação de área sem conteúdo.
-- [x] **Integração Comercial (WhatsApp Direct)**: Redirecionamento inteligente dos CTAs de conversão da Landing Page ("Teste Grátis" e "Assinar Agora") para o canal de atendimento no WhatsApp, com strings de mensagem contextuais personalizadas incluindo o nome do respectivo plano escolhido pelo usuário.
-- [x] **Fluxo Completo de Gestão de Planos & Cobrança (Painel Master & Professor)**:
-  - *Troca de Planos*: Implementação do seletor de planos (`Professor Basic` ou `Professor Premium`) nos modais de cadastro e edição de professores no painel Master, com exibição de badges esteticamente ricos de cada plano ativo nos respectivos cards de professores.
-  - *Cálculo Dinâmico de Mensalidade*: Remoção do antigo campo fixo global de "valor por aluno" e substituição por cálculos dinâmicos integrados com o tipo de plano escolhido (Basic cobrando R$ 30,00/aluno, Premium cobrando R$ 45,00/aluno).
-  - *Nova Tela de Configurações*: Redesenho completo da aba de configurações do Master Admin para gerenciar os preços de todos os planos globais de forma centralizada (`price_per_student`, `price_premium` e `price_enterprise` por upsert dinâmico) com alertas visuais integrados.
-  - *Upgrade e Integração Comercial no Painel do Professor*: Ajuste do botão "Fazer Upgrade Agora" no modal bloqueado de White Label do professor para direcionar diretamente para o WhatsApp comercial com mensagem contextualizada para solicitar o upgrade de plano.
-- [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
-- [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
+- [x] **Redirecionamento PWA (Start URL)**: Correção da rota `/` para usuários logados, redirecionando-os da Landing Page direto para seus respectivos dashboards.
+- [x] **Correção de Configurações**: Resolução de crash no perfil do aluno e erro de fetch de notificações.
+- [x] **Responsividade da Landing Page**: Ajuste de safe-area e notch.
+- [x] **Ajuste Fino de Design**: Badge premium no status do Squad e cards de marketplace responsivos.
+- [x] **Integração Comercial**: Redirecionamento WhatsApp contextualizado.
+- [x] **Fluxo Completo de Gestão de Planos**: Troca de planos no painel Master e cálculos dinâmicos.
 - [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
 - **Status:** 🚀 Em Andamento
 
 ### Fase 34: Portal B2B - Painel do Gestor de Academia 🏢💼
 - [x] **Desenvolvimento do Painel de Academia (`AcademyDashboard.jsx`)**:
-  - *Visão Geral (Overview)*: KPIs de professores vinculados, limite contratado (`max_teachers`), total de alunos matriculados e mensalidade do plano Enterprise. Barra de progresso para a cota de professores.
-  - *Gestão de Professores*: Lista de professores associados à academia, com modal para cadastrar/editar dados, limite de cota ativo para prevenir cadastro extra, exclusão e bloqueio.
-  - *Listagem de Alunos*: Painel centralizado mostrando todos os alunos de todos os professores vinculados à academia B2B, facilitando o controle macro.
-  - *Configurações do Perfil B2B*: Formulário para atualizar nome, CNPJ e URL da Logo da academia corporativa.
-  - *Toast Premium & Segurança*: Notificações customizadas e validação de sessão robusta.
+  - *Visão Geral*: KPIs de professores, limite de cota, total de alunos.
+  - *Gestão de Professores*: CRUD com bloqueio de cota.
+  - *Listagem de Alunos*: Painel centralizado.
+  - *Configurações*: Perfil B2B corporativo.
 - **Status:** ✅ Concluído (Homologado)
 
-### Fase 35: Link de Auto-Cadastro de Alunos para Professor Premium (Plano 2) 🔗👥
-- [x] **Link de Compartilhamento Exclusivo**: Exibição na aba de configurações do Professor Premium de uma seção com seu link de convite exclusivo (ex: `/login?invite=teacher_id`) com botão de copiar em 1 clique.
-- [x] **Formulário de Auto-Cadastro de Aluno**: Adaptação da tela de `Login.jsx` para suportar o fluxo de criação de conta caso o parâmetro `?invite=` esteja na URL. O aluno preenche Nome, E-mail, Senha e Celular de forma simples e autônoma.
-- [x] **Associação Automática**: Processamento no banco de dados vinculando o aluno recém-criado diretamente ao `teacher_id` recebido no link de convite.
-- [x] **Bloqueio no Plano Basic**: Para professores no plano Basic, a seção exibe um bloqueio elegante incentivando o upgrade para o plano Premium para liberar o link.
-- [x] **Validação de Quota do Professor**: O fluxo de auto-cadastro valida a cota de alunos ativa do professor (`quota_limit`) antes de concluir o registro, prevenindo excedentes indesejados.
+### Fase 35: Link de Auto-Cadastro de Alunos para Professor Premium 🔗👥
+- [x] **Link de Compartilhamento**: Convite direto para o professor.
+- [x] **Fluxo de Auto-Cadastro**: Registro simplificado do aluno com vínculo automático.
+- [x] **Validação de Quota**: Bloqueio de novos alunos ao exceder o limite do plano.
 - **Status:** ✅ Concluído (Homologado)
 
 ### Fase 36: Gestão de Produtos por Academia (B2B) e Centralizada (Master ADM) 🛒🏢
-- [x] **Gestão de Produtos B2B (AcademyDashboard.jsx)**: Criação de uma aba dedicada "Marketplace" no Painel B2B para que o gestor de cada academia possa cadastrar, editar e excluir seus próprios suplementos, vestuários e planos com preços locais.
-- [x] **Filtros e Busca B2B**: Busca por nome/descrição e categorias exclusivas do marketplace.
-- [x] **Validação Relacional**: Os produtos criados pelo gestor recebem automaticamente o `academy_id` correspondente, salvando e atualizando na tabela `gym_marketplace_products`.
-- [x] **Gestão de Produtos Globais no Master Admin (MasterProducts.jsx)**: Nova tela "Marketplace ADM" no painel Master para gerenciar produtos globais (onde `academy_id` é nulo), visíveis apenas para alunos de professores independentes.
-- [x] **Compilação e Validação**: Geração de build sem erros ou warnings para produção.
+- [x] **Gestão de Produtos B2B**: Cadastro local por academia.
+- [x] **Marketplace ADM**: Gerenciamento de produtos globais no Master Admin.
+- [x] **Validação Relacional**: Filtros e integração com `gym_marketplace_products`.
 - **Status:** ✅ Concluído (Pronto para Homologação)
+
+### Fase 37: Integração Real de Checkout (Stripe/Asaas) & Webhooks 💳🤖
+- [ ] **Configuração do Gateway de Pagamento**: Substituição dos mocks pela API real.
+- [ ] **Painel de Faturamento & Cartão**: Histórico e gestão de meios de pagamento.
+- [ ] **Engine de Webhooks**: Processamento em tempo real (ativação/suspensão de contas).
+- [ ] **Notificações Automáticas**: Disparo de e-mails de cobrança/pendências.
+- [ ] **Resolução do Backlog White Label**: Injeção dinâmica de CSS.
+- **Status:** 🚀 Planejado / Próximo Passo
 
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.
