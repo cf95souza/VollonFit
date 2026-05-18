@@ -267,6 +267,7 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
   - *Marketplace Responsivo*: Empilhamento vertical inteligente dos cards de produto em aparelhos móveis com proporção de imagem panorâmica de alta qualidade (`aspect-[16/10]`).
   - *Navbar da Landing Page Limpo*: Ocultação do volumoso botão "Assinar Agora" no mobile e redimensionamento de botões para evitar esmagamento do header.
   - *Redução de Vão Preto nos Planos*: Diminuição de paddings e margens em telas menores para aproximar os cards de preço do título principal e evitar sensação de área sem conteúdo.
+- [x] **Integração Comercial (WhatsApp Direct)**: Redirecionamento inteligente dos CTAs de conversão da Landing Page ("Teste Grátis" e "Assinar Agora") para o canal de atendimento no WhatsApp, com strings de mensagem contextuais personalizadas incluindo o nome do respectivo plano escolhido pelo usuário.
 - [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
 - [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
