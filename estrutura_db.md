@@ -328,6 +328,8 @@ CREATE POLICY "Master full access" ON gym_settings FOR ALL TO authenticated USIN
 CREATE POLICY "Master teachers" ON gym_teachers FOR ALL TO authenticated USING (auth.jwt() ->> 'email' = 'cf95.souza@gmail.com');
 CREATE POLICY "Master students" ON gym_students FOR ALL TO authenticated USING (auth.jwt() ->> 'email' = 'cf95.souza@gmail.com');
 CREATE POLICY "Master billing" ON gym_billing_records FOR ALL TO authenticated USING (auth.jwt() ->> 'email' = 'cf95.souza@gmail.com');
+CREATE POLICY "Master academies" ON gym_academies FOR ALL TO authenticated USING (auth.jwt() ->> 'email' = 'cf95.souza@gmail.com');
+CREATE POLICY "Master academy admins" ON gym_academy_admins FOR ALL TO authenticated USING (auth.jwt() ->> 'email' = 'cf95.souza@gmail.com');
 
 -- POLÍTICAS ANON/PUBLIC (Essencial para o app funcionar sem Auth padrão)
 CREATE POLICY "Anon manage teachers" ON gym_teachers FOR ALL TO anon USING (true) WITH CHECK (true);
