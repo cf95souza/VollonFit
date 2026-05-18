@@ -259,6 +259,7 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - **Status:** ✅ Concluído
 
 ### Fase 33: Automação e Checkout Real 💳🤖
+- [x] **Redirecionamento PWA (Start URL)**: Correção da rota `/` para usuários logados, redirecionando-os da Landing Page direto para seus respectivos dashboards (`/student`, `/admin`, `/master` ou `/academy`).
 - [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
 - [ ] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.

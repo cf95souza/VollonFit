@@ -1,9 +1,47 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Gem, ArrowRight, CheckCircle2, Zap, Shield, Smartphone } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const student = localStorage.getItem('vollonfit_user');
+        if (student) {
+          navigate('/student', { replace: true });
+          return;
+        }
+
+        const teacher = localStorage.getItem('vollonfit_teacher');
+        if (teacher) {
+          navigate('/admin', { replace: true });
+          return;
+        }
+
+        const academy = localStorage.getItem('vollonfit_academy');
+        if (academy) {
+          navigate('/academy', { replace: true });
+          return;
+        }
+
+        // Verifica sessão ativa do Supabase (para o Master Admin)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          if (session.user.email === 'cf95.souza@gmail.com') {
+            navigate('/master', { replace: true });
+          } else {
+            navigate('/admin', { replace: true });
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao checar sessão na Landing Page:", e);
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 overflow-x-hidden">
