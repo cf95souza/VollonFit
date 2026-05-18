@@ -745,6 +745,43 @@ export default function AcademyDashboard() {
                   </form>
                 </div>
 
+                {/* BLOC: Link de Convite para Professores */}
+                <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5 lg:col-span-2 space-y-6 mt-6">
+                  <div>
+                    <h3 className="text-lg font-black text-white font-display flex items-center gap-2">
+                      <Key className="w-5 h-5 text-primary" /> Link de Convite para Professores
+                    </h3>
+                    <p className="text-xs font-semibold text-slate-400 mt-1">
+                      Compartilhe este link exclusivo para que os professores da sua academia se cadastrem de forma autônoma
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Ao abrir este link, os professores poderão criar suas próprias contas no VollonFit e serão **automaticamente vinculados à sua academia corporativa**, consumindo sua cota ativa de licenças de forma transparente e imediata.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input 
+                        type="text" 
+                        readOnly
+                        value={`${window.location.origin}/login?academy=${adminData?.academy_id || ''}`}
+                        className="flex-1 bg-black border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold text-primary select-all focus:outline-none"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/login?academy=${adminData?.academy_id || ''}`)
+                          showToast('Link de convite do professor copiado com sucesso!')
+                        }}
+                        className="px-6 py-4 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        Copiar Link
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Sidebar summary info block */}
                 <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5 space-y-6">
                   <div>

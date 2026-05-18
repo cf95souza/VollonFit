@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Dumbbell, ShieldCheck, User, Loader2, ArrowRight } from 'lucide-react'
+import { Dumbbell, ShieldCheck, User, Loader2, ArrowRight, Mail, Phone } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function Login() {
@@ -11,11 +11,17 @@ export default function Login() {
   const navigate = useNavigate()
   const [checkingSession, setCheckingSession] = useState(true)
 
-  // Invite & Register Flow States
+  // Invite & Register Flow States (Alunos)
   const [inviteId, setInviteId] = useState(null)
   const [inviteTeacher, setInviteTeacher] = useState(null)
   const [isRegisterMode, setIsRegisterMode] = useState(false)
   const [regForm, setRegForm] = useState({ name: '', username: '', password: '' })
+
+  // Academy B2B Invite Flow States (Professores)
+  const [inviteAcademyId, setInviteAcademyId] = useState(null)
+  const [inviteAcademy, setInviteAcademy] = useState(null)
+  const [isAcademyRegisterMode, setIsAcademyRegisterMode] = useState(false)
+  const [regTeacherForm, setRegTeacherForm] = useState({ name: '', email: '', password: '', phone: '' })
 
   useEffect(() => {
     const checkSession = async () => {
@@ -54,11 +60,13 @@ export default function Login() {
     checkSession()
   }, [navigate])
 
-  // Extract invite code and load invited teacher info
+  // Extract invite code and load invited teacher/academy info
   useEffect(() => {
     const fetchInviteData = async () => {
       const params = new URLSearchParams(window.location.search)
       const invId = params.get('invite')
+      const invAcadId = params.get('academy')
+
       if (invId) {
         setInviteId(invId)
         
@@ -92,6 +100,35 @@ export default function Login() {
           }
         } catch (e) {
           console.warn('Erro ao carregar dados do convite:', e)
+        }
+      } else if (invAcadId) {
+        setInviteAcademyId(invAcadId)
+        
+        try {
+          const { data: academyData, error: acadErr } = await supabase
+            .from('gym_academies')
+            .select('name, logo_url, max_teachers')
+            .eq('id', invAcadId)
+            .maybeSingle()
+          
+          if (academyData) {
+            // Validar limite de professores
+            const { count } = await supabase
+              .from('gym_teachers')
+              .select('*', { count: 'exact', head: true })
+              .eq('academy_id', invAcadId)
+
+            if (count >= academyData.max_teachers) {
+              setError(`Limite de professores desta academia atingido (${academyData.max_teachers}). Entre em contato com a gestão corporativa.`)
+            } else {
+              setInviteAcademy(academyData)
+              setIsAcademyRegisterMode(true)
+            }
+          } else {
+            setError('O link de convite da academia é inválido ou expirou.')
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar dados do convite da academia:', e)
         }
       }
     }
@@ -274,6 +311,64 @@ export default function Login() {
     }
   }
 
+  const handleAcademyRegister = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const emailClean = regTeacherForm.email.toLowerCase().trim()
+
+      // 1. Validar se o e-mail já existe
+      const { data: existingTeacher } = await supabase
+        .from('gym_teachers')
+        .select('id')
+        .eq('email', emailClean)
+        .maybeSingle()
+
+      if (existingTeacher) {
+        throw new Error('Este e-mail já está sendo usado por outro professor. Tente outro!')
+      }
+
+      // 2. Validar limite de professores novamente
+      const { count } = await supabase
+        .from('gym_teachers')
+        .select('*', { count: 'exact', head: true })
+        .eq('academy_id', inviteAcademyId)
+
+      if (inviteAcademy && count >= inviteAcademy.max_teachers) {
+        throw new Error(`O limite de professores desta academia foi atingido (${inviteAcademy.max_teachers})!`)
+      }
+
+      // 3. Criar o professor no banco
+      const { data: newTeacher, error: insertErr } = await supabase
+        .from('gym_teachers')
+        .insert([{
+          name: regTeacherForm.name.trim(),
+          email: emailClean,
+          password: regTeacherForm.password.trim(),
+          phone: regTeacherForm.phone.trim(),
+          academy_id: inviteAcademyId,
+          quota_limit: 10,
+          plan_type: 'basic',
+          status: 'active'
+        }])
+        .select()
+        .single()
+
+      if (insertErr) throw insertErr
+
+      // 4. Logar automaticamente
+      localStorage.setItem('vollonfit_teacher', JSON.stringify(newTeacher))
+      navigate('/admin', { replace: true })
+
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
@@ -309,7 +404,131 @@ export default function Login() {
 
         <div className="bg-white/10 backdrop-blur-2xl p-10 rounded-[40px] border border-white/10 shadow-2xl shadow-black/50">
           
-          {isRegisterMode ? (
+          {isAcademyRegisterMode ? (
+            /* ACADEMY TEACHER AUTO-REGISTRATION FORM */
+            <div className="space-y-6">
+              <div className="text-center mb-4">
+                {inviteAcademy?.logo_url ? (
+                  <div className="w-16 h-16 rounded-2xl border border-white/10 bg-black/60 mx-auto overflow-hidden flex items-center justify-center mb-4">
+                    <img src={inviteAcademy.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4">
+                    <Dumbbell className="w-6 h-6" />
+                  </div>
+                )}
+                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Cadastro de Professor</h2>
+                {inviteAcademy && (
+                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                    Você foi convidado a fazer parte do corpo docente da academia <span className="text-primary font-bold">{inviteAcademy.name}</span>! Preencha seus dados para começar.
+                  </p>
+                )}
+              </div>
+
+              <form onSubmit={handleAcademyRegister} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regTeacherForm.name}
+                      onChange={(e) => setRegTeacherForm({ ...regTeacherForm, name: e.target.value })}
+                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
+                      placeholder="Seu nome completo"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">E-mail (Acesso)</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={regTeacherForm.email}
+                      onChange={(e) => setRegTeacherForm({ ...regTeacherForm, email: e.target.value })}
+                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
+                      placeholder="professor@academia.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Senha</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        value={regTeacherForm.password}
+                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, password: e.target.value })}
+                        className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-xs"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Celular / WhatsApp</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
+                        <Phone className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={regTeacherForm.phone}
+                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, phone: e.target.value })}
+                        className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-xs"
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-md active:scale-95 disabled:opacity-50 group"
+                >
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <>
+                      CRIAR CONTA & ENTRAR
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsAcademyRegisterMode(false)}
+                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Já tem cadastro? Entrar na conta
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : isRegisterMode ? (
             /* AUTO-REGISTRATION FORM */
             <div className="space-y-6">
               <div className="text-center mb-4">
@@ -471,6 +690,18 @@ export default function Login() {
                     className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
                   >
                     Não tem conta? Cadastrar-se
+                  </button>
+                </div>
+              )}
+
+              {inviteAcademyId && (
+                <div className="text-center pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsAcademyRegisterMode(true)}
+                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Cadastrar-se na Academia
                   </button>
                 </div>
               )}
