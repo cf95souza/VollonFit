@@ -56,21 +56,21 @@ export default function LandingPage() {
               VOLLON<span className="text-primary font-normal text-sm ml-0.5">FIT</span>
             </span>
           </div>
-          <div className="flex gap-4">
-            <button onClick={() => navigate('/login')} className="text-slate-300 hover:text-white font-bold px-4 py-2 transition-colors">Entrar</button>
-            <button className="bg-primary hover:bg-primary-dark text-black px-6 py-2 rounded-full font-black uppercase text-sm tracking-widest transition-all shadow-lg shadow-primary/20 hover:scale-105">Assinar Agora</button>
+          <div className="flex gap-2 sm:gap-4 items-center">
+            <button onClick={() => navigate('/login')} className="text-slate-300 hover:text-white font-bold px-3 py-2 transition-colors text-sm sm:text-base">Entrar</button>
+            <button onClick={() => navigate('/login')} className="hidden sm:block bg-primary hover:bg-primary-dark text-black px-6 py-2 rounded-full font-black uppercase text-sm tracking-widest transition-all shadow-lg shadow-primary/20 hover:scale-105">Assinar Agora</button>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pb-20 px-6 max-w-7xl mx-auto text-center relative animate-in fade-in duration-1000" style={{ paddingTop: 'calc(10rem + env(safe-area-inset-top))' }}>
+      <section className="pb-10 md:pb-20 px-6 max-w-7xl mx-auto text-center relative animate-in fade-in duration-1000" style={{ paddingTop: 'calc(8rem + env(safe-area-inset-top))' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
-        <h1 className="text-5xl md:text-7xl font-black text-white font-display leading-tight mb-8 relative z-10">
+        <h1 className="text-4xl md:text-7xl font-black text-white font-display leading-tight mb-6 relative z-10">
           A Plataforma Definitiva para <br className="hidden md:block" />
           <span className="text-primary drop-shadow-[0_0_25px_rgba(223,255,94,0.5)]">Personal Trainers</span> e <span className="text-white">Academias</span>
         </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-12 font-medium relative z-10">
+        <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 font-medium relative z-10">
           Transforme a forma como você prescreve treinos, gerencia pagamentos e engaja seus alunos. Tudo em um único ecossistema SaaS poderoso e White Label.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
@@ -81,9 +81,9 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black text-white font-display mb-4">Planos que crescem com você</h2>
+      <section className="py-10 md:py-20 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-10 md:mb-16">
+          <h2 className="text-3xl md:text-4xl font-black text-white font-display mb-4">Planos que crescem com você</h2>
           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Simples, transparente e escalável</p>
         </div>
 
@@ -113,7 +113,7 @@ export default function LandingPage() {
           </div>
 
           {/* Premium */}
-          <div className="bg-[#111111] border-2 border-primary p-8 rounded-[40px] flex flex-col relative scale-105 shadow-2xl shadow-primary/10">
+          <div className="bg-[#111111] border-2 border-primary p-8 rounded-[40px] flex flex-col relative md:scale-105 shadow-2xl shadow-primary/10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Mais Popular</div>
             <h3 className="text-xl font-black text-white mb-2">Professor Premium</h3>
             <div className="flex items-baseline gap-1 mb-6">

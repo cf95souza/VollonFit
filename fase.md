@@ -262,6 +262,11 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] **Redirecionamento PWA (Start URL)**: Correção da rota `/` para usuários logados, redirecionando-os da Landing Page direto para seus respectivos dashboards (`/student`, `/admin`, `/master` ou `/academy`).
 - [x] **Correção da Tela de Configurações (Logout e Perfil)**: Resolução do crash causado pela importação ausente de `Users` no perfil do aluno (`ProfileTab.jsx`) e implementação completa e funcional do modal de configurações no `StudentDashboard.jsx` (permitindo atualizar dados e fazer logout com segurança).
 - [x] **Responsividade da Landing Page (Safe Area / Notch)**: Ajuste da barra de navegação superior com `env(safe-area-inset-top)` e compensação no Hero, garantindo área de toque perfeita em iPhones no modo standalone do PWA.
+- [x] **Ajuste Fino de Design & Responsividade (Mobile Perfect)**:
+  - *Status Dormindo Premium*: Substituição do emoji cru no bando/Squad por um badge premium animado com ícone `Moon` da Lucide.
+  - *Marketplace Responsivo*: Empilhamento vertical inteligente dos cards de produto em aparelhos móveis com proporção de imagem panorâmica de alta qualidade (`aspect-[16/10]`).
+  - *Navbar da Landing Page Limpo*: Ocultação do volumoso botão "Assinar Agora" no mobile e redimensionamento de botões para evitar esmagamento do header.
+  - *Redução de Vão Preto nos Planos*: Diminuição de paddings e margens em telas menores para aproximar os cards de preço do título principal e evitar sensação de área sem conteúdo.
 - [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
 - [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.

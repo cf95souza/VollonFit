@@ -59,10 +59,10 @@ export default function MarketplaceTab({ showToast }) {
       </div>
 
       {/* Grid de Produtos */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {filteredProducts.map(product => (
           <div key={product.id} className="bg-[#1A1A1A] rounded-[32px] border border-white/5 overflow-hidden flex flex-col group transition-all hover:border-primary/30">
-            <div className="aspect-square relative overflow-hidden bg-black/40">
+            <div className="aspect-[16/10] sm:aspect-square relative overflow-hidden bg-black/40">
               {product.image_url ? (
                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
               ) : (

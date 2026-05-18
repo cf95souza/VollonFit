@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Users, Copy, CheckCircle2, UserPlus, LogOut, Trophy, Target, Trash2, XCircle, MessageSquare, Activity, BellRing } from 'lucide-react'
+import { Users, Copy, CheckCircle2, UserPlus, LogOut, Trophy, Target, Trash2, XCircle, MessageSquare, Activity, BellRing, Moon } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import SquadLeaderboard from './SquadLeaderboard'
 
@@ -463,7 +463,11 @@ export default function SquadTab({ student, showToast }) {
                   {member.name} 
                   {member.student_id === student.id && <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Você</span>}
                   {member.role === 'admin' && <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full uppercase tracking-widest">Admin</span>}
-                  {member.isInactive && member.student_id !== student.id && <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-widest">💤 Dormindo</span>}
+                  {member.isInactive && member.student_id !== student.id && (
+                    <span className="inline-flex items-center gap-1 text-[8px] bg-rose-500/10 text-rose-500 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest font-black">
+                      <Moon className="w-2.5 h-2.5 shrink-0 animate-pulse" /> Dormindo
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-slate-500 font-medium">@{member.username}</p>
               </div>
