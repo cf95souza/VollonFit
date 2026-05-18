@@ -101,6 +101,18 @@ export default function MasterTeachers({ showToast }) {
     fetchTeachers()
   }
 
+  const togglePlan = async (t) => {
+    const newPlan = t.plan_type === 'premium' ? 'basic' : 'premium'
+    try {
+      const { error } = await supabase.from('gym_teachers').update({ plan_type: newPlan }).eq('id', t.id)
+      if (error) throw error
+      showToast(`Plano de ${t.name} alterado para ${newPlan === 'premium' ? 'Premium' : 'Basic'}!`)
+      fetchTeachers()
+    } catch (err) {
+      showToast('Erro ao alterar plano: ' + err.message, 'error')
+    }
+  }
+
   const handleDelete = async (id) => {
     await supabase.from('gym_teachers').delete().eq('id', id)
     showToast('Professor excluído')
@@ -172,9 +184,13 @@ export default function MasterTeachers({ showToast }) {
                     }`}>
                       {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
                     </span>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                      t.plan_type === 'premium' ? 'bg-primary/10 border-primary/20 text-primary shadow-[0_0_10px_rgba(223,255,94,0.1)]' : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
-                    }`}>
+                    <span 
+                      onClick={() => togglePlan(t)}
+                      title="Clique para alternar o plano do professor rapidamente"
+                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 ${
+                        t.plan_type === 'premium' ? 'bg-primary/20 border-primary/40 text-primary shadow-[0_0_10px_rgba(223,255,94,0.15)] hover:bg-primary/30' : 'bg-slate-500/10 border-slate-500/20 text-slate-400 hover:bg-slate-500/20 hover:text-slate-300'
+                      }`}
+                    >
                       {t.plan_type === 'premium' ? 'Premium' : 'Basic'}
                     </span>
                   </div>

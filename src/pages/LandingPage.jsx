@@ -5,11 +5,35 @@ import { supabase } from '../supabaseClient';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [priceBasic, setPriceBasic] = React.useState(30);
+  const [pricePremium, setPricePremium] = React.useState(45);
+  const [priceEnterprise, setPriceEnterprise] = React.useState(899);
 
   const handleWhatsApp = (message) => {
     const url = `https://wa.me/5511922928343?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const { data } = await supabase.from('gym_settings').select('*');
+        if (data) {
+          const basic = data.find(item => item.key === 'price_per_student');
+          if (basic) setPriceBasic(parseInt(basic.value) || 30);
+
+          const premium = data.find(item => item.key === 'price_premium');
+          if (premium) setPricePremium(parseInt(premium.value) || 45);
+
+          const enterprise = data.find(item => item.key === 'price_enterprise');
+          if (enterprise) setPriceEnterprise(parseInt(enterprise.value) || 899);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar preços:', err);
+      }
+    };
+    fetchPrices();
+  }, []);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -97,7 +121,7 @@ export default function LandingPage() {
           <div className="bg-[#111111] border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-white/10 transition-all">
             <h3 className="text-xl font-black text-white mb-2">Professor Basic</h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-black text-white">R$ 30</span>
+              <span className="text-4xl font-black text-white">R$ {priceBasic}</span>
               <span className="text-slate-500 font-bold text-sm">/aluno/mês</span>
             </div>
             <ul className="space-y-4 mb-10 flex-1">
@@ -122,7 +146,7 @@ export default function LandingPage() {
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Mais Popular</div>
             <h3 className="text-xl font-black text-white mb-2">Professor Premium</h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-black text-white">R$ 45</span>
+              <span className="text-4xl font-black text-white">R$ {pricePremium}</span>
               <span className="text-slate-500 font-bold text-sm">/aluno/mês</span>
             </div>
             <ul className="space-y-4 mb-10 flex-1">
@@ -146,7 +170,7 @@ export default function LandingPage() {
           <div className="bg-[#111111] border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-white/10 transition-all">
             <h3 className="text-xl font-black text-white mb-2">Academia Enterprise</h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-black text-white">R$ 899</span>
+              <span className="text-4xl font-black text-white">R$ {priceEnterprise}</span>
               <span className="text-slate-500 font-bold text-sm">/mês fixo</span>
             </div>
             <ul className="space-y-4 mb-10 flex-1">
