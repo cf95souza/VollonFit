@@ -295,5 +295,13 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] **Validação de Quota do Professor**: O fluxo de auto-cadastro valida a cota de alunos ativa do professor (`quota_limit`) antes de concluir o registro, prevenindo excedentes indesejados.
 - **Status:** ✅ Concluído (Homologado)
 
+### Fase 36: Gestão de Produtos por Academia (B2B) e Centralizada (Master ADM) 🛒🏢
+- [x] **Gestão de Produtos B2B (AcademyDashboard.jsx)**: Criação de uma aba dedicada "Marketplace" no Painel B2B para que o gestor de cada academia possa cadastrar, editar e excluir seus próprios suplementos, vestuários e planos com preços locais.
+- [x] **Filtros e Busca B2B**: Busca por nome/descrição e categorias exclusivas do marketplace.
+- [x] **Validação Relacional**: Os produtos criados pelo gestor recebem automaticamente o `academy_id` correspondente, salvando e atualizando na tabela `gym_marketplace_products`.
+- [x] **Gestão de Produtos Globais no Master Admin (MasterProducts.jsx)**: Nova tela "Marketplace ADM" no painel Master para gerenciar produtos globais (onde `academy_id` é nulo), visíveis apenas para alunos de professores independentes.
+- [x] **Compilação e Validação**: Geração de build sem erros ou warnings para produção.
+- **Status:** ✅ Concluído (Pronto para Homologação)
+
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.

@@ -5,7 +5,7 @@ import {
   Building2, Users, LayoutDashboard, LogOut, Plus, Search, 
   Mail, Phone, Shield, Edit3, Trash2, Lock, Unlock, 
   Settings, Loader2, CheckCircle2, AlertCircle, Key, X, 
-  RefreshCw, DollarSign, Award, ArrowUpRight
+  RefreshCw, DollarSign, Award, ArrowUpRight, ShoppingBag
 } from 'lucide-react';
 
 export default function AcademyDashboard() {
@@ -43,6 +43,20 @@ export default function AcademyDashboard() {
   });
 
   const [studentSearch, setStudentSearch] = useState('');
+
+  // B2B Products Management States
+  const [academyProducts, setAcademyProducts] = useState([]);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    image_url: '',
+    affiliate_url: '',
+    category: 'suplementos',
+    is_active: true
+  });
 
   // Helper to show custom toast
   const showToast = (message, type = 'success') => {
@@ -113,6 +127,17 @@ export default function AcademyDashboard() {
         setStudents([]);
       }
 
+      // 4. Fetch Academy Marketplace Products
+      const { data: productsData, error: productsErr } = await supabase
+        .from('gym_marketplace_products')
+        .select('*')
+        .eq('academy_id', academyId)
+        .order('created_at', { ascending: false });
+      
+      if (!productsErr) {
+        setAcademyProducts(productsData || []);
+      }
+
     } catch (err) {
       showToast('Erro ao carregar dados: ' + err.message, 'error');
     } finally {
@@ -127,6 +152,96 @@ export default function AcademyDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('vollonfit_academy');
     navigate('/');
+  };
+
+  // Manage Academy Products Methods
+  const openNewProduct = () => {
+    setEditingProduct(null);
+    setProductForm({
+      name: '',
+      description: '',
+      price: '',
+      image_url: '',
+      affiliate_url: '',
+      category: 'suplementos',
+      is_active: true
+    });
+    setIsProductModalOpen(true);
+  };
+
+  const openEditProduct = (prod) => {
+    setEditingProduct(prod);
+    setProductForm({
+      name: prod.name,
+      description: prod.description || '',
+      price: prod.price || '',
+      image_url: prod.image_url || '',
+      affiliate_url: prod.affiliate_url || '',
+      category: prod.category || 'suplementos',
+      is_active: prod.is_active
+    });
+    setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    if (!productForm.name || !productForm.price) {
+      showToast('Nome e preço são obrigatórios', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const prodData = {
+        name: productForm.name.trim(),
+        description: productForm.description.trim(),
+        price: parseFloat(productForm.price),
+        image_url: productForm.image_url.trim(),
+        affiliate_url: productForm.affiliate_url.trim(),
+        category: productForm.category,
+        is_active: productForm.is_active,
+        academy_id: adminData.academy_id
+      };
+
+      if (editingProduct) {
+        const { error } = await supabase
+          .from('gym_marketplace_products')
+          .update(prodData)
+          .eq('id', editingProduct.id);
+
+        if (error) throw error;
+        showToast('Produto atualizado com sucesso!');
+      } else {
+        const { error } = await supabase
+          .from('gym_marketplace_products')
+          .insert([prodData]);
+
+        if (error) throw error;
+        showToast('Produto cadastrado com sucesso!');
+      }
+      setIsProductModalOpen(false);
+      await fetchData(adminData.academy_id);
+    } catch (err) {
+      showToast('Erro ao salvar produto: ' + err.message, 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteProduct = async (prodId) => {
+    if (!confirm('Deseja realmente excluir este produto?')) return;
+    try {
+      const { error } = await supabase
+        .from('gym_marketplace_products')
+        .delete()
+        .eq('id', prodId);
+
+      if (error) throw error;
+      showToast('Produto removido com sucesso!');
+      await fetchData(adminData.academy_id);
+    } catch (err) {
+      showToast('Erro ao deletar produto: ' + err.message, 'error');
+    }
   };
 
   // Manage Teacher Methods
@@ -383,6 +498,15 @@ export default function AcademyDashboard() {
             }`}
           >
             <Shield className="w-4 h-4" /> Alunos
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('marketplace')} 
+            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
+              activeTab === 'marketplace' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" /> Marketplace
           </button>
 
           <button 
@@ -826,6 +950,101 @@ export default function AcademyDashboard() {
               </div>
             )}
 
+            {/* TAB: MARKETPLACE MANAGEMENT */}
+            {activeTab === 'marketplace' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                
+                {/* Header block */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5">
+                  <div>
+                    <h3 className="text-lg font-black text-white font-display">Produtos & Marketplace</h3>
+                    <p className="text-xs font-semibold text-slate-400 mt-1">Gerencie os suplementos, vestuários e planos extras que seus alunos visualizam no app</p>
+                  </div>
+                  
+                  <button 
+                    onClick={openNewProduct}
+                    className="bg-primary hover:bg-primary-dark text-black px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 animate-pulse"
+                  >
+                    <Plus className="w-4 h-4" /> Novo Produto
+                  </button>
+                </div>
+
+                {/* Products Grid */}
+                {academyProducts.length === 0 ? (
+                  <div className="text-center py-20 bg-[#0A0A0A] rounded-[32px] border border-white/5">
+                    <ShoppingBag className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+                    <p className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-2">Nenhum produto cadastrado pela academia.</p>
+                    <p className="text-[11px] text-slate-500 max-w-sm mx-auto leading-relaxed">
+                      Seus alunos verão uma vitrine vazia. Clique em "Novo Produto" para adicionar suplementos, vestuários ou acessórios personalizados!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {academyProducts.map(prod => (
+                      <div key={prod.id} className="bg-[#0A0A0A] rounded-[32px] border border-white/5 overflow-hidden flex flex-col group transition-all hover:border-primary/20">
+                        {/* Image Preview */}
+                        <div className="aspect-[16/10] relative overflow-hidden bg-black/40 border-b border-white/5">
+                          {prod.image_url ? (
+                            <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-700">
+                              <ShoppingBag className="w-12 h-12" />
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4">
+                            <span className="bg-black/85 backdrop-blur-md text-[8px] font-black text-primary px-2.5 py-1 rounded-full uppercase tracking-widest border border-primary/20">
+                              {prod.category}
+                            </span>
+                          </div>
+                          {!prod.is_active && (
+                            <div className="absolute top-4 right-4">
+                              <span className="bg-rose-500/90 text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full tracking-widest">
+                                Inativo
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info Block */}
+                        <div className="p-6 flex-1 flex flex-col justify-between gap-4">
+                          <div>
+                            <h4 className="text-sm font-black text-white leading-tight line-clamp-2">{prod.name}</h4>
+                            <p className="text-xs text-slate-500 font-semibold mt-1 line-clamp-2 leading-relaxed">{prod.description || 'Sem descrição cadastrada.'}</p>
+                          </div>
+
+                          <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <div>
+                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Preço</p>
+                              <p className="text-base font-black text-primary font-display">R$ {parseFloat(prod.price).toFixed(2)}</p>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => openEditProduct(prod)}
+                                className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-black transition-all"
+                                title="Editar Produto"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              
+                              <button 
+                                onClick={() => handleDeleteProduct(prod.id)}
+                                className="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-450 hover:text-white flex items-center justify-center transition-all"
+                                title="Excluir Produto"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            )}
+
           </div>
         )}
 
@@ -961,6 +1180,137 @@ export default function AcademyDashboard() {
                 Confirmar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PRODUCT FORM (NEW & EDIT) */}
+      {isProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0A0A0A] border border-white/5 rounded-[40px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            
+            <button 
+              onClick={() => setIsProductModalOpen(false)} 
+              className="absolute top-6 right-6 p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mb-6">
+              <h3 className="text-xl font-black text-white font-display flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-primary" />
+                {editingProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}
+              </h3>
+              <p className="text-xs font-semibold text-slate-400 mt-1">Preencha as informações do produto ou serviço ofertado</p>
+            </div>
+
+            <form onSubmit={handleSaveProduct} className="space-y-4">
+              <div>
+                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Nome do Produto</label>
+                <input 
+                  type="text" 
+                  value={productForm.name}
+                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                  placeholder="Ex: Creatina Pura 300g"
+                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Descrição Curta</label>
+                <input 
+                  type="text" 
+                  value={productForm.description}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                  placeholder="Ex: Auxilia no ganho de força e volume muscular."
+                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Preço (R$)</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    value={productForm.price}
+                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                    placeholder="99.90"
+                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-primary/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Categoria</label>
+                  <select 
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-primary/50"
+                  >
+                    <option value="suplementos">Suplementos</option>
+                    <option value="equipamentos">Equipamentos</option>
+                    <option value="acessorios">Acessórios</option>
+                    <option value="servicos">Serviços</option>
+                    <option value="outros">Outros</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">URL da Imagem do Produto</label>
+                <input 
+                  type="url" 
+                  value={productForm.image_url}
+                  onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
+                  placeholder="https://exemplo.com/imagem-produto.png"
+                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Link de Compra / Afiliado (Stripe/WhatsApp)</label>
+                <input 
+                  type="url" 
+                  value={productForm.affiliate_url}
+                  onChange={(e) => setProductForm({ ...productForm, affiliate_url: e.target.value })}
+                  placeholder="https://wa.me/..."
+                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 py-2">
+                <input 
+                  type="checkbox" 
+                  id="prod_active"
+                  checked={productForm.is_active}
+                  onChange={(e) => setProductForm({ ...productForm, is_active: e.target.checked })}
+                  className="w-4 h-4 rounded bg-black border-white/5 text-primary focus:ring-primary/50"
+                />
+                <label htmlFor="prod_active" className="text-xs font-bold text-slate-350 cursor-pointer">
+                  Disponível para venda (Ativo)
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsProductModalOpen(false)}
+                  className="flex-1 py-3.5 rounded-xl border border-white/5 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all text-slate-400"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSaving}
+                  className="flex-1 py-3.5 bg-primary text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar'}
+                </button>
+              </div>
+
+            </form>
           </div>
         </div>
       )}

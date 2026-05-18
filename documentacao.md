@@ -75,17 +75,17 @@ O banco de dados é gerido via Supabase com foco em segurança via **Row Level S
   - *Sincronização de Marca e Cores*: Se o professor Premium possuir um tema personalizado configurado (White Label), o portal de login se adapta em tempo real e carrega o tema de cores do professor durante o auto-cadastro do aluno.
 - **Gestão de Planos & Cobrança SaaS (Painel Master e Painel Professor)**:
   - *Gerenciamento de Planos e Upgrade de Professor*: Implementação completa do controle e troca de planos dos professores (`Professor Basic` ou `Professor Premium`) pelo Master Admin no cadastro e edição. O card de cada professor agora exibe badges premium identificando seu plano de forma clara. Caso o professor tente usar o recurso exclusivo White Label estando no plano Basic, um modal interativo oferece a opção "Fazer Upgrade Agora", abrindo automaticamente o WhatsApp de suporte com texto de pedido de upgrade estruturado.
-  - *Cálculo e Controle Dinâmico*: Substituição do valor fixo global por aluno para mensalidades. Agora, o sistema calcula a mensalidade dinamicamente baseada no plano ativo do professor (R$ 30,00/aluno no plano Basic ou R$ 45,00/aluno no plano Premium) e das Academias Enterprise (mensalidade fixa padrão R$ 899,00).
-  - *Nova Tela de Configurações Master*: Reformulação total da aba de configurações do Master Admin para gerenciar as faixas de preço de todos os planos globais da plataforma de maneira centralizada via chaves do banco (`price_per_student`, `price_premium` e `price_enterprise` por upsert dinâmico).
-- **Ajustes Finos de Design & Responsividade (Mobile Perfect)**:
-  - *Status Dormindo Premium (Squad)*: O badge do status inativo/dormindo no `SquadTab.jsx` foi remodelado. Substituímos o emoji e a caixa cinza bruta por um badge elegante, com fundo translúcido vermelho `bg-rose-500/10`, borda suave e o ícone de lua (`Moon` da Lucide) pulsando dinamicamente, mantendo a harmonia visual.
-  - *Marketplace Responsivo Verticalizado*: Modificação da vitrine de produtos no `MarketplaceTab.jsx` para empilhar itens em uma única coluna (`grid-cols-1`) em smartphones, e ajustar a proporção da imagem para `aspect-[16/10]` em formato paisagem fotográfico, resolvendo o problema de cards espremidos e texto encavalado no mobile.
-  - *Descongestionamento do Header da Landing Page*: Ocultação do botão principal "Assinar Agora" do topo da tela em aparelhos celulares (`hidden sm:block`) para abrir espaço respirável para a logo da marca e o link de login, resolvendo o encavalamento dos botões no mobile. Adicionada a navegação faltante para `/login` ao clicar nos botões de checkout.
-  - *Eliminação do Vão Preto no Mobile*: Otimização dos paddings da seção Hero (`pb-10 md:pb-20`) e da seção de preços (`py-10 md:py-20`) no mobile, reduzindo a distância excessiva e aproximando os cards de planos do título, o que elimina a sensação de tela vazia ou bugada.
-- **IA Coach 2.0 (Motor de Análise Preditiva)**: 
-  - *Carga Preditiva*: Novo algoritmo baseado na fórmula científica de 1RM de Epley para projetar a carga de trabalho ideal baseada no histórico de treino e na faixa de repetições estipulada pelo professor.
-  - *Nutricional Preditiva*: Nova aba de nutrição inteligente integrada com a equação Mifflin-St Jeor, que calcula automaticamente as necessidades energéticas de TDEE, o consumo de água por quilo de peso corporal (35ml/kg) e a divisão ideal de macronutrientes (Proteínas, Carboidratos e Gorduras) a partir do perfil biológico do aluno (idade, altura, peso e objetivos).
+- **Integração Comercial com WhatsApp Direct (CTAs da Landing Page)**: Redirecionamento completo de todos os CTAs e cartões de planos da Landing Page diretamente para o WhatsApp de suporte comercial da empresa (`5511922928343`).
+- **Portal B2B - Painel de Controle do Gestor da Academia (`AcademyDashboard.jsx`)**: Desenvolvimento completo e de altíssimo nível do painel corporativo integrado para franquias e academias contratantes do plano Enterprise.
+- **Link de Auto-Cadastro de Alunos para Professor Premium (Fase 35)**: Permite ao professor exibir seu link exclusivo de auto-cadastro com validação de limite de licenças e temas personalizados (White Label).
+- **Gestão de Planos & Cobrança SaaS**: Implementação de cálculo dinâmico baseado em planos ativos (Basic, Premium, Enterprise) e painel centralizado para Master Admin.
+- **Ajustes Finos de Design & Responsividade (Mobile Perfect)**: Otimização de badges de status, marketplace responsivo verticalizado e descongestionamento do header da Landing Page para dispositivos móveis.
+- **IA Coach 2.0 (Motor de Análise Preditiva)**: Carga preditiva (1RM de Epley) e nutrição inteligente (Equação Mifflin-St Jeor).
 - **GymRats & Squads (Fase 32)**: Implementação do motor de gamificação por Squads, sistema de marketplace de afiliados e remoção da funcionalidade legada de parceiro individual em favor do bando coletivo.
+- **Marketplace Duplo (Fase 36)**:
+  - *Visão do Aluno*: Se o aluno for vinculado a uma academia, ele visualiza apenas os produtos e suplementos cadastrados pelo gestor de sua academia. Se o aluno for de um professor independente, ele visualiza a vitrine de produtos globais de afiliados cadastrados pelo Master ADM.
+  - *Gestão de Produtos B2B*: Aba dedicada no painel da academia para cadastrar, editar e excluir seus produtos específicos.
+  - *Gestão de Produtos Globais*: Tela "Marketplace ADM" no painel Master para gerenciar produtos globais de afiliados.
 
 ### Ecossistema B2B e Modelagem SaaS (Fase 31)
 A aplicação evoluiu para uma plataforma SaaS completa com Múltiplos Planos de Assinatura, permitindo uma escalabilidade de faturamento:
@@ -130,4 +130,4 @@ Para transformar o VollonFit em uma solução líder de mercado, o roadmap estra
 
 ---
 *Documentação atualizada em 18/05/2026*
-*Status: Fase 33 em Andamento (Redirecionamento PWA e Configurações Concluídos)*
+*Status: Fase 36 Concluída (Dupla Visualização do Marketplace e Gestão de Produtos B2B e Global do Master ADM Concluídos)*

@@ -9,6 +9,7 @@ import MasterTeachers from '../components/master/MasterTeachers'
 import MasterBilling from '../components/master/MasterBilling'
 import MasterSettings from '../components/master/MasterSettings'
 import MasterAcademies from '../components/master/MasterAcademies'
+import MasterProducts from '../components/master/MasterProducts'
 
 // Reutilizar o ExercisesManagement que já existe
 import { Dumbbell, Plus, X, Search } from 'lucide-react'
@@ -53,6 +54,7 @@ export default function MasterDashboard() {
           {activeTab === 'teachers' && <MasterTeachers showToast={showToast} />}
           {activeTab === 'billing' && <MasterBilling showToast={showToast} />}
           {activeTab === 'exercises' && <ExercisesManagement showToast={showToast} />}
+          {activeTab === 'products' && <MasterProducts showToast={showToast} />}
           {activeTab === 'settings' && <MasterSettings showToast={showToast} />}
         </div>
       </MasterShell>

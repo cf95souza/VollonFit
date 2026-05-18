@@ -259,6 +259,7 @@ CREATE TABLE IF NOT EXISTS gym_subscriptions (
 -- 19. MARKETPLACE (Produtos e Afiliados)
 CREATE TABLE IF NOT EXISTS gym_marketplace_products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    academy_id UUID REFERENCES gym_academies(id) ON DELETE CASCADE, -- ID da academia (NULL se for global do Master ADM)
     name TEXT NOT NULL,
     description TEXT,
     price NUMERIC(10,2),
@@ -322,6 +323,7 @@ ALTER TABLE gym_squads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gym_squad_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gym_squad_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gym_squad_challenges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gym_marketplace_products ENABLE ROW LEVEL SECURITY;
 
 -- POLÍTICAS MASTER ADMIN (cf95.souza@gmail.com - papel 'authenticated' exclusivo)
 CREATE POLICY "Master full access" ON gym_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -330,6 +332,7 @@ CREATE POLICY "Master students" ON gym_students FOR ALL TO authenticated USING (
 CREATE POLICY "Master billing" ON gym_billing_records FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Master academies" ON gym_academies FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Master academy admins" ON gym_academy_admins FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Master products" ON gym_marketplace_products FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- POLÍTICAS ANON/PUBLIC (Essencial para o app funcionar sem Auth padrão)
 CREATE POLICY "Anon manage teachers" ON gym_teachers FOR ALL TO anon USING (true) WITH CHECK (true);
@@ -351,4 +354,5 @@ CREATE POLICY "Anon manage squads" ON gym_squads FOR ALL TO anon USING (true) WI
 CREATE POLICY "Anon manage squad members" ON gym_squad_members FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon manage squad posts" ON gym_squad_posts FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon manage squad challenges" ON gym_squad_challenges FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Anon manage products" ON gym_marketplace_products FOR ALL TO anon USING (true) WITH CHECK (true);
 

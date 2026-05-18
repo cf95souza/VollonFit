@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
 import {
   LayoutDashboard, Users2, Receipt, Dumbbell, Settings,
-  LogOut, Gem, Menu, X, ChevronRight, Building2
+  LogOut, Gem, Menu, X, ChevronRight, Building2, ShoppingBag
 } from 'lucide-react'
 
 export default function MasterShell({ children, activeTab, setActiveTab }) {
@@ -21,6 +21,7 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
     { id: 'teachers', label: 'Professores', icon: Users2 },
     { id: 'billing', label: 'Faturamento', icon: Receipt },
     { id: 'exercises', label: 'Exercícios', icon: Dumbbell },
+    { id: 'products', label: 'Marketplace ADM', icon: ShoppingBag },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ]
 

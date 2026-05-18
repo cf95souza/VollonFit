@@ -50,6 +50,7 @@ export default function StudentDashboard() {
   const navigate = useNavigate()
   const [student, setStudent] = useState(null)
   const [teacherPlan, setTeacherPlan] = useState('basic')
+  const [teacherAcademyId, setTeacherAcademyId] = useState(null)
   const [currentTab, setCurrentTab] = useState(() => localStorage.getItem('vollonfit_student_tab') || 'train')
   const [currentView, setCurrentView] = useState(() => localStorage.getItem('vollonfit_student_view') || 'home') // 'home', 'workout-detail', 'executing'
   const [selectedWorkout, setSelectedWorkout] = useState(null)
@@ -303,8 +304,11 @@ export default function StudentDashboard() {
 
   const fetchTeacherPlan = async (teacherId) => {
     if (!teacherId) return
-    const { data } = await supabase.from('gym_teachers').select('plan_type').eq('id', teacherId).maybeSingle()
-    if (data?.plan_type) setTeacherPlan(data.plan_type)
+    const { data } = await supabase.from('gym_teachers').select('plan_type, academy_id').eq('id', teacherId).maybeSingle()
+    if (data) {
+      if (data.plan_type) setTeacherPlan(data.plan_type)
+      setTeacherAcademyId(data.academy_id || null)
+    }
   }
 
   useEffect(() => {
@@ -690,7 +694,7 @@ export default function StudentDashboard() {
         )}
 
         {currentTab === 'marketplace' && (
-          <MarketplaceTab showToast={showToast} />
+          <MarketplaceTab showToast={showToast} teacherAcademyId={teacherAcademyId} />
         )}
 
         {isBioModalOpen && (

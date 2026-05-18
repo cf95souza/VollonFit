@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ShoppingBag, ExternalLink, Tag, Sparkles, Filter } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
-export default function MarketplaceTab({ showToast }) {
+export default function MarketplaceTab({ showToast, teacherAcademyId }) {
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -10,17 +10,31 @@ export default function MarketplaceTab({ showToast }) {
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true)
-      const { data, error } = await supabase
-        .from('gym_marketplace_products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-      
-      if (!error) setProducts(data || [])
-      setIsLoading(false)
+      try {
+        let query = supabase
+          .from('gym_marketplace_products')
+          .select('*')
+          .eq('is_active', true)
+
+        if (teacherAcademyId) {
+          // Aluno corporativo: vê apenas produtos da respectiva academia
+          query = query.eq('academy_id', teacherAcademyId)
+        } else {
+          // Aluno de personal independente: vê apenas os produtos globais cadastrados pelo Master ADM
+          query = query.is('academy_id', null)
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false })
+        
+        if (!error) setProducts(data || [])
+      } catch (err) {
+        console.error("Erro ao carregar produtos do marketplace:", err)
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchProducts()
-  }, [])
+  }, [teacherAcademyId])
 
   const categories = ['Todos', ...new Set(products.map(p => p.category))]
   const filteredProducts = activeCategory === 'Todos' 
@@ -38,7 +52,12 @@ export default function MarketplaceTab({ showToast }) {
           <ShoppingBag className="w-10 h-10" />
         </div>
         <h2 className="text-3xl font-black text-white font-display uppercase tracking-tight">Marketplace</h2>
-        <p className="text-slate-400 font-medium text-sm px-4">Suplementos e acessórios selecionados pelo seu Coach. 🔥</p>
+        <p className="text-slate-400 font-medium text-sm px-4">
+          {teacherAcademyId 
+            ? "Produtos e ofertas exclusivas oferecidas pela sua academia! 🏢🔥"
+            : "Suplementos e acessórios selecionados pelo seu Coach. 🔥"
+          }
+        </p>
       </div>
 
       {/* Categorias */}
