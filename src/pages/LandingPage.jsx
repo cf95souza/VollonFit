@@ -6,6 +6,11 @@ import { supabase } from '../supabaseClient';
 export default function LandingPage() {
   const navigate = useNavigate();
 
+  const handleWhatsApp = (message) => {
+    const url = `https://wa.me/5511922928343?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -58,7 +63,7 @@ export default function LandingPage() {
           </div>
           <div className="flex gap-2 sm:gap-4 items-center">
             <button onClick={() => navigate('/login')} className="text-slate-300 hover:text-white font-bold px-3 py-2 transition-colors text-sm sm:text-base">Entrar</button>
-            <button onClick={() => navigate('/login')} className="hidden sm:block bg-primary hover:bg-primary-dark text-black px-6 py-2 rounded-full font-black uppercase text-sm tracking-widest transition-all shadow-lg shadow-primary/20 hover:scale-105">Assinar Agora</button>
+            <button onClick={() => handleWhatsApp('Olá vim realizar a minha assinatura do VollonFit')} className="hidden sm:block bg-primary hover:bg-primary-dark text-black px-6 py-2 rounded-full font-black uppercase text-sm tracking-widest transition-all shadow-lg shadow-primary/20 hover:scale-105">Assinar Agora</button>
           </div>
         </div>
       </nav>
@@ -74,7 +79,7 @@ export default function LandingPage() {
           Transforme a forma como você prescreve treinos, gerencia pagamentos e engaja seus alunos. Tudo em um único ecossistema SaaS poderoso e White Label.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-          <button onClick={() => navigate('/login')} className="bg-primary text-black px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl shadow-primary/20">
+          <button onClick={() => handleWhatsApp('Olá vim para resgatar meus 7 dias gratis do VollonFit')} className="bg-primary text-black px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl shadow-primary/20">
             Comece seu Teste Grátis <ArrowRight className="w-5 h-5" />
           </button>
         </div>
@@ -109,7 +114,7 @@ export default function LandingPage() {
                 IA Coach para Alunos
               </li>
             </ul>
-            <button onClick={() => navigate('/login')} className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Começar Agora</button>
+            <button onClick={() => handleWhatsApp('Olá vim realizar a minha assinatura do plano Professor Basic do VollonFit')} className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Começar Agora</button>
           </div>
 
           {/* Premium */}
@@ -134,7 +139,7 @@ export default function LandingPage() {
                 <CheckCircle2 className="w-5 h-5 text-primary" /> Aba de Nutrição Exclusiva
               </li>
             </ul>
-            <button onClick={() => navigate('/login')} className="w-full py-4 rounded-2xl bg-primary text-black font-black uppercase text-xs tracking-widest hover:bg-primary-dark transition-all">Assinar Premium</button>
+            <button onClick={() => handleWhatsApp('Olá vim realizar a minha assinatura do plano Professor Premium do VollonFit')} className="w-full py-4 rounded-2xl bg-primary text-black font-black uppercase text-xs tracking-widest hover:bg-primary-dark transition-all">Assinar Premium</button>
           </div>
 
           {/* Enterprise */}
@@ -158,7 +163,7 @@ export default function LandingPage() {
                 <CheckCircle2 className="w-5 h-5 text-primary" /> Dashboard de Gestão Macro
               </li>
             </ul>
-            <button onClick={() => navigate('/login')} className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Falar com Consultor</button>
+            <button onClick={() => handleWhatsApp('Olá vim realizar a minha assinatura do plano Academia Enterprise do VollonFit')} className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Falar com Consultor</button>
           </div>
         </div>
       </section>
