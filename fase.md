@@ -278,5 +278,14 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.
 - **Status:** 🚀 Em Andamento
 
+### Fase 34: Portal B2B - Painel do Gestor de Academia 🏢💼
+- [/] **Desenvolvimento do Painel de Academia (`AcademyDashboard.jsx`)**:
+  - *Visão Geral (Overview)*: KPIs de professores vinculados, limite contratado (`max_teachers`), total de alunos matriculados e mensalidade do plano Enterprise. Barra de progresso para a cota de professores.
+  - *Gestão de Professores*: Lista de professores associados à academia, com modal para cadastrar/editar dados, limite de cota ativo para prevenir cadastro extra, exclusão e bloqueio.
+  - *Listagem de Alunos*: Painel centralizado mostrando todos os alunos de todos os professores vinculados à academia B2B, facilitando o controle macro.
+  - *Configurações do Perfil B2B*: Formulário para atualizar nome, CNPJ e URL da Logo da academia corporativa.
+  - *Toast Premium & Segurança*: Notificações customizadas e validação de sessão robusta.
+- **Status:** 🚀 Em Andamento
+
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.
