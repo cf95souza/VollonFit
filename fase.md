@@ -310,4 +310,5 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - **Status:** 🚀 Planejado (Postergado por solicitação do usuário)
 
 ### Backlog de Correções Futuras 🐛
-- [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.
+- [x] **Módulo White Label**: Correção das variáveis CSS no `index.css` e atualização dos gráficos Recharts (`EvolutionView.jsx`, `SquadLeaderboard.jsx`, `StudentDetailView.jsx`) para que a cor personalizada do professor seja aplicada dinamicamente por completo no PWA do aluno e no painel administrativo.
+- **Status:** ✅ Concluído (Pronto para Homologação)
