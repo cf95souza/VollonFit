@@ -10,20 +10,39 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
     name: teacherInfo?.name || '',
     password: teacherInfo?.password || '',
     confirmPassword: teacherInfo?.password || '',
-    themeColor: '#DFFF5E'
+    themeColor: '#DFFF5E',
+    logoUrl: ''
   })
 
-  // Carregar cor real
+  // Carregar cor e logo reais
   useEffect(() => {
-    const fetchTheme = async () => {
+    const fetchBrandSettings = async () => {
       if (!teacherInfo?.id) return
-      const { data } = await supabase.from('gym_settings').select('value').eq('key', `theme_${teacherInfo.id}`).maybeSingle()
-      if (data) {
-        setFormData(prev => ({ ...prev, themeColor: data.value }))
-        document.documentElement.style.setProperty('--color-primary', hexToRgbString(data.value))
+      
+      // Carregar cor do tema
+      const { data: themeData } = await supabase
+        .from('gym_settings')
+        .select('value')
+        .eq('key', `theme_${teacherInfo.id}`)
+        .maybeSingle()
+        
+      if (themeData) {
+        setFormData(prev => ({ ...prev, themeColor: themeData.value }))
+        document.documentElement.style.setProperty('--color-primary', hexToRgbString(themeData.value))
+      }
+
+      // Carregar URL do Logotipo
+      const { data: logoData } = await supabase
+        .from('gym_settings')
+        .select('value')
+        .eq('key', `logo_${teacherInfo.id}`)
+        .maybeSingle()
+        
+      if (logoData) {
+        setFormData(prev => ({ ...prev, logoUrl: logoData.value }))
       }
     }
-    fetchTheme()
+    fetchBrandSettings()
   }, [teacherInfo?.id])
 
   useEffect(() => {
@@ -76,6 +95,12 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
     await supabase.from('gym_settings').upsert({ 
       key: `theme_${teacherInfo.id}`, 
       value: formData.themeColor 
+    }, { onConflict: 'key' })
+
+    // Salvar URL do Logotipo no gym_settings
+    await supabase.from('gym_settings').upsert({ 
+      key: `logo_${teacherInfo.id}`, 
+      value: formData.logoUrl || '' 
     }, { onConflict: 'key' })
     
     document.documentElement.style.setProperty('--color-primary', hexToRgbString(formData.themeColor))
@@ -193,6 +218,18 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                     />
                   </div>
                   <p className="text-[10px] text-slate-500 mt-2">Seus alunos verão o aplicativo com esta cor de destaque.</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">URL do Logotipo Customizado</label>
+                  <input 
+                    type="url" 
+                    value={formData.logoUrl || ''}
+                    onChange={e => setFormData({...formData, logoUrl: e.target.value})}
+                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold mt-2"
+                    placeholder="https://exemplo.com/logo.png"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-2">Aparecerá com destaque na tela de convite para os seus novos alunos.</p>
                 </div>
               </div>
             </div>

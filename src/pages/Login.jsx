@@ -80,9 +80,6 @@ export default function Login() {
           if (data) {
             // Check if teacher is premium (Plano 2) to allow registration!
             if (data.plan_type === 'premium') {
-              setInviteTeacher(data)
-              setIsRegisterMode(true)
-              
               // Load custom theme
               const { data: themeSetting } = await supabase
                 .from('gym_settings')
@@ -94,6 +91,20 @@ export default function Login() {
                 const { hexToRgbString } = await import('../utils/colorUtils')
                 document.documentElement.style.setProperty('--color-primary', hexToRgbString(themeSetting.value))
               }
+
+              // Load custom logo
+              const { data: logoSetting } = await supabase
+                .from('gym_settings')
+                .select('value')
+                .eq('key', `logo_${invId}`)
+                .maybeSingle()
+              
+              if (logoSetting && logoSetting.value) {
+                data.logo_url = logoSetting.value
+              }
+
+              setInviteTeacher(data)
+              setIsRegisterMode(true)
             } else {
               setError('O link de convite é inválido ou o professor está no plano básico.')
             }
@@ -393,13 +404,60 @@ export default function Login() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center bg-primary p-4 rounded-3xl mb-6 shadow-2xl shadow-primary/40 animate-bounce-subtle text-black">
-            <Dumbbell className="text-white w-8 h-8" />
-          </div>
-          <h1 className="text-5xl font-black text-white tracking-tighter mb-2 font-display uppercase">
-            VOLLON<span className="text-primary">FIT</span>
-          </h1>
-          <p className="text-slate-400 font-medium tracking-widest text-[10px] uppercase">Evolution Management System</p>
+          {inviteAcademy ? (
+            /* BRANDED ACADEMY HEADER */
+            <>
+              <div className="inline-flex items-center justify-center bg-white/5 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/10 relative group">
+                {inviteAcademy.logo_url ? (
+                  <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
+                    <img src={inviteAcademy.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-[26px] bg-primary/20 flex items-center justify-center text-primary">
+                    <Dumbbell className="w-10 h-10 animate-pulse" />
+                  </div>
+                )}
+                {/* Glow layer */}
+                <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
+              </div>
+              <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display uppercase leading-tight">
+                PORTAL <span className="text-primary">{inviteAcademy.name.toUpperCase()}</span>
+              </h1>
+              <p className="text-slate-400 font-bold tracking-widest text-[9px] uppercase">Credenciamento de Professor B2B</p>
+            </>
+          ) : inviteTeacher ? (
+            /* BRANDED TEACHER HEADER */
+            <>
+              <div className="inline-flex items-center justify-center bg-white/5 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/10 relative group">
+                {inviteTeacher.logo_url ? (
+                  <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
+                    <img src={inviteTeacher.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-[26px] bg-primary/20 flex items-center justify-center text-primary">
+                    <User className="w-10 h-10 animate-pulse" />
+                  </div>
+                )}
+                {/* Glow layer */}
+                <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
+              </div>
+              <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display uppercase leading-tight">
+                STUDIO <span className="text-primary">{inviteTeacher.name.toUpperCase()}</span>
+              </h1>
+              <p className="text-slate-400 font-bold tracking-widest text-[9px] uppercase">Seu Personal Trainer Oficial</p>
+            </>
+          ) : (
+            /* DEFAULT VOLLONFIT HEADER */
+            <>
+              <div className="inline-flex items-center justify-center bg-primary p-4 rounded-3xl mb-6 shadow-2xl shadow-primary/40 animate-bounce-subtle text-black">
+                <Dumbbell className="text-white w-8 h-8" />
+              </div>
+              <h1 className="text-5xl font-black text-white tracking-tighter mb-2 font-display uppercase">
+                VOLLON<span className="text-primary">FIT</span>
+              </h1>
+              <p className="text-slate-400 font-medium tracking-widest text-[10px] uppercase">Evolution Management System</p>
+            </>
+          )}
         </div>
 
         <div className="bg-white/10 backdrop-blur-2xl p-10 rounded-[40px] border border-white/10 shadow-2xl shadow-black/50">
@@ -408,21 +466,10 @@ export default function Login() {
             /* ACADEMY TEACHER AUTO-REGISTRATION FORM */
             <div className="space-y-6">
               <div className="text-center mb-4">
-                {inviteAcademy?.logo_url ? (
-                  <div className="w-16 h-16 rounded-2xl border border-white/10 bg-black/60 mx-auto overflow-hidden flex items-center justify-center mb-4">
-                    <img src={inviteAcademy.logo_url} alt="Logo" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4">
-                    <Dumbbell className="w-6 h-6" />
-                  </div>
-                )}
-                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Cadastro de Professor</h2>
-                {inviteAcademy && (
-                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                    Você foi convidado a fazer parte do corpo docente da academia <span className="text-primary font-bold">{inviteAcademy.name}</span>! Preencha seus dados para começar.
-                  </p>
-                )}
+                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Cadastro de Professor B2B</h2>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Preencha seus dados para começar a atuar como professor credenciado da equipe.
+                </p>
               </div>
 
               <form onSubmit={handleAcademyRegister} className="space-y-6">

@@ -295,13 +295,19 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [x] **Validação Relacional**: Filtros e integração com `gym_marketplace_products`.
 - **Status:** ✅ Concluído (Pronto para Homologação)
 
-### Fase 37: Integração Real de Checkout (Stripe/Asaas) & Webhooks 💳🤖
-- [ ] **Configuração do Gateway de Pagamento**: Substituição dos mocks pela API real.
+### Fase 37: Tela de Cadastro Branded Premium (Identidade de Professor e Academia) 🔗✨
+- [x] **Módulo de Logotipo para Professores**: Adição do campo "URL do Logotipo Customizado" nas configurações do Professor Premium no `SettingsTab.jsx` para que o professor possa carregar a marca da sua assessoria.
+- [x] **Carregamento e Persistência**: Salvamento automático e persistência no banco de dados Supabase na tabela `gym_settings` sob a chave `logo_{teacher_id}`.
+- [x] **Cabeçalho Branded Dinâmico (Login.jsx)**: Adaptação completa da tela de Login/Cadastro de forma que o cabeçalho superior tradicional do VollonFit seja substituído pelo logotipo oficial e pelo nome personalizado do professor ou da academia de forma totalmente premium.
+- [x] **Visual de Altíssimo Padrão**: Efeitos de glow neon dinâmico que mudam de cor com base no tema escolhido pelo professor (White Label) e bordas arredondadas e suavizadas para uma experiência visual incrível.
+- **Status:** ✅ Concluído (Pronto para Homologação)
+
+### Fase 38: Integração Real de Checkout (Stripe/Asaas) & Webhooks 💳🤖
+- [ ] **Configuração do Gateway de Pagamento**: Substituição dos mocks pela API real para faturamento corporativo B2B e professores.
 - [ ] **Painel de Faturamento & Cartão**: Histórico e gestão de meios de pagamento.
 - [ ] **Engine de Webhooks**: Processamento em tempo real (ativação/suspensão de contas).
 - [ ] **Notificações Automáticas**: Disparo de e-mails de cobrança/pendências.
-- [ ] **Resolução do Backlog White Label**: Injeção dinâmica de CSS.
-- **Status:** 🚀 Planejado / Próximo Passo
+- **Status:** 🚀 Planejado (Postergado por solicitação do usuário)
 
 ### Backlog de Correções Futuras 🐛
 - [ ] **Módulo White Label**: A cor personalizada do professor não está refletindo no CSS gerado. Rever configuração do Tailwind CSS Variables x Vite Reload.
