@@ -9,6 +9,7 @@ export default function MasterBilling({ showToast }) {
   const [loading, setLoading] = useState(true)
   const [pricePerStudent, setPricePerStudent] = useState(30)
   const [pricePremium, setPricePremium] = useState(45)
+  const [priceEnterprise, setPriceEnterprise] = useState(899)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -24,6 +25,9 @@ export default function MasterBilling({ showToast }) {
     
     const { data: pData } = await supabase.from('gym_settings').select('value').eq('key', 'price_premium').single()
     if (pData) setPricePremium(parseFloat(pData.value))
+
+    const { data: eData } = await supabase.from('gym_settings').select('value').eq('key', 'price_enterprise').single()
+    if (eData) setPriceEnterprise(parseFloat(eData.value))
 
     const { data: bData } = await supabase
       .from('gym_billing_records')
@@ -88,7 +92,7 @@ export default function MasterBilling({ showToast }) {
         reference_month: selectedMonth,
         student_count: 0, // Ignorado para academias
         price_per_student: 0,
-        total_amount: acc.monthly_fee || 899,
+        total_amount: acc.monthly_fee || priceEnterprise,
         status: 'pending',
         due_date: dueDate.toISOString().split('T')[0]
       }])

@@ -12,8 +12,10 @@ CREATE TABLE IF NOT EXISTS gym_settings (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Preço padrão de R$ 30,00 por aluno ativo (editável via Painel Master)
+-- Preços padrão dos planos do ecossistema SaaS (editável via Painel Master)
 INSERT INTO gym_settings (key, value) VALUES ('price_per_student', '30.00') ON CONFLICT (key) DO NOTHING;
+INSERT INTO gym_settings (key, value) VALUES ('price_premium', '45.00') ON CONFLICT (key) DO NOTHING;
+INSERT INTO gym_settings (key, value) VALUES ('price_enterprise', '899.00') ON CONFLICT (key) DO NOTHING;
 
 -- 1. ACADEMIAS (Portal B2B - Clientes Enterprise)
 CREATE TABLE IF NOT EXISTS gym_academies (

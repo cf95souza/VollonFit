@@ -268,6 +268,11 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
   - *Navbar da Landing Page Limpo*: Ocultação do volumoso botão "Assinar Agora" no mobile e redimensionamento de botões para evitar esmagamento do header.
   - *Redução de Vão Preto nos Planos*: Diminuição de paddings e margens em telas menores para aproximar os cards de preço do título principal e evitar sensação de área sem conteúdo.
 - [x] **Integração Comercial (WhatsApp Direct)**: Redirecionamento inteligente dos CTAs de conversão da Landing Page ("Teste Grátis" e "Assinar Agora") para o canal de atendimento no WhatsApp, com strings de mensagem contextuais personalizadas incluindo o nome do respectivo plano escolhido pelo usuário.
+- [x] **Fluxo Completo de Gestão de Planos & Cobrança (Painel Master & Professor)**:
+  - *Troca de Planos*: Implementação do seletor de planos (`Professor Basic` ou `Professor Premium`) nos modais de cadastro e edição de professores no painel Master, com exibição de badges esteticamente ricos de cada plano ativo nos respectivos cards de professores.
+  - *Cálculo Dinâmico de Mensalidade*: Remoção do antigo campo fixo global de "valor por aluno" e substituição por cálculos dinâmicos integrados com o tipo de plano escolhido (Basic cobrando R$ 30,00/aluno, Premium cobrando R$ 45,00/aluno).
+  - *Nova Tela de Configurações*: Redesenho completo da aba de configurações do Master Admin para gerenciar os preços de todos os planos globais de forma centralizada (`price_per_student`, `price_premium` e `price_enterprise` por upsert dinâmico) com alertas visuais integrados.
+  - *Upgrade e Integração Comercial no Painel do Professor*: Ajuste do botão "Fazer Upgrade Agora" no modal bloqueado de White Label do professor para direcionar diretamente para o WhatsApp comercial com mensagem contextualizada para solicitar o upgrade de plano.
 - [/] **Checkout Real (Stripe/Asaas)**: Substituição do sistema simulado por pagamentos reais recorrentes.
 - [ ] **Notificações Automáticas de Cobrança**: Disparo de e-mail e push para faturas pendentes ou vencidas.
 - [x] **IA Coach 2.0**: Motor de análise preditiva para sugestão de macros e carga.

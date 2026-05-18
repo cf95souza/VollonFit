@@ -163,6 +163,10 @@ export default function SettingsTab({ teacherInfo, setTeacherInfo, showToast }) 
                    <p className="text-[10px] text-slate-400 font-bold max-w-[200px] mt-1">Personalize as cores e a marca do seu aplicativo para encantar seus alunos.</p>
                    <button 
                     type="button"
+                    onClick={() => {
+                      const msg = "Olá, vim solicitar o upgrade da minha assinatura do VollonFit para o plano Professor Premium!";
+                      window.open(`https://wa.me/5511922928343?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                    }}
                     className="mt-4 bg-amber-500 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-amber-500/20"
                    >
                      Fazer Upgrade Agora

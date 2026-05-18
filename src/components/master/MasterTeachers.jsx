@@ -17,18 +17,22 @@ export default function MasterTeachers({ showToast }) {
   const [selectedTeacherName, setSelectedTeacherName] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [pricePerStudent, setPricePerStudent] = useState(30)
+  const [pricePremium, setPricePremium] = useState(45)
 
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '',
     quota_limit: 10, contract_start_date: new Date().toISOString().split('T')[0],
-    status: 'active', notes: ''
+    status: 'active', notes: '', plan_type: 'basic'
   })
 
   useEffect(() => { fetchTeachers(); fetchPrice() }, [])
 
   const fetchPrice = async () => {
-    const { data } = await supabase.from('gym_settings').select('value').eq('key', 'price_per_student').single()
-    if (data) setPricePerStudent(parseFloat(data.value))
+    const { data: sData } = await supabase.from('gym_settings').select('value').eq('key', 'price_per_student').single()
+    if (sData) setPricePerStudent(parseFloat(sData.value))
+
+    const { data: pData } = await supabase.from('gym_settings').select('value').eq('key', 'price_premium').single()
+    if (pData) setPricePremium(parseFloat(pData.value))
   }
 
   const fetchTeachers = async () => {
@@ -44,7 +48,7 @@ export default function MasterTeachers({ showToast }) {
 
   const openCreate = () => {
     setEditingId(null)
-    setForm({ name: '', email: '', password: '', phone: '', quota_limit: 10, contract_start_date: new Date().toISOString().split('T')[0], status: 'active', notes: '' })
+    setForm({ name: '', email: '', password: '', phone: '', quota_limit: 10, contract_start_date: new Date().toISOString().split('T')[0], status: 'active', notes: '', plan_type: 'basic' })
     setIsModalOpen(true)
   }
 
@@ -53,7 +57,7 @@ export default function MasterTeachers({ showToast }) {
     setForm({
       name: t.name, email: t.email, password: '', phone: t.phone || '',
       quota_limit: t.quota_limit, contract_start_date: t.contract_start_date || '',
-      status: t.status || 'active', notes: t.notes || ''
+      status: t.status || 'active', notes: t.notes || '', plan_type: t.plan_type || 'basic'
     })
     setIsModalOpen(true)
   }
@@ -63,14 +67,23 @@ export default function MasterTeachers({ showToast }) {
     setIsSaving(true)
     try {
       if (editingId) {
-        const updateData = { name: form.name, phone: form.phone, quota_limit: parseInt(form.quota_limit), contract_start_date: form.contract_start_date, status: form.status, notes: form.notes }
+        const updateData = { 
+          name: form.name, 
+          phone: form.phone, 
+          quota_limit: parseInt(form.quota_limit), 
+          contract_start_date: form.contract_start_date, 
+          status: form.status, 
+          notes: form.notes,
+          plan_type: form.plan_type
+        }
         if (form.password) updateData.password = form.password
         await supabase.from('gym_teachers').update(updateData).eq('id', editingId)
         showToast('Professor atualizado!')
       } else {
         await supabase.from('gym_teachers').insert([{
           name: form.name, email: form.email, password: form.password, phone: form.phone,
-          quota_limit: parseInt(form.quota_limit), contract_start_date: form.contract_start_date, status: form.status, notes: form.notes
+          quota_limit: parseInt(form.quota_limit), contract_start_date: form.contract_start_date, 
+          status: form.status, notes: form.notes, plan_type: form.plan_type
         }])
         showToast('Professor cadastrado!')
       }
@@ -152,12 +165,19 @@ export default function MasterTeachers({ showToast }) {
                       <p className="text-xs text-slate-400 flex items-center gap-1"><Mail className="w-3 h-3" />{t.email}</p>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
-                    t.status === 'blocked' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'
-                  }`}>
-                    {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
-                  </span>
+                  <div className="flex flex-col gap-1 items-end">
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
+                      t.status === 'blocked' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'
+                    }`}>
+                      {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
+                    </span>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                      t.plan_type === 'premium' ? 'bg-primary/10 border-primary/20 text-primary shadow-[0_0_10px_rgba(223,255,94,0.1)]' : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                    }`}>
+                      {t.plan_type === 'premium' ? 'Premium' : 'Basic'}
+                    </span>
+                  </div>
                 </div>
 
                 {t.phone && <p className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Phone className="w-3 h-3" />{t.phone}</p>}
@@ -172,7 +192,7 @@ export default function MasterTeachers({ showToast }) {
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold text-slate-400 uppercase">Mensalidade</p>
-                    <p className="text-sm font-bold text-primary">R$ {(t.studentCount * pricePerStudent).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-sm font-bold text-primary">R$ {(t.studentCount * (t.plan_type === 'premium' ? pricePremium : pricePerStudent)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
@@ -237,6 +257,12 @@ export default function MasterTeachers({ showToast }) {
                   <input type="date" value={form.contract_start_date} onChange={e => setForm({...form, contract_start_date: e.target.value})} className="input-field" />
                 </Field>
               </div>
+              <Field label="Plano do Professor">
+                <select value={form.plan_type} onChange={e => setForm({...form, plan_type: e.target.value})} className="input-field">
+                  <option value="basic">Professor Basic (R$ {pricePerStudent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
+                  <option value="premium">Professor Premium (R$ {pricePremium.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
+                </select>
+              </Field>
               {editingId && (
                 <Field label="Status">
                   <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
