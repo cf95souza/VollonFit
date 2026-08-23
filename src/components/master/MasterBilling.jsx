@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import { Receipt, CheckCircle2, AlertCircle, Clock, Search, Filter, X, Loader2, Building2 } from 'lucide-react'
 
 export default function MasterBilling({ showToast }) {
   const [records, setRecords] = useState([])
@@ -134,105 +133,105 @@ export default function MasterBilling({ showToast }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Filtro de Mês */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center glass-panel p-6 rounded-[32px] border border-outline-variant/30">
         <div className="flex gap-2 flex-wrap">
           {months.map(m => (
             <button key={m} onClick={() => setSelectedMonth(m)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${selectedMonth === m ? 'bg-primary text-black' : 'bg-[#111111] border border-white/10 text-slate-400 hover:bg-white/5'}`}
+              className={`px-4 py-2 rounded-xl font-label-caps text-[10px] uppercase tracking-widest transition-all ${selectedMonth === m ? 'bg-primary-container text-on-primary-container neon-glow shadow-lg shadow-primary-container/20' : 'bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest'}`}
             >{formatMonth(m)}</button>
           ))}
         </div>
         <button onClick={generateAll} disabled={generating}
-          className="bg-primary hover:bg-primary-dark text-black px-4 py-2 rounded-lg font-bold text-xs disabled:opacity-50 transition-colors whitespace-nowrap">
+          className="w-full sm:w-auto bg-primary-container hover:brightness-110 text-on-primary-container px-6 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-container/20 active:scale-95 neon-glow disabled:opacity-50 whitespace-nowrap">
           {generating ? 'Gerando...' : 'Gerar Cobranças do Mês'}
         </button>
       </div>
 
       {/* Resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Total do Mês</p>
-          <p className="text-xl font-bold text-white">R$ {summary.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Total do Mês</p>
+          <p className="font-display-md text-2xl text-on-surface mt-1">R$ {summary.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         </div>
-        <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Recebido</p>
-          <p className="text-xl font-bold text-primary">R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${paidPct}%` }} />
+        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Recebido</p>
+          <p className="font-display-md text-2xl text-primary-container mt-1">R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <div className="w-full h-1.5 bg-surface-container rounded-full mt-3 overflow-hidden">
+            <div className="h-full bg-primary-container neon-glow transition-all" style={{ width: `${paidPct}%` }} />
           </div>
         </div>
-        <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Pendentes</p>
-          <p className="text-xl font-bold text-amber-400">{summary.pending}</p>
+        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Pendentes</p>
+          <p className="font-display-md text-2xl text-warning mt-1">{summary.pending}</p>
         </div>
-        <div className="bg-[#111111] border border-white/5 rounded-lg p-4">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Inadimplentes</p>
-          <p className="text-xl font-bold text-rose-400">{summary.overdue}</p>
+        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Inadimplentes</p>
+          <p className="font-display-md text-2xl text-error mt-1">{summary.overdue}</p>
         </div>
       </div>
 
       {/* Tabela */}
-      <div className="bg-[#111111] border border-white/5 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="glass-panel border border-outline-variant/30 rounded-3xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left min-w-[640px]">
-            <thead className="bg-black/50 border-b border-white/5">
+            <thead className="bg-surface-container-highest/50 border-b border-outline-variant/30">
               <tr>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Professor</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Alunos</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Valor Unit.</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Total</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Vencimento</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Status</th>
-                <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Ações</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Professor</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Alunos</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Valor Unit.</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Total</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Vencimento</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Status</th>
+                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-outline-variant/10">
               {loading ? (
-                <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan="7" className="px-6 py-12 text-center text-on-surface-variant"><span className="material-symbols-outlined w-6 h-6 animate-spin mx-auto block">sync</span></td></tr>
               ) : records.length === 0 ? (
-                <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500 text-sm">Nenhuma cobrança para {formatMonth(selectedMonth)}.</td></tr>
+                <tr><td colSpan="7" className="px-6 py-12 text-center text-on-surface-variant font-body-md text-sm">Nenhuma cobrança para {formatMonth(selectedMonth)}.</td></tr>
               ) : records.map(r => (
-                <tr key={r.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-3">
+                <tr key={r.id} className="hover:bg-surface-container/50 transition-colors">
+                  <td className="px-6 py-4">
                     {r.academy_id ? (
                       <>
-                        <p className="font-semibold text-primary text-sm flex items-center gap-1">
-                          <Building2 className="w-3 h-3" /> {r.gym_academies?.name || 'Academia'}
+                        <p className="font-headline-sm text-primary-container text-sm flex items-center gap-1.5 mb-0.5">
+                          <span className="material-symbols-outlined text-[14px]">domain</span> {r.gym_academies?.name || 'Academia'}
                         </p>
-                        <p className="text-[10px] text-slate-500 font-black uppercase">Plano Enterprise</p>
+                        <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest">Plano Enterprise</p>
                       </>
                     ) : (
                       <>
-                        <p className="font-semibold text-white text-sm">{r.gym_teachers?.name || '-'}</p>
-                        <p className="text-xs text-slate-400">{r.gym_teachers?.email}</p>
+                        <p className="font-headline-sm text-on-surface text-sm mb-0.5">{r.gym_teachers?.name || '-'}</p>
+                        <p className="font-body-md text-xs text-on-surface-variant">{r.gym_teachers?.email}</p>
                       </>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center text-sm font-semibold text-slate-300">{r.student_count}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-400">R$ {Number(r.price_per_student).toFixed(2)}</td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-white">R$ {Number(r.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className="px-4 py-3 text-center text-sm text-slate-400">{r.due_date ? new Date(r.due_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      r.status === 'paid' ? 'bg-emerald-500/10 text-emerald-400' :
-                      r.status === 'overdue' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'
+                  <td className="px-6 py-4 text-center font-headline-sm text-sm text-on-surface">{r.student_count}</td>
+                  <td className="px-6 py-4 text-right font-body-md text-sm text-on-surface-variant">R$ {Number(r.price_per_student).toFixed(2)}</td>
+                  <td className="px-6 py-4 text-right font-display-sm text-sm text-on-surface">R$ {Number(r.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="px-6 py-4 text-center font-body-md text-sm text-on-surface-variant">{r.due_date ? new Date(r.due_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border ${
+                      r.status === 'paid' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
+                      r.status === 'overdue' ? 'bg-error/10 text-error border-error/20' : 'bg-warning/10 text-warning border-warning/20'
                     }`}>
                       {r.status === 'paid' ? 'Pago' : r.status === 'overdue' ? 'Inadimplente' : 'Pendente'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-6 py-4 text-right">
                     {r.status !== 'paid' && (
-                      <div className="flex gap-1 justify-end">
-                        <button onClick={() => markAs(r.id, 'paid')} className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-1 rounded transition-colors">Pago</button>
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => markAs(r.id, 'paid')} className="font-label-caps text-[9px] text-[#4ade80] bg-[#4ade80]/10 hover:bg-[#4ade80]/20 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-colors border border-[#4ade80]/20">Pago</button>
                         {r.status !== 'overdue' && (
-                          <button onClick={() => markAs(r.id, 'overdue')} className="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-1 rounded transition-colors">Inadimpl.</button>
+                          <button onClick={() => markAs(r.id, 'overdue')} className="font-label-caps text-[9px] text-error bg-error/10 hover:bg-error/20 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-colors border border-error/20">Inadimpl.</button>
                         )}
                       </div>
                     )}
                     {r.status === 'paid' && r.paid_at && (
-                      <p className="text-[10px] text-slate-500 mt-1">Pago em {new Date(r.paid_at).toLocaleDateString('pt-BR')}</p>
+                      <p className="font-body-md text-[10px] text-on-surface-variant mt-2">Pago em {new Date(r.paid_at).toLocaleDateString('pt-BR')}</p>
                     )}
                   </td>
                 </tr>

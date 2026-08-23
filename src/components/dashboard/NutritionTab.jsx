@@ -136,106 +136,106 @@ export default function NutritionTab({ studentId, student, showToast }) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-container"></div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-500 pb-24">
+    <div className="space-y-lg animate-in slide-in-from-bottom-8 duration-500 pb-24">
       {/* HEADER */}
-      <div className="px-6 pt-8 pb-2">
-        <h2 className="text-3xl font-black text-white font-display uppercase tracking-tight">Nutrição</h2>
-        <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">Rastreie seu combustível</p>
+      <div className="px-gutter pt-8 pb-2">
+        <h2 className="font-display-xl text-3xl text-primary uppercase tracking-tight">Nutrição</h2>
+        <p className="font-label-caps text-xs text-on-surface-variant mt-1 uppercase tracking-widest">Rastreie seu combustível</p>
       </div>
 
       {/* IA COACH NUTRICIONAL 2.0 PANEL */}
-      <section className="px-6">
+      <section className="px-gutter">
         {hasBiometrics ? (
-          <div className="bg-[#1A1A1A] border-2 border-primary/20 p-6 rounded-[36px] relative overflow-hidden shadow-2xl space-y-6">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="glass-panel border-2 border-primary-container/20 p-6 rounded-3xl relative overflow-hidden shadow-2xl space-y-6 bg-surface-container-high/50">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 rounded-full blur-3xl pointer-events-none" />
             
             <div className="flex items-center gap-3">
-              <div className="bg-primary text-black p-2.5 rounded-2xl shadow-[0_0_15px_rgba(223,255,94,0.3)]">
-                <Sparkles className="w-5 h-5" />
+              <div className="bg-primary-container text-on-primary-container p-3 rounded-2xl shadow-[0_0_15px_rgba(195,244,0,0.3)]">
+                <span className="material-symbols-outlined">psychology</span>
               </div>
               <div>
-                <h3 className="font-black text-white font-display text-lg tracking-tight flex items-center gap-1.5">
+                <h3 className="font-display-lg text-lg text-on-surface tracking-tight flex items-center gap-1.5">
                   IA Coach Nutricional 2.0
                 </h3>
-                <p className="text-[9px] text-primary font-black uppercase tracking-widest">{goalLabel}</p>
+                <p className="font-label-caps text-[9px] text-primary-container uppercase tracking-widest">{goalLabel}</p>
               </div>
             </div>
 
             {/* Calories Progress Ring-bar */}
-            <div className="bg-black/50 p-5 rounded-3xl border border-white/5 space-y-3">
+            <div className="glass-panel p-5 rounded-2xl border border-outline-variant/30 space-y-3">
               <div className="flex justify-between items-baseline">
-                <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">Energia Diária</span>
-                <span className="text-white font-black text-lg font-display">
-                  {caloriesConsumed} <span className="text-xs text-slate-500 font-bold">/ {targetCalories} kcal</span>
+                <span className="font-label-caps text-on-surface-variant text-xs uppercase tracking-widest">Energia Diária</span>
+                <span className="font-display-xl text-on-surface text-lg">
+                  {caloriesConsumed} <span className="font-headline-md text-xs text-on-surface-variant">/ {targetCalories} kcal</span>
                 </span>
               </div>
               
-              <div className="h-3 bg-white/5 rounded-full overflow-hidden relative">
+              <div className="h-3 bg-surface-container-highest rounded-full overflow-hidden relative">
                 <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(223,255,94,0.5)]"
+                  className="h-full bg-primary-container rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(195,244,0,0.5)]"
                   style={{ width: `${caloriesPercent}%` }}
                 />
               </div>
               
-              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                💡 Seu metabolismo basal estimado é de <strong className="text-slate-200">{Math.round(targetCalories - 350)} kcal</strong>. Consuma alimentos limpos para manter a alta performance em seus treinos.
+              <p className="font-body-md text-[10px] text-on-surface-variant font-medium leading-relaxed">
+                💡 Seu metabolismo basal estimado é de <strong className="text-on-surface">{Math.round(targetCalories - 350)} kcal</strong>. Consuma alimentos limpos para manter a alta performance em seus treinos.
               </p>
             </div>
 
             {/* Macros Progress Bars Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {/* Proteina */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-white/5 space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-rose-500">
+              <div className="bg-surface-container/50 p-4 rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex justify-between font-label-caps text-[10px] uppercase tracking-widest text-[#F43F5E]">
                   <span>Proteína</span>
                   <span>{proteinPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-rose-500 rounded-full transition-all duration-1000" style={{ width: `${proteinPercent}%` }} />
+                <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div className="h-full bg-[#F43F5E] rounded-full transition-all duration-1000" style={{ width: `${proteinPercent}%` }} />
                 </div>
-                <div className="text-right text-xs font-black text-white">{proteinConsumed}g <span className="text-[10px] text-slate-500 font-bold">/ {targetProtein}g</span></div>
+                <div className="text-right font-display-lg text-xs text-on-surface">{proteinConsumed}g <span className="font-headline-md text-[10px] text-on-surface-variant">/ {targetProtein}g</span></div>
               </div>
 
               {/* Carbos */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-white/5 space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-amber-500">
+              <div className="bg-surface-container/50 p-4 rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex justify-between font-label-caps text-[10px] uppercase tracking-widest text-[#F59E0B]">
                   <span>Carboidratos</span>
                   <span>{carbsPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full transition-all duration-1000" style={{ width: `${carbsPercent}%` }} />
+                <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div className="h-full bg-[#F59E0B] rounded-full transition-all duration-1000" style={{ width: `${carbsPercent}%` }} />
                 </div>
-                <div className="text-right text-xs font-black text-white">{carbsConsumed}g <span className="text-[10px] text-slate-500 font-bold">/ {targetCarbs}g</span></div>
+                <div className="text-right font-display-lg text-xs text-on-surface">{carbsConsumed}g <span className="font-headline-md text-[10px] text-on-surface-variant">/ {targetCarbs}g</span></div>
               </div>
 
               {/* Gorduras */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-white/5 space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-500">
+              <div className="bg-surface-container/50 p-4 rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex justify-between font-label-caps text-[10px] uppercase tracking-widest text-[#10B981]">
                   <span>Gorduras</span>
                   <span>{fatsPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${fatsPercent}%` }} />
+                <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div className="h-full bg-[#10B981] rounded-full transition-all duration-1000" style={{ width: `${fatsPercent}%` }} />
                 </div>
-                <div className="text-right text-xs font-black text-white">{fatsConsumed}g <span className="text-[10px] text-slate-500 font-bold">/ {targetFat}g</span></div>
+                <div className="text-right font-display-lg text-xs text-on-surface">{fatsConsumed}g <span className="font-headline-md text-[10px] text-on-surface-variant">/ {targetFat}g</span></div>
               </div>
 
               {/* Hidratação */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-white/5 space-y-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-blue-500">
+              <div className="bg-surface-container/50 p-4 rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex justify-between font-label-caps text-[10px] uppercase tracking-widest text-[#3B82F6]">
                   <span>Hidratação</span>
                   <span>{waterPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${waterPercent}%` }} />
+                <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div className="h-full bg-[#3B82F6] rounded-full transition-all duration-1000" style={{ width: `${waterPercent}%` }} />
                 </div>
-                <div className="text-right text-xs font-black text-white">{nutrition.water_ml}ml <span className="text-[10px] text-slate-500 font-bold">/ {waterGoal}ml</span></div>
+                <div className="text-right font-display-lg text-xs text-on-surface">{nutrition.water_ml}ml <span className="font-headline-md text-[10px] text-on-surface-variant">/ {waterGoal}ml</span></div>
               </div>
             </div>
 
@@ -251,18 +251,18 @@ export default function NutritionTab({ studentId, student, showToast }) {
                 handleSave(filledNutrition)
                 showToast("Sua nutrição do dia foi auto-preenchida com as metas da IA! 🧠🔥")
               }}
-              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="w-full glass-panel hover:bg-surface-container-highest border border-outline-variant/50 text-on-surface py-4 rounded-xl font-label-caps text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-primary" /> Auto-Preencher com Metas da IA
+              <span className="material-symbols-outlined text-sm text-primary-container">check_circle</span> Auto-Preencher com Metas da IA
             </button>
           </div>
         ) : (
-          <div className="bg-[#1A1A1A] p-6 rounded-[36px] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col items-center text-center p-8">
-            <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8" />
+          <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-3xl bg-[#F59E0B]/10 text-[#F59E0B] flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-4xl">auto_awesome</span>
             </div>
-            <h3 className="text-lg font-black text-white font-display mb-2">IA Coach Nutricional Bloqueado</h3>
-            <p className="text-xs text-slate-400 max-w-xs leading-relaxed mb-6">
+            <h3 className="font-display-lg text-lg text-on-surface mb-2">IA Coach Nutricional Bloqueado</h3>
+            <p className="font-body-md text-xs text-on-surface-variant max-w-xs leading-relaxed mb-6">
               Complete seu perfil nas <strong>Configurações da Conta</strong> (inserindo idade, altura, peso e objetivos) para que a nossa IA calcule as suas metas ótimas diárias de calorias, macros e hidratação.
             </p>
           </div>
@@ -270,29 +270,29 @@ export default function NutritionTab({ studentId, student, showToast }) {
       </section>
 
       {/* WATER TRACKER */}
-      <section className="px-6">
-        <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/20">
+      <section className="px-gutter">
+        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#3B82F6]/20">
             <div 
-              className="h-full bg-blue-500 transition-all duration-1000"
+              className="h-full bg-[#3B82F6] transition-all duration-1000"
               style={{ width: `${waterPercent}%` }}
             />
           </div>
           
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
-                <Droplet className="w-6 h-6" />
+              <div className="w-12 h-12 bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center text-[#3B82F6]">
+                <span className="material-symbols-outlined">water_drop</span>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Hidratação</p>
-                <p className="text-2xl font-black text-white">{nutrition.water_ml} <span className="text-sm text-slate-500 font-bold">ml <span className="text-slate-600">/ {waterGoal}ml</span></span></p>
+                <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-0.5">Hidratação</p>
+                <p className="font-display-xl text-2xl text-on-surface">{nutrition.water_ml} <span className="font-headline-md text-sm text-on-surface-variant">ml <span className="opacity-70">/ {waterGoal}ml</span></span></p>
               </div>
             </div>
             {nutrition.water_ml >= waterGoal && (
-              <div className="bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full flex items-center gap-1 border border-blue-500/30">
-                <CheckCircle2 className="w-3 h-3" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Meta Atingida</span>
+              <div className="bg-[#3B82F6]/20 text-[#3B82F6] px-3 py-1 rounded-full flex items-center gap-1 border border-[#3B82F6]/30">
+                <span className="material-symbols-outlined text-xs">check_circle</span>
+                <span className="font-label-caps text-[9px] uppercase tracking-widest">Meta Atingida</span>
               </div>
             )}
           </div>
@@ -301,62 +301,62 @@ export default function NutritionTab({ studentId, student, showToast }) {
             <button 
               onClick={() => removeWater(250)}
               disabled={nutrition.water_ml === 0 || saving}
-              className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-all disabled:opacity-30 active:scale-95"
+              className="w-14 h-14 rounded-2xl glass-panel flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all disabled:opacity-30 active:scale-95 border border-outline-variant/30"
             >
-              <Minus className="w-6 h-6" />
+              <span className="material-symbols-outlined">remove</span>
             </button>
             <button 
               onClick={() => addWater(250)}
               disabled={saving}
-              className="flex-1 bg-blue-500 hover:bg-blue-400 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center justify-center gap-2 active:scale-95"
+              className="flex-1 bg-[#3B82F6] hover:opacity-90 text-on-primary py-4 rounded-2xl font-label-caps text-sm uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center justify-center gap-2 active:scale-95 neon-glow"
             >
-              <Plus className="w-5 h-5" /> Copo 250ml
+              <span className="material-symbols-outlined">add</span> Copo 250ml
             </button>
           </div>
         </div>
       </section>
 
       {/* MACRO TRACKER */}
-      <section className="px-6 space-y-4">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-          <Flame className="w-4 h-4 text-orange-500" /> Macros do Dia
+      <section className="px-gutter space-y-4">
+        <h3 className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-[#F59E0B] text-sm">local_fire_department</span> Macros do Dia
         </h3>
         
-        <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 space-y-6">
+        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 space-y-6">
           
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {/* Proteina */}
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-rose-500 uppercase tracking-widest text-center block">Proteína (g)</label>
+              <label className="font-label-caps text-[9px] text-[#F43F5E] uppercase tracking-widest text-center block">Proteína (g)</label>
               <input 
                 type="number"
                 value={nutrition.protein_g || ''}
                 onChange={(e) => updateMacro('protein_g', e.target.value)}
-                className="w-full bg-black border-2 border-white/5 rounded-2xl p-4 text-lg font-black text-white text-center focus:outline-none focus:border-rose-500/50 transition-all"
+                className="w-full bg-surface border-2 border-outline-variant/30 rounded-xl p-4 font-headline-lg text-lg text-on-surface text-center focus:outline-none focus:border-[#F43F5E]/50 transition-all"
                 placeholder="0"
               />
             </div>
             
             {/* Carbo */}
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-amber-500 uppercase tracking-widest text-center block">Carbo (g)</label>
+              <label className="font-label-caps text-[9px] text-[#F59E0B] uppercase tracking-widest text-center block">Carbo (g)</label>
               <input 
                 type="number"
                 value={nutrition.carbs_g || ''}
                 onChange={(e) => updateMacro('carbs_g', e.target.value)}
-                className="w-full bg-black border-2 border-white/5 rounded-2xl p-4 text-lg font-black text-white text-center focus:outline-none focus:border-amber-500/50 transition-all"
+                className="w-full bg-surface border-2 border-outline-variant/30 rounded-xl p-4 font-headline-lg text-lg text-on-surface text-center focus:outline-none focus:border-[#F59E0B]/50 transition-all"
                 placeholder="0"
               />
             </div>
             
             {/* Gordura */}
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-emerald-500 uppercase tracking-widest text-center block">Gordura (g)</label>
+              <label className="font-label-caps text-[9px] text-[#10B981] uppercase tracking-widest text-center block">Gordura (g)</label>
               <input 
                 type="number"
                 value={nutrition.fats_g || ''}
                 onChange={(e) => updateMacro('fats_g', e.target.value)}
-                className="w-full bg-black border-2 border-white/5 rounded-2xl p-4 text-lg font-black text-white text-center focus:outline-none focus:border-emerald-500/50 transition-all"
+                className="w-full bg-surface border-2 border-outline-variant/30 rounded-xl p-4 font-headline-lg text-lg text-on-surface text-center focus:outline-none focus:border-[#10B981]/50 transition-all"
                 placeholder="0"
               />
             </div>
@@ -365,9 +365,9 @@ export default function NutritionTab({ studentId, student, showToast }) {
           <button 
             onClick={saveMacros}
             disabled={saving}
-            className="w-full bg-primary hover:bg-primary-dark text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-primary/20"
+            className="w-full bg-primary-container hover:bg-surface-tint text-on-primary-container py-4 rounded-2xl font-label-caps text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(195,244,0,0.2)] neon-glow"
           >
-            {saving ? 'Salvando...' : 'Atualizar Macros'} <ArrowUpCircle className="w-5 h-5" />
+            {saving ? 'Salvando...' : 'Atualizar Macros'} <span className="material-symbols-outlined">arrow_circle_up</span>
           </button>
         </div>
       </section>

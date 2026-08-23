@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Medal, Flame } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { supabase } from '../../supabaseClient'
 
@@ -69,54 +68,54 @@ export default function SquadLeaderboard({ squadId, studentId }) {
   }, [squadId, timeRange])
 
   if (isLoading) {
-    return <div className="animate-pulse h-20 bg-white/5 rounded-[32px]"></div>
+    return <div className="animate-pulse h-20 bg-surface-container-highest rounded-3xl"></div>
   }
 
   if (leaderboard.length === 0) return null
 
   return (
-    <div className="bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 space-y-6">
+    <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-           <h3 className="font-black text-white text-lg font-display tracking-tight">Ranking</h3>
-           <div className="flex bg-black p-1 rounded-xl border border-white/5">
+           <h3 className="font-display-lg text-on-surface text-lg tracking-tight">Ranking</h3>
+           <div className="flex bg-surface-container p-1 rounded-xl border border-outline-variant/30">
              <button 
                onClick={() => setTimeRange('weekly')}
-               className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${timeRange === 'weekly' ? 'bg-primary text-black' : 'text-slate-500'}`}
+               className={`px-3 py-1 rounded-lg font-label-caps text-[10px] uppercase transition-all ${timeRange === 'weekly' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface'}`}
              >
                7D
              </button>
              <button 
                onClick={() => setTimeRange('monthly')}
-               className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${timeRange === 'monthly' ? 'bg-primary text-black' : 'text-slate-500'}`}
+               className={`px-3 py-1 rounded-lg font-label-caps text-[10px] uppercase transition-all ${timeRange === 'monthly' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface'}`}
              >
                30D
              </button>
            </div>
         </div>
-        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest font-black border border-primary/20">Pontos Reais</span>
+        <span className="font-label-caps text-[9px] bg-primary-container/20 text-primary-container px-2 py-0.5 rounded-full uppercase tracking-widest border border-primary-container/20">Pontos Reais</span>
       </div>
 
       <div className="space-y-3">
         {leaderboard.map((user, index) => (
-          <div key={user.id} className="flex items-center gap-4 bg-black p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgb(var(--color-primary))]"></div>}
+          <div key={user.id} className="flex items-center gap-4 bg-surface p-3 rounded-2xl border border-outline-variant/30 relative overflow-hidden group">
+            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-primary-container shadow-[0_0_10px_rgba(195,244,0,0.5)]"></div>}
             
             <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              {index === 0 ? <Medal className="w-6 h-6 text-primary drop-shadow-[0_0_5px_rgba(var(--color-primary),0.5)]" /> : 
-               index === 1 ? <Medal className="w-6 h-6 text-slate-300" /> : 
-               index === 2 ? <Medal className="w-6 h-6 text-amber-600" /> : 
-               <span className="font-black text-slate-600 text-sm">{index + 1}º</span>}
+              {index === 0 ? <span className="material-symbols-outlined text-2xl text-primary-container drop-shadow-[0_0_5px_rgba(195,244,0,0.5)]">military_tech</span> : 
+               index === 1 ? <span className="material-symbols-outlined text-2xl text-slate-300">military_tech</span> : 
+               index === 2 ? <span className="material-symbols-outlined text-2xl text-amber-600">military_tech</span> : 
+               <span className="font-headline-lg text-on-surface-variant text-sm">{index + 1}º</span>}
             </div>
             
             <div className="flex-1">
-              <p className={`font-black text-sm ${index === 0 ? 'text-primary' : 'text-white'}`}>{user.name}</p>
-              <p className="text-[10px] text-slate-500 font-bold">@{user.username}</p>
+              <p className={`font-headline-md text-sm ${index === 0 ? 'text-primary-container' : 'text-on-surface'}`}>{user.name}</p>
+              <p className="font-body-md text-[10px] text-on-surface-variant">@{user.username}</p>
             </div>
 
             <div className="text-right">
-              <p className="font-black text-white font-display text-lg tracking-tight">{user.points}</p>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest -mt-1">pontos ganhos</p>
+              <p className="font-display-lg text-on-surface text-lg tracking-tight">{user.points}</p>
+              <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest -mt-1">pontos ganhos</p>
             </div>
           </div>
         ))}
@@ -129,21 +128,21 @@ export default function SquadLeaderboard({ squadId, studentId }) {
         const othersPoints = others.reduce((acc, u) => acc + u.points, 0);
         const avgOthersPoints = others.length > 0 ? Math.round(othersPoints / others.length) : 0;
 
-        const themeColor = localStorage.getItem('vollonfit_theme_color') || '#DFFF5E';
+        const themeColor = localStorage.getItem('vollonfit_theme_color') || '#C3F400';
         const chartData = [
           { name: 'Você', points: myPoints, fill: themeColor }, 
           { name: 'Média', points: avgOthersPoints, fill: '#334155' }
         ]
 
         return (
-          <div className="pt-6 border-t border-white/5">
-            <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 text-center">Sua Pontuação vs Bando ({timeRange === 'weekly' ? '7d' : '30d'})</p>
-            <div className="h-28 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="pt-6 border-t border-outline-variant/30">
+            <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mb-4 text-center">Sua Pontuação vs Bando ({timeRange === 'weekly' ? '7d' : '30d'})</p>
+            <div className="h-28 w-full" style={{ minWidth: 10, minHeight: 10 }}>
+              <ResponsiveContainer width="99%" height="99%" minWidth={10} minHeight={10} debounce={50}>
                 <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} width={40} />
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#000', border: '1px solid #334155', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#A3A3A3', fontSize: 10, fontWeight: 900 }} width={40} />
+                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1E1E1E', border: '1px solid #404040', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
                   <Bar dataKey="points" radius={[0, 8, 8, 0]} barSize={24}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />

@@ -31,8 +31,28 @@ self.addEventListener('activate', (event) => {
 // ESTRATÉGIA: NETWORK FIRST (Tenta rede, se falhar usa cache)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+    fetch(event.request).catch(async () => {
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      // Se for navegação (SPA), tentar servir o index.html
+      if (event.request.mode === 'navigate') {
+        const indexResponse = await caches.match('/index.html');
+        if (indexResponse) {
+          return indexResponse;
+        }
+      }
+      
+      // Se não encontrar nada, retorna uma resposta vazia para evitar TypeError
+      return new Response('Offline / Not Found in Cache', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers({
+          'Content-Type': 'text/plain'
+        })
+      });
     })
   );
 });

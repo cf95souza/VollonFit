@@ -1,22 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import { 
-  LayoutDashboard, 
-  Dumbbell, 
-  ClipboardList, 
-  Users, 
-  LogOut, 
-  Search, 
-  Menu, 
-  X, 
-  CheckCircle2, 
-  AlertCircle, 
-  DollarSign, 
-  Settings,
-  Send,
-  Loader2
-} from 'lucide-react'
 
 // Importações dos novos componentes modulares
 import OverviewTab from '../components/admin/OverviewTab'
@@ -26,7 +10,6 @@ import StudentsTab from '../components/admin/StudentsTab'
 import StudentDetailView from '../components/admin/StudentDetailView'
 import FinanceiroTab from '../components/admin/FinanceiroTab'
 import SettingsTab from '../components/admin/SettingsTab'
-import { getTodayLocally } from '../utils/dateUtils'
 import { loadTheme } from '../utils/themeLoader'
 
 export default function AdminDashboard() {
@@ -105,16 +88,16 @@ export default function AdminDashboard() {
 
   if (loading || !teacherInfo) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Autenticando Professor...</p>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center">
+        <span className="material-symbols-outlined text-5xl text-primary-container animate-spin mb-4">autorenew</span>
+        <p className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-[0.3em]">Autenticando Professor...</p>
       </div>
     )
   }
 
   const isBlocked = teacherInfo?.subscription?.status === 'past_due' || teacherInfo?.subscription?.status === 'canceled'
 
-  const SidebarLink = ({ id, icon: Icon, label }) => {
+  const SidebarLink = ({ id, icon, label }) => {
     const disabled = isBlocked && id !== 'financeiro' && id !== 'settings'
     
     return (
@@ -129,13 +112,13 @@ export default function AdminDashboard() {
           setIsSidebarOpen(false)
         }}
         disabled={disabled}
-        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-bold text-xs uppercase tracking-widest ${
+        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-label-caps text-xs uppercase tracking-widest ${
           activeTab === id && !selectedStudentProfile
-            ? 'bg-primary text-black shadow-lg shadow-primary/20 scale-[1.02]'
-            : 'text-slate-400 hover:text-white hover:bg-white/5'
+            ? 'bg-primary-container text-on-primary-container shadow-[0_0_15px_rgba(195,244,0,0.2)] scale-[1.02]'
+            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
         } ${disabled ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
       >
-        <Icon className="w-5 h-5" />
+        <span className="material-symbols-outlined text-[20px]">{icon}</span>
         <span>{label}</span>
       </button>
     )
@@ -144,34 +127,34 @@ export default function AdminDashboard() {
   const SidebarContent = () => (
     <div className="h-full flex flex-col p-6">
       <div className="mb-10 px-4">
-        <h1 className="text-2xl font-black text-white font-display tracking-tighter uppercase italic">Vollon<span className="text-primary">Fit</span></h1>
-        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Admin Panel</p>
+        <h1 className="text-2xl font-black text-on-surface font-display tracking-tighter uppercase italic">Vollon<span className="text-primary-container">Fit</span></h1>
+        <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest mt-1">Admin Panel</p>
       </div>
 
       <nav className="flex-1 space-y-2">
-        <SidebarLink id="overview" icon={LayoutDashboard} label="Visão Geral" />
-        <SidebarLink id="exercises" icon={Dumbbell} label="Exercícios" />
-        <SidebarLink id="workouts" icon={ClipboardList} label="Treinos" />
-        <SidebarLink id="students" icon={Users} label="Alunos" />
-        <SidebarLink id="financeiro" icon={DollarSign} label="Financeiro" />
-        <SidebarLink id="settings" icon={Settings} label="Configurações" />
+        <SidebarLink id="overview" icon="dashboard" label="Visão Geral" />
+        <SidebarLink id="exercises" icon="fitness_center" label="Exercícios" />
+        <SidebarLink id="workouts" icon="assignment" label="Treinos" />
+        <SidebarLink id="students" icon="groups" label="Alunos" />
+        <SidebarLink id="financeiro" icon="attach_money" label="Financeiro" />
+        <SidebarLink id="settings" icon="settings" label="Configurações" />
       </nav>
 
-      <div className="pt-6 border-t border-white/5">
-        <div className="bg-white/5 rounded-3xl p-4 mb-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black">
+      <div className="pt-6 border-t border-outline-variant/30">
+        <div className="glass-panel border-outline-variant/30 rounded-2xl p-4 mb-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center font-headline-lg text-on-primary-container">
             {teacherInfo.name[0]}
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-xs font-black text-white truncate">{teacherInfo.name}</p>
-            <p className="text-[9px] font-bold text-slate-500 uppercase truncate">Professor</p>
+            <p className="text-xs font-headline-md text-on-surface truncate">{teacherInfo.name}</p>
+            <p className="text-[9px] font-body-md text-on-surface-variant uppercase truncate">Professor</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 transition-all font-bold text-xs uppercase tracking-widest"
+          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-error hover:bg-error/10 transition-all font-label-caps text-xs uppercase tracking-widest"
         >
-          <LogOut className="w-5 h-5" />
+          <span className="material-symbols-outlined text-[20px]">logout</span>
           <span>Sair</span>
         </button>
       </div>
@@ -179,27 +162,27 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-surface text-on-surface font-sans selection:bg-primary-container/30">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 w-full z-40 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-black text-white font-display uppercase italic">Vollon<span className="text-primary">Fit</span></h1>
-        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-primary">
-          <Menu className="w-6 h-6" />
+      <header className="lg:hidden fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-black text-on-surface font-display uppercase italic">Vollon<span className="text-primary-container">Fit</span></h1>
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-primary-container">
+          <span className="material-symbols-outlined">menu</span>
         </button>
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-[#0A0A0A] border-r border-white/5 z-30">
+      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-surface-container border-r border-outline-variant/30 z-30">
         <SidebarContent />
       </aside>
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-80 bg-[#0A0A0A] animate-in slide-in-from-left duration-300">
-            <button onClick={() => setIsSidebarOpen(false)} className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white">
-              <X className="w-6 h-6" />
+          <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-80 bg-surface-container animate-in slide-in-from-left duration-300">
+            <button onClick={() => setIsSidebarOpen(false)} className="absolute top-6 right-6 p-2 text-on-surface-variant hover:text-on-surface">
+              <span className="material-symbols-outlined">close</span>
             </button>
             <SidebarContent />
           </div>
@@ -213,7 +196,7 @@ export default function AdminDashboard() {
           {/* Dashboard Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-black text-white font-display uppercase tracking-tighter">
+              <h2 className="text-3xl lg:text-4xl text-primary-container font-display-xl uppercase tracking-tighter">
                 {selectedStudentProfile ? `Perfil: ${selectedStudentProfile.name}` : 
                  activeTab === 'overview' ? 'Visão Geral' : 
                  activeTab === 'exercises' ? 'Exercícios' : 
@@ -222,19 +205,19 @@ export default function AdminDashboard() {
                  activeTab === 'financeiro' ? 'Painel Financeiro' :
                  'Configurações'}
               </h2>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.3em] mt-1">
+              <p className="text-xs text-on-surface-variant font-label-caps uppercase tracking-[0.3em] mt-1">
                 {selectedStudentProfile ? 'Análise detalhada do aluno' : 'Controle total da sua consultoria fitness'}
               </p>
             </div>
 
             <div className="relative group w-full md:w-80">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+              <span className="material-symbols-outlined text-lg absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary-container transition-colors">search</span>
               <input 
                 type="text" 
                 placeholder="Buscar em todo painel..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-[#111111] border border-white/5 rounded-2xl text-xs text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-bold placeholder:text-slate-700" 
+                className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/30 rounded-xl font-headline-md text-sm text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/20 transition-all placeholder:text-on-surface-variant/50" 
               />
             </div>
           </div>
@@ -297,35 +280,35 @@ export default function AdminDashboard() {
 
       {/* Modal de Motivação Premium */}
       {motivationModal.open && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-[#111111] w-full max-w-lg rounded-[40px] border border-white/10 shadow-2xl animate-in zoom-in duration-300 overflow-hidden">
-            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-lg rounded-3xl border border-outline-variant/30 shadow-2xl animate-in zoom-in duration-300 overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest">
               <div>
-                <h3 className="text-2xl font-black text-white font-display uppercase tracking-tight">Motivar Aluno</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Enviar incentivo para {motivationModal.student?.name}</p>
+                <h3 className="text-2xl font-display-xl text-on-surface uppercase tracking-tight">Motivar Aluno</h3>
+                <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest mt-1">Enviar incentivo para {motivationModal.student?.name}</p>
               </div>
               <button 
                 onClick={() => setMotivationModal({ open: false, student: null, message: '' })}
-                className="p-3 bg-white/5 rounded-2xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-white/5"
+                className="p-3 bg-surface-container rounded-2xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30 flex items-center justify-center"
               >
-                <X className="w-6 h-6" />
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 bg-surface-container/50">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mensagem de Incentivo</label>
+                <label className="text-[10px] font-label-caps text-on-surface-variant uppercase tracking-widest ml-1">Mensagem de Incentivo</label>
                 <textarea 
                   value={motivationModal.message}
                   onChange={(e) => setMotivationModal({ ...motivationModal, message: e.target.value })}
                   placeholder="Ex: Não desista! Foco no objetivo..."
-                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold h-32 resize-none"
+                  className="w-full bg-surface-container-high border border-outline-variant/30 rounded-xl px-5 py-4 text-on-surface focus:outline-none focus:border-primary-container transition-all font-body-md text-sm h-32 resize-none"
                 />
               </div>
               <button 
                 onClick={handleSendMotivation}
-                className="w-full bg-primary hover:bg-primary-dark text-black py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 active:scale-95"
+                className="w-full bg-primary-container hover:bg-surface-tint text-on-primary-container py-4 rounded-xl font-label-caps text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(195,244,0,0.2)] flex items-center justify-center gap-3 active:scale-95 neon-glow"
               >
-                <Send className="w-4 h-4" /> Enviar Agora
+                <span className="material-symbols-outlined">send</span> Enviar Agora
               </button>
             </div>
           </div>
@@ -337,11 +320,11 @@ export default function AdminDashboard() {
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top duration-300">
           <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
             toast.type === 'error' 
-              ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
-              : 'bg-primary/10 border-primary/20 text-primary'
+              ? 'bg-error/10 border-error/20 text-error' 
+              : 'bg-primary-container/10 border-primary-container/20 text-primary-container'
           }`}>
-            {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
-            <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
+            {toast.type === 'error' ? <span className="material-symbols-outlined text-xl">error</span> : <span className="material-symbols-outlined text-xl">check_circle</span>}
+            <span className="text-[10px] font-label-caps uppercase tracking-widest">{toast.message}</span>
           </div>
         </div>
       )}

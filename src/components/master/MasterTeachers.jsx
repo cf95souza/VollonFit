@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import {
-  Plus, Search, X, Users2, ShieldCheck, Mail, Phone,
-  Edit3, Lock, Unlock, Trash2, Eye, CheckCircle2, AlertCircle, Loader2
-} from 'lucide-react'
 
 export default function MasterTeachers({ showToast }) {
   const [teachers, setTeachers] = useState([])
@@ -144,51 +140,53 @@ export default function MasterTeachers({ showToast }) {
   )
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3 justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center glass-panel p-6 rounded-[32px] border border-outline-variant/30">
+        <div className="relative flex-1 w-full max-w-md">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
           <input
             type="text" placeholder="Buscar professor..."
             value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[#111111] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-primary/50"
+            className="w-full pl-12 pr-4 py-3 bg-surface-container border border-outline-variant/30 rounded-2xl text-sm text-on-surface focus:outline-none focus:border-primary-container font-body-md transition-all"
           />
         </div>
-        <button onClick={openCreate} className="bg-primary hover:bg-primary-dark text-black px-4 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-colors">
-          <Plus className="w-4 h-4" /> Novo Professor
+        <button onClick={openCreate} className="w-full sm:w-auto bg-primary-container hover:brightness-110 text-on-primary-container px-6 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-container/20 active:scale-95 neon-glow">
+          <span className="material-symbols-outlined text-sm">add</span> Novo Professor
         </button>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {loading ? [1,2,3].map(i => <div key={i} className="h-52 bg-[#111111] rounded-lg animate-pulse border border-white/5" />) :
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {loading ? [1,2,3].map(i => <div key={i} className="h-52 glass-panel rounded-3xl border border-outline-variant/30 animate-pulse" />) :
           filtered.map(t => {
             const nextDue = getNextDue(t)
             const quotaPct = Math.min((t.studentCount / (t.quota_limit || 1)) * 100, 100)
             return (
-              <div key={t.id} className="bg-[#111111] rounded-lg border border-white/5 p-5 hover:border-white/20 transition-colors">
+              <div key={t.id} className="glass-panel rounded-3xl border border-outline-variant/30 p-6 hover:border-primary-container/30 transition-colors shadow-sm">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 text-sm">
+                    <div className="w-12 h-12 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center font-headline-sm text-on-surface-variant text-sm">
                       {t.name?.[0]}
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-sm">{t.name}</h4>
-                      <p className="text-xs text-slate-400 flex items-center gap-1"><Mail className="w-3 h-3" />{t.email}</p>
+                      <h4 className="font-headline-sm text-on-surface text-sm mb-0.5">{t.name}</h4>
+                      <p className="font-body-md text-[10px] text-on-surface-variant flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">mail</span> {t.email}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 items-end">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
-                      t.status === 'blocked' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'
+                    <span className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border ${
+                      t.status === 'active' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
+                      t.status === 'blocked' ? 'bg-error/10 text-error border-error/20' : 'bg-warning/10 text-warning border-warning/20'
                     }`}>
                       {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
                     </span>
                     <span 
                       onClick={() => togglePlan(t)}
                       title="Clique para alternar o plano do professor rapidamente"
-                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 ${
-                        t.plan_type === 'premium' ? 'bg-primary/20 border-primary/40 text-primary shadow-[0_0_10px_rgba(223,255,94,0.15)] hover:bg-primary/30' : 'bg-slate-500/10 border-slate-500/20 text-slate-400 hover:bg-slate-500/20 hover:text-slate-300'
+                      className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 ${
+                        t.plan_type === 'premium' ? 'bg-primary-container/10 border-primary-container/40 text-primary-container shadow-[0_0_10px_rgba(195,244,0,0.15)] hover:bg-primary-container/20' : 'bg-surface-container-highest border-outline-variant/30 text-on-surface-variant hover:bg-surface hover:text-on-surface'
                       }`}
                     >
                       {t.plan_type === 'premium' ? 'Premium' : 'Basic'}
@@ -196,40 +194,40 @@ export default function MasterTeachers({ showToast }) {
                   </div>
                 </div>
 
-                {t.phone && <p className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Phone className="w-3 h-3" />{t.phone}</p>}
+                {t.phone && <p className="font-body-md text-xs text-on-surface-variant flex items-center gap-1 mb-4"><span className="material-symbols-outlined text-[14px]">phone</span> {t.phone}</p>}
 
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Alunos</p>
-                    <p className="text-sm font-bold text-white">{t.studentCount} <span className="text-slate-500 font-normal">/ {t.quota_limit}</span></p>
-                    <div className="w-full h-1.5 bg-slate-800 rounded-full mt-1">
-                      <div className={`h-full rounded-full transition-all ${quotaPct >= 90 ? 'bg-rose-500' : quotaPct >= 70 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${quotaPct}%` }} />
+                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">Alunos</p>
+                    <p className="font-headline-sm text-sm text-on-surface">{t.studentCount} <span className="text-on-surface-variant font-body-md text-xs">/ {t.quota_limit}</span></p>
+                    <div className="w-full h-1.5 bg-surface-container rounded-full mt-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full transition-all ${quotaPct >= 90 ? 'bg-error' : quotaPct >= 70 ? 'bg-warning' : 'bg-primary-container neon-glow'}`} style={{ width: `${quotaPct}%` }} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Mensalidade</p>
-                    <p className="text-sm font-bold text-primary">R$ {(t.studentCount * (t.plan_type === 'premium' ? pricePremium : pricePerStudent)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">Mensalidade</p>
+                    <p className="font-display-sm text-sm text-on-surface">R$ {(t.studentCount * (t.plan_type === 'premium' ? pricePremium : pricePerStudent)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
                 {nextDue && (
-                  <p className="text-[10px] text-slate-400 mb-3">
-                    Próx. vencimento: <span className="font-semibold text-slate-300">{nextDue.toLocaleDateString('pt-BR')}</span>
+                  <p className="font-body-md text-[10px] text-on-surface-variant mb-4">
+                    Próx. vencimento: <span className="font-headline-sm text-on-surface">{nextDue.toLocaleDateString('pt-BR')}</span>
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-3 border-t border-white/5">
-                  <button onClick={() => openEdit(t)} title="Editar" className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-slate-300 bg-white/5 hover:bg-white/10 rounded-md transition-colors">
-                    <Edit3 className="w-3 h-3" /> Editar
+                <div className="flex gap-2 pt-4 border-t border-outline-variant/30">
+                  <button onClick={() => openEdit(t)} title="Editar" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 font-label-caps text-[10px] tracking-widest text-on-surface-variant bg-surface-container hover:bg-surface-container-highest rounded-xl transition-colors uppercase border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[14px]">edit</span> Editar
                   </button>
-                  <button onClick={() => viewStudents(t)} title="Ver Alunos" className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-[#C6C4FF] bg-[#C6C4FF]/10 hover:bg-[#C6C4FF]/20 rounded-md transition-colors">
-                    <Eye className="w-3 h-3" /> Alunos
+                  <button onClick={() => viewStudents(t)} title="Ver Alunos" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 font-label-caps text-[10px] tracking-widest text-secondary-container bg-secondary-container/10 hover:bg-secondary-container/20 rounded-xl transition-colors uppercase border border-secondary-container/20">
+                    <span className="material-symbols-outlined text-[14px]">visibility</span> Alunos
                   </button>
-                  <button onClick={() => toggleBlock(t)} title={t.status === 'blocked' ? 'Desbloquear' : 'Bloquear'} className={`py-2 px-3 rounded-md transition-colors ${t.status === 'blocked' ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' : 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'}`}>
-                    {t.status === 'blocked' ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                  <button onClick={() => toggleBlock(t)} title={t.status === 'blocked' ? 'Desbloquear' : 'Bloquear'} className={`py-2.5 px-3.5 rounded-xl transition-colors border ${t.status === 'blocked' ? 'text-[#4ade80] bg-[#4ade80]/10 hover:bg-[#4ade80]/20 border-[#4ade80]/20' : 'text-warning bg-warning/10 hover:bg-warning/20 border-warning/20'}`}>
+                    <span className="material-symbols-outlined text-[14px]">{t.status === 'blocked' ? 'lock_open' : 'lock'}</span>
                   </button>
-                  <button onClick={() => setConfirmDelete(t.id)} title="Excluir" className="py-2 px-3 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-md transition-colors">
-                    <Trash2 className="w-3 h-3" />
+                  <button onClick={() => setConfirmDelete(t.id)} title="Excluir" className="py-2.5 px-3.5 text-error bg-error/10 hover:bg-error/20 rounded-xl transition-colors border border-error/20">
+                    <span className="material-symbols-outlined text-[14px]">delete</span>
                   </button>
                 </div>
               </div>
@@ -239,18 +237,18 @@ export default function MasterTeachers({ showToast }) {
       </div>
 
       {!loading && filtered.length === 0 && (
-        <div className="text-center py-16 text-slate-400 text-sm">Nenhum professor encontrado.</div>
+        <div className="text-center py-16 font-body-md text-on-surface-variant text-sm">Nenhum professor encontrado.</div>
       )}
 
       {/* Modal Cadastro/Edição */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0F172A] w-full max-w-md rounded-lg border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b border-white/5 flex justify-between items-center sticky top-0 bg-[#0F172A] rounded-t-lg z-10">
-              <h3 className="font-bold text-white">{editingId ? 'Editar Professor' : 'Novo Professor'}</h3>
-              <button onClick={() => setIsModalOpen(false)}><X className="w-5 h-5 text-slate-400 hover:text-white" /></button>
+        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-xl rounded-[40px] border border-outline-variant/30 shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center sticky top-0 bg-surface-container-highest rounded-t-[40px] z-10">
+              <h3 className="font-display-md text-xl text-on-surface uppercase tracking-tight">{editingId ? 'Editar Professor' : 'Novo Professor'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-surface-container rounded-xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"><span className="material-symbols-outlined">close</span></button>
             </div>
-            <form onSubmit={handleSave} className="p-5 space-y-4">
+            <form onSubmit={handleSave} className="p-8 space-y-6">
               <Field label="Nome Completo" required>
                 <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" placeholder="Nome do Professor" />
               </Field>
@@ -274,26 +272,28 @@ export default function MasterTeachers({ showToast }) {
                 </Field>
               </div>
               <Field label="Plano do Professor">
-                <select value={form.plan_type} onChange={e => setForm({...form, plan_type: e.target.value})} className="input-field">
-                  <option value="basic">Professor Basic (R$ {pricePerStudent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
-                  <option value="premium">Professor Premium (R$ {pricePremium.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
+                <select value={form.plan_type} onChange={e => setForm({...form, plan_type: e.target.value})} className="input-field appearance-none">
+                  <option value="basic" className="bg-surface">Professor Basic (R$ {pricePerStudent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
+                  <option value="premium" className="bg-surface">Professor Premium (R$ {pricePremium.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
                 </select>
               </Field>
               {editingId && (
                 <Field label="Status">
-                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
-                    <option value="active">Ativo</option>
-                    <option value="trial">Trial</option>
-                    <option value="blocked">Bloqueado</option>
+                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field appearance-none">
+                    <option value="active" className="bg-surface">Ativo</option>
+                    <option value="trial" className="bg-surface">Trial</option>
+                    <option value="blocked" className="bg-surface">Bloqueado</option>
                   </select>
                 </Field>
               )}
               <Field label="Observações">
-                <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field h-20 resize-none" placeholder="Anotações internas..." />
+                <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field h-24 resize-none" placeholder="Anotações internas..." />
               </Field>
-              <button type="submit" disabled={isSaving} className="w-full bg-primary hover:bg-primary-dark text-black py-3 rounded-lg font-bold text-sm disabled:opacity-50 transition-colors">
-                {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar Professor'}
-              </button>
+              <div className="pt-2">
+                <button type="submit" disabled={isSaving} className="w-full bg-primary-container hover:brightness-110 text-on-primary-container py-4 rounded-2xl font-label-caps text-sm uppercase tracking-widest transition-all disabled:opacity-50 neon-glow shadow-lg shadow-primary-container/10 active:scale-[0.98]">
+                  {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar Professor'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -301,23 +301,23 @@ export default function MasterTeachers({ showToast }) {
 
       {/* Modal Ver Alunos */}
       {isStudentsModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0F172A] w-full max-w-sm rounded-lg border border-white/10 shadow-2xl">
-            <div className="p-5 border-b border-white/5 flex justify-between items-center">
-              <h3 className="font-bold text-white text-sm">Alunos de {selectedTeacherName}</h3>
-              <button onClick={() => setIsStudentsModal(false)}><X className="w-5 h-5 text-slate-400 hover:text-white" /></button>
+        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-sm rounded-[40px] border border-outline-variant/30 shadow-2xl animate-in zoom-in duration-300">
+            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest rounded-t-[40px]">
+              <h3 className="font-display-sm text-lg text-on-surface uppercase tracking-tight">Alunos de {selectedTeacherName}</h3>
+              <button onClick={() => setIsStudentsModal(false)} className="p-2 bg-surface-container rounded-xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"><span className="material-symbols-outlined">close</span></button>
             </div>
-            <div className="p-5 divide-y divide-white/5 max-h-80 overflow-y-auto">
+            <div className="p-6 divide-y divide-outline-variant/10 max-h-80 overflow-y-auto custom-scrollbar">
               {selectedTeacherStudents.map(s => (
-                <div key={s.id} className="py-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300">{s.name[0]}</div>
+                <div key={s.id} className="py-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center font-headline-sm text-on-surface-variant text-sm">{s.name[0]}</div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{s.name}</p>
-                    <p className="text-xs text-slate-400">@{s.username}</p>
+                    <p className="font-headline-sm text-on-surface text-sm">{s.name}</p>
+                    <p className="font-body-md text-xs text-on-surface-variant">@{s.username}</p>
                   </div>
                 </div>
               ))}
-              {selectedTeacherStudents.length === 0 && <p className="text-center py-8 text-slate-500 text-sm">Nenhum aluno.</p>}
+              {selectedTeacherStudents.length === 0 && <p className="text-center py-8 font-body-md text-on-surface-variant text-sm">Nenhum aluno.</p>}
             </div>
           </div>
         </div>
@@ -325,29 +325,29 @@ export default function MasterTeachers({ showToast }) {
 
       {/* Confirm Delete */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0F172A] w-full max-w-xs rounded-lg border border-white/10 shadow-2xl p-6 text-center">
-            <Trash2 className="w-10 h-10 text-rose-500 mx-auto mb-3" />
-            <h3 className="font-bold text-white mb-1">Excluir Professor?</h3>
-            <p className="text-xs text-slate-400 mb-4">Todos os alunos e treinos serão removidos permanentemente.</p>
+        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-xs rounded-3xl border border-outline-variant/30 shadow-2xl p-8 text-center animate-in zoom-in duration-300">
+            <span className="material-symbols-outlined text-5xl text-error mx-auto mb-4 block">delete</span>
+            <h3 className="font-headline-md text-on-surface mb-2">Excluir Professor?</h3>
+            <p className="font-body-md text-xs text-on-surface-variant mb-6">Todos os alunos e treinos serão removidos permanentemente.</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg font-semibold text-sm transition-colors">Cancelar</button>
-              <button onClick={() => handleDelete(confirmDelete)} className="flex-1 py-2.5 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 rounded-lg font-semibold text-sm transition-colors">Excluir</button>
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 py-3 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded-xl font-label-caps text-[10px] uppercase tracking-widest border border-outline-variant/30 transition-all">Cancelar</button>
+              <button onClick={() => handleDelete(confirmDelete)} className="flex-1 py-3 bg-error hover:brightness-110 text-on-error rounded-xl font-label-caps text-[10px] uppercase tracking-widest shadow-lg shadow-error/20 transition-all">Excluir</button>
             </div>
           </div>
         </div>
       )}
 
-      <style dangerouslySetInnerHTML={{ __html: `.input-field { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.625rem 0.75rem; font-size: 0.875rem; outline: none; transition: all 0.15s; color: white; } .input-field:focus { border-color: rgba(223,255,94,0.5); box-shadow: 0 0 0 3px rgba(223,255,94,0.1); } .input-field::placeholder { color: #64748b; }` }} />
+      <style dangerouslySetInnerHTML={{ __html: `.input-field { width: 100%; background: var(--surface-container); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1rem 1.25rem; font-size: 0.875rem; outline: none; transition: all 0.15s; color: white; } .input-field:focus { border-color: var(--primary-container); } .input-field::placeholder { color: #64748b; }` }} />
     </div>
   )
 }
 
 function Field({ label, children, required }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-        {label} {required && <span className="text-rose-400">*</span>}
+    <div className="space-y-2">
+      <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest block ml-1">
+        {label} {required && <span className="text-error">*</span>}
       </label>
       {children}
     </div>

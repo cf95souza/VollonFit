@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Progress &amp; Analytics - VollonFit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;0,800;0,900;1,800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#006f77",
+                        "outline-variant": "#444933",
+                        "primary-container": "#c3f400",
+                        "surface-container-highest": "#323539",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "inverse-on-surface": "#2d3135",
+                        "secondary-fixed": "#e2e2e6",
+                        "surface-variant": "#323539",
+                        "surface-container-lowest": "#0b0f12",
+                        "secondary-container": "#4a4b4f",
+                        "tertiary-fixed": "#7df4ff",
+                        "surface": "#101417",
+                        "inverse-surface": "#e0e2e8",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#283500",
+                        "background": "#101417",
+                        "on-secondary-fixed-variant": "#45474a",
+                        "on-background": "#e0e2e8",
+                        "primary": "#ffffff",
+                        "tertiary-container": "#7df4ff",
+                        "on-error": "#690005",
+                        "surface-container": "#1c2024",
+                        "primary-fixed": "#c3f400",
+                        "on-secondary-fixed": "#1a1c1f",
+                        "surface-container-high": "#272a2e",
+                        "on-tertiary-fixed": "#002022",
+                        "outline": "#8e9379",
+                        "tertiary": "#ffffff",
+                        "inverse-primary": "#506600",
+                        "on-primary-container": "#556d00",
+                        "surface-dim": "#101417",
+                        "primary-fixed-dim": "#abd600",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "on-surface": "#e0e2e8",
+                        "on-primary-fixed": "#161e00",
+                        "surface-bright": "#36393e",
+                        "secondary-fixed-dim": "#c6c6ca",
+                        "surface-container-low": "#181c20",
+                        "surface-tint": "#abd600",
+                        "on-secondary-container": "#bbbbbf",
+                        "on-tertiary": "#00363a",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "error-container": "#93000a",
+                        "on-secondary": "#2f3034",
+                        "secondary": "#c6c6ca"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "container-max": "1280px",
+                        "xl": "64px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "headline-lg": ["Montserrat"],
+                        "display-xl": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "800" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-display": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800" }],
+                        "display-xl": ["64px", { "lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "900" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glass-panel {
+            background: rgba(28, 32, 36, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .kinetic-glow {
+            box-shadow: 0 0 15px rgba(195, 244, 0, 0.2);
+        }
+        
+        .chart-bar {
+            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md pb-24 selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_20px_rgba(195,244,0,0.1)]">
+<div class="flex justify-between items-center px-gutter h-16 w-full max-w-container-max mx-auto">
+<button aria-label="Menu" class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150 p-2 -ml-2">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile italic font-black text-primary-fixed dark:text-primary-fixed tracking-tighter">
+                STRENGTH HUB
+            </h1>
+<button aria-label="Cart" class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150 p-2 -mr-2">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-gutter max-w-container-max mx-auto flex flex-col gap-lg">
+<!-- Header Section -->
+<section class="flex flex-col gap-xs">
+<h2 class="font-headline-md text-headline-md text-primary">Performance Analytics</h2>
+<p class="text-on-surface-variant font-body-md text-sm">Tracking your kinetic output over 12 weeks.</p>
+</section>
+<!-- 1RM Growth Chart (Glassmorphic Card) -->
+<section class="glass-panel rounded-xl p-md flex flex-col gap-md relative overflow-hidden">
+<!-- Decorative Accent -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 blur-[40px] rounded-full pointer-events-none -mt-10 -mr-10"></div>
+<div class="flex justify-between items-end">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">1RM Epley Estimation</h3>
+<p class="text-primary-fixed font-data-display text-data-display mt-xs">+15% Overall Growth</p>
+</div>
+<div class="bg-surface-container-high px-sm py-xs rounded-full border border-white/5">
+<span class="font-label-caps text-label-caps text-on-surface-variant">LBS</span>
+</div>
+</div>
+<!-- Simplified CSS Chart -->
+<div class="h-48 flex items-end justify-between gap-xs mt-sm pb-sm border-b border-white/10">
+<!-- Bars representing growth over weeks -->
+<div class="w-full bg-primary-container/20 rounded-t-sm h-[40%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-data-display text-[10px] text-primary">185</div>
+</div>
+<div class="w-full bg-primary-container/30 rounded-t-sm h-[45%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-data-display text-[10px] text-primary">195</div>
+</div>
+<div class="w-full bg-primary-container/40 rounded-t-sm h-[52%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-data-display text-[10px] text-primary">205</div>
+</div>
+<div class="w-full bg-primary-container/50 rounded-t-sm h-[60%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-data-display text-[10px] text-primary">215</div>
+</div>
+<div class="w-full bg-primary-container/70 rounded-t-sm h-[75%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-data-display text-[10px] text-primary">235</div>
+</div>
+<div class="w-full bg-primary-fixed rounded-t-sm h-[90%] kinetic-glow relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 font-data-display text-[12px] text-primary-fixed font-bold">255</div>
+</div>
+</div>
+<div class="flex justify-between px-xs font-data-display text-[10px] text-on-surface-variant">
+<span>W1</span>
+<span>W3</span>
+<span>W5</span>
+<span>W7</span>
+<span>W9</span>
+<span class="text-primary-fixed">W12</span>
+</div>
+</section>
+<!-- Personal Records Bento Grid -->
+<section class="flex flex-col gap-sm">
+<h3 class="font-headline-md text-headline-md text-primary px-xs">Personal Records</h3>
+<div class="grid grid-cols-2 gap-sm">
+<!-- Squat -->
+<div class="glass-panel rounded-lg p-sm flex flex-col gap-xs border-l-2 border-l-primary-fixed">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-caps text-label-caps">SQUAT</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="fitness_center">fitness_center</span>
+</div>
+<div class="font-data-display text-headline-md text-primary">140<span class="text-sm text-on-surface-variant ml-1">kg</span></div>
+<div class="flex items-center gap-xs text-primary-fixed mt-auto pt-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+<span class="font-data-display text-[10px]">+5kg</span>
+</div>
+</div>
+<!-- Deadlift -->
+<div class="glass-panel rounded-lg p-sm flex flex-col gap-xs border-l-2 border-l-tertiary-fixed">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-caps text-label-caps">DEADLIFT</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="fitness_center">fitness_center</span>
+</div>
+<div class="font-data-display text-headline-md text-primary">180<span class="text-sm text-on-surface-variant ml-1">kg</span></div>
+<div class="flex items-center gap-xs text-tertiary-fixed mt-auto pt-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+<span class="font-data-display text-[10px]">+10kg</span>
+</div>
+</div>
+<!-- Bench -->
+<div class="glass-panel rounded-lg p-sm flex flex-col gap-xs border-l-2 border-l-outline">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-caps text-label-caps">BENCH</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="fitness_center">fitness_center</span>
+</div>
+<div class="font-data-display text-headline-md text-primary">105<span class="text-sm text-on-surface-variant ml-1">kg</span></div>
+<div class="flex items-center gap-xs text-on-surface-variant mt-auto pt-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="remove">remove</span>
+<span class="font-data-display text-[10px]">Maintained</span>
+</div>
+</div>
+<!-- OHP -->
+<div class="glass-panel rounded-lg p-sm flex flex-col gap-xs border-l-2 border-l-primary-fixed">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-caps text-label-caps">OHP</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="fitness_center">fitness_center</span>
+</div>
+<div class="font-data-display text-headline-md text-primary">75<span class="text-sm text-on-surface-variant ml-1">kg</span></div>
+<div class="flex items-center gap-xs text-primary-fixed mt-auto pt-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+<span class="font-data-display text-[10px]">+2.5kg</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Body Measurements Comparison -->
+<section class="glass-panel rounded-xl p-md flex flex-col gap-md mb-lg">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Body Composition</h3>
+<span class="bg-surface-container-high px-sm py-xs rounded-full border border-white/5 font-label-caps text-label-caps text-primary-fixed">12 WEEKS</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Weight -->
+<div class="flex items-center justify-between py-2 border-b border-white/5">
+<span class="font-body-md text-on-surface-variant">Bodyweight</span>
+<div class="flex items-center gap-sm font-data-display">
+<span class="text-on-surface-variant line-through">85kg</span>
+<span class="material-symbols-outlined text-[16px] text-primary-fixed" data-icon="arrow_right_alt">arrow_right_alt</span>
+<span class="text-primary font-bold">82kg</span>
+</div>
+</div>
+<!-- Body Fat -->
+<div class="flex items-center justify-between py-2 border-b border-white/5">
+<span class="font-body-md text-on-surface-variant">Body Fat %</span>
+<div class="flex items-center gap-sm font-data-display">
+<span class="text-on-surface-variant line-through">18%</span>
+<span class="material-symbols-outlined text-[16px] text-primary-fixed" data-icon="arrow_right_alt">arrow_right_alt</span>
+<span class="text-primary font-bold">14.5%</span>
+</div>
+</div>
+<!-- Muscle Mass (Visual representation instead of just numbers) -->
+<div class="mt-xs">
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>EST. LEAN MASS (KG)</span>
+<span class="text-tertiary-fixed">+1.2kg</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex">
+<!-- 'Before' segment -->
+<div class="h-full bg-surface-variant w-[68%]"></div>
+<!-- 'Growth' segment -->
+<div class="h-full bg-tertiary-fixed w-[5%] kinetic-glow" style="box-shadow: 0 0 10px rgba(125,244,255,0.4);"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<!-- The intent of this page is "Progress & Analytics", so "Progress" is the active tab. -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/90 dark:bg-surface-container/90 backdrop-blur-lg border-t border-white/5 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2">
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-caps text-label-caps">Training</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Squads</span>
+</a>
+<!-- Active Tab -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1.5 transition-all duration-300 shadow-[0_0_15px_rgba(195,244,0,0.3)] hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="leaderboard" data-weight="fill" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+<span class="font-label-caps text-label-caps font-black">Progress</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</div>
+</nav>
+<script>
+        // Simple entry animation for chart bars
+        document.addEventListener('DOMContentLoaded', () => {
+            const chartBars = document.querySelectorAll('.chart-bar');
+            chartBars.forEach((bar, index) => {
+                const targetHeight = bar.getAttribute('data-height');
+                setTimeout(() => {
+                    bar.style.height = targetHeight;
+                }, 100 * index);
+            });
+        });
+    </script>
+</body></html>

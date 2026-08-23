@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Users, ChevronRight } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function StudentsTab({ onViewProfile, showToast, searchTerm, teacherInfo }) {
@@ -80,92 +79,94 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-bold text-white">Gestão de Alunos</h3>
-          <p className="text-xs text-slate-500">Cadastre e gerencie o acesso de seus alunos</p>
+          <h3 className="font-headline-lg text-lg text-on-surface">Gestão de Alunos</h3>
+          <p className="font-body-md text-xs text-on-surface-variant">Cadastre e gerencie o acesso de seus alunos</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-primary hover:bg-primary-dark text-black px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(223,255,94,0.2)]"
+          className="bg-primary-container hover:brightness-110 text-on-primary-container px-4 py-2 rounded-xl text-xs font-label-caps uppercase tracking-wider transition-all flex items-center gap-2 neon-glow shadow-[0_0_15px_rgba(195,244,0,0.2)]"
         >
-          <Plus className="w-4 h-4" /> Novo Aluno
+          <span className="material-symbols-outlined text-sm">add</span> Novo Aluno
         </button>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">
-          {[1, 2].map(i => <div key={i} className="h-32 bg-slate-800 animate-pulse rounded-2xl" />)}
+          {[1, 2].map(i => <div key={i} className="h-32 bg-surface-container-highest animate-pulse rounded-3xl" />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredStudents.map(s => (
-            <div key={s.id} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex items-center justify-between group hover:border-primary/30 transition-all">
+            <div key={s.id} className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm flex items-center justify-between group hover:border-primary-container/30 transition-all">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-white/5">
+                <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-2xl font-headline-lg text-on-surface-variant group-hover:bg-primary-container/10 group-hover:text-primary-container transition-colors border border-outline-variant/30">
                   {s.name[0]}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-white">{s.name}</h3>
-                  <p className="text-sm text-slate-400">@{s.username}</p>
+                  <h3 className="font-headline-md text-lg text-on-surface">{s.name}</h3>
+                  <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mt-1">@{s.username}</p>
                 </div>
               </div>
               <button 
                 onClick={() => onViewProfile(s)}
-                className="p-3 bg-white/5 text-slate-400 rounded-xl hover:bg-primary hover:text-black transition-all group-hover:scale-110 flex items-center gap-2"
+                className="p-3 bg-surface-container text-on-surface-variant rounded-xl hover:bg-primary-container hover:text-on-primary-container transition-all group-hover:scale-110 flex items-center gap-2 border border-outline-variant/30 hover:border-primary-container"
               >
-                <span className="text-xs font-bold px-1">Ver Perfil</span>
-                <ChevronRight className="w-5 h-5" />
+                <span className="text-[10px] font-label-caps px-1 uppercase tracking-wider">Ver Perfil</span>
+                <span className="material-symbols-outlined text-lg">chevron_right</span>
               </button>
             </div>
           ))}
           {students.length === 0 && (
-            <div className="col-span-full py-20 text-center bg-[#111111] rounded-3xl border-2 border-dashed border-white/5">
-              <Users className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-              <p className="text-slate-500 font-medium">Nenhum aluno cadastrado ainda.</p>
+            <div className="col-span-full py-20 text-center glass-panel rounded-3xl border-2 border-dashed border-outline-variant/30">
+              <span className="material-symbols-outlined text-5xl text-on-surface-variant/50 mx-auto mb-4 block">groups</span>
+              <p className="text-on-surface-variant font-body-md">Nenhum aluno cadastrado ainda.</p>
             </div>
           )}
         </div>
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" /> Cadastrar Novo Aluno
+        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-panel border border-outline-variant/30 rounded-3xl max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
+            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest rounded-t-3xl">
+              <h3 className="font-headline-lg text-lg text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary-container">add</span> Cadastrar Novo Aluno
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-300 transition-colors">Fechar</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
             <form onSubmit={handleCreateStudent} className="p-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nome Completo</label>
+                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Nome Completo</label>
                 <input 
                   required
                   type="text" 
                   value={newStudent.name}
                   onChange={e => setNewStudent({...newStudent, name: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
+                  className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container transition-all outline-none"
                   placeholder="Ex: Caio França"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuário (Username)</label>
+                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Usuário (Username)</label>
                 <input 
                   required
                   type="text" 
                   value={newStudent.username}
                   onChange={e => setNewStudent({...newStudent, username: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
+                  className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container transition-all outline-none"
                   placeholder="Ex: caio.franca"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Senha de Acesso</label>
+                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Senha de Acesso</label>
                 <input 
                   required
                   type="password" 
                   value={newStudent.password}
                   onChange={e => setNewStudent({...newStudent, password: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm focus:border-primary/50 transition-all outline-none"
+                  className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container transition-all outline-none"
                   placeholder="Defina uma senha"
                 />
               </div>
@@ -173,14 +174,14 @@ export default function StudentsTab({ onViewProfile, showToast, searchTerm, teac
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-700 transition-all border border-white/5"
+                  className="flex-1 px-4 py-3 bg-surface-container text-on-surface-variant rounded-xl font-label-caps text-sm hover:bg-surface-container-high hover:text-on-surface transition-all border border-outline-variant/30 uppercase tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-primary text-black rounded-xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-50"
+                  className="flex-[2] px-4 py-3 bg-primary-container text-on-primary-container rounded-xl font-label-caps text-sm hover:brightness-110 transition-all disabled:opacity-50 uppercase tracking-widest neon-glow"
                 >
                   {isSaving ? 'Salvando...' : 'Cadastrar Aluno'}
                 </button>

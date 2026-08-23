@@ -355,4 +355,8 @@ CREATE POLICY "Anon manage squad members" ON gym_squad_members FOR ALL TO anon U
 CREATE POLICY "Anon manage squad posts" ON gym_squad_posts FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon manage squad challenges" ON gym_squad_challenges FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon manage products" ON gym_marketplace_products FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Anon manage nutrition logs" ON gym_nutrition_logs FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Anon read achievements" ON gym_achievements FOR SELECT TO anon USING (true);
+CREATE POLICY "Master manage achievements" ON gym_achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Anon manage student achievements" ON gym_student_achievements FOR ALL TO anon USING (true) WITH CHECK (true);
 

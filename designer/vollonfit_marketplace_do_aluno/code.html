@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VollonFit - Student Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@600&amp;family=Montserrat:ital,wght@0,700;0,800;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#006f77",
+                      "outline-variant": "#444933",
+                      "primary-container": "#c3f400",
+                      "surface-container-highest": "#323539",
+                      "error": "#ffb4ab",
+                      "on-surface-variant": "#c4c9ac",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "inverse-on-surface": "#2d3135",
+                      "secondary-fixed": "#e2e2e6",
+                      "surface-variant": "#323539",
+                      "surface-container-lowest": "#0b0f12",
+                      "secondary-container": "#4a4b4f",
+                      "tertiary-fixed": "#7df4ff",
+                      "surface": "#101417",
+                      "inverse-surface": "#e0e2e8",
+                      "on-error-container": "#ffdad6",
+                      "on-primary": "#283500",
+                      "background": "#101417",
+                      "on-secondary-fixed-variant": "#45474a",
+                      "on-background": "#e0e2e8",
+                      "primary": "#ffffff",
+                      "tertiary-container": "#7df4ff",
+                      "on-error": "#690005",
+                      "surface-container": "#1c2024",
+                      "primary-fixed": "#c3f400",
+                      "on-secondary-fixed": "#1a1c1f",
+                      "surface-container-high": "#272a2e",
+                      "on-tertiary-fixed": "#002022",
+                      "outline": "#8e9379",
+                      "tertiary": "#ffffff",
+                      "inverse-primary": "#506600",
+                      "on-primary-container": "#556d00",
+                      "surface-dim": "#101417",
+                      "primary-fixed-dim": "#abd600",
+                      "tertiary-fixed-dim": "#00dbe9",
+                      "on-surface": "#e0e2e8",
+                      "on-primary-fixed": "#161e00",
+                      "surface-bright": "#36393e",
+                      "secondary-fixed-dim": "#c6c6ca",
+                      "surface-container-low": "#181c20",
+                      "surface-tint": "#abd600",
+                      "on-secondary-container": "#bbbbbf",
+                      "on-tertiary": "#00363a",
+                      "on-tertiary-fixed-variant": "#004f54",
+                      "error-container": "#93000a",
+                      "on-secondary": "#2f3034",
+                      "secondary": "#c6c6ca"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "12px",
+                      "xs": "4px",
+                      "base": "8px",
+                      "md": "24px",
+                      "lg": "40px",
+                      "container-max": "1280px",
+                      "xl": "64px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Montserrat"
+                      ],
+                      "label-caps": [
+                              "Montserrat"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "data-display": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg": [
+                              "Montserrat"
+                      ],
+                      "display-xl": [
+                              "Montserrat"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Montserrat"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "data-display": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "display-xl": [
+                              "64px",
+                              {
+                                      "lineHeight": "72px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "900"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .glass-panel {
+            background: rgba(44, 48, 54, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(195,244,0,0.3);
+        }
+
+        .neon-text-glow {
+            text-shadow: 0 0 10px rgba(195,244,0,0.5);
+        }
+
+        /* Hide scrollbar for horizontal scrolling but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-[90px] pt-[80px]">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_20px_rgba(195,244,0,0.1)]">
+<div class="flex justify-between items-center px-gutter h-16 w-full max-w-container-max mx-auto">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150 p-2 -ml-2 rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile italic font-black text-primary-fixed dark:text-primary-fixed tracking-tighter neon-text-glow">
+                STRENGTH HUB
+            </h1>
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150 p-2 -mr-2 rounded-full relative">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-primary-fixed rounded-full shadow-[0_0_8px_#c3f400]"></span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="px-gutter w-full max-w-container-max mx-auto space-y-md">
+<!-- Hero Section -->
+<section class="relative w-full h-[200px] rounded-xl overflow-hidden glass-panel flex flex-col justify-end p-gutter">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-60" data-alt="A high-contrast, energetic product shot of premium fitness gear and supplements arrayed on a dark, textured gym floor. Strong, directional lighting casts sharp shadows, highlighting the sleek, modern design of the products. Subtle electric green neon lights in the background create a cyber-athletic, high-performance atmosphere. The mood is intense, focused, and ready for action." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzrxwe2173m0MurWFseK20TZulILs_zLRbYc832XRbWJQoM-fKscR_M16n7ZpmRn1hHsaLbF-KcvumhOZAm6YksnS0s9haTuTuxhZ8hsfVPl6FHaXbqjOHZBaQm_S_dRycBvPb6CSTVQ18syIARCbkOpRLj1KKnNtwOlSF4Xn2zWBkVvm8l1LxSHdDaIXv0xSMOsl4THQuZ4o-ZnNOcEadRKYP0kaSAibzYFIUtdKkmhR7EsEBrFhr"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
+</div>
+<div class="relative z-10 space-y-xs">
+<span class="inline-block px-2 py-1 bg-primary-fixed/20 text-primary-fixed font-label-caps text-label-caps rounded-sm border border-primary-fixed/30 uppercase">Student Exclusive</span>
+<h2 class="font-headline-md text-headline-md text-white font-bold">Fuel Your Progress</h2>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80">Curated essentials for peak performance.</p>
+</div>
+</section>
+<!-- Categories / Filters (Horizontal Scroll) -->
+<section class="w-full overflow-x-auto no-scrollbar py-2 -mx-gutter px-gutter">
+<div class="flex space-x-sm w-max">
+<button class="bg-primary-fixed text-on-primary font-label-caps text-label-caps px-4 py-2 rounded-full uppercase tracking-wider neon-glow font-bold">All Gear</button>
+<button class="glass-panel text-on-surface font-label-caps text-label-caps px-4 py-2 rounded-full uppercase tracking-wider hover:border-primary-fixed/50 transition-colors">Supplements</button>
+<button class="glass-panel text-on-surface font-label-caps text-label-caps px-4 py-2 rounded-full uppercase tracking-wider hover:border-primary-fixed/50 transition-colors">Apparel</button>
+<button class="glass-panel text-on-surface font-label-caps text-label-caps px-4 py-2 rounded-full uppercase tracking-wider hover:border-primary-fixed/50 transition-colors">Equipment</button>
+</div>
+</section>
+<!-- Product Grid (Bento Style) -->
+<section class="grid grid-cols-2 gap-sm">
+<!-- Product 1: Vollon Whey Protein (Featured - spans 2 cols) -->
+<article class="col-span-2 glass-panel rounded-xl overflow-hidden relative group active:scale-[0.98] transition-transform duration-200">
+<div class="absolute top-sm right-sm z-10 bg-surface/80 backdrop-blur-sm px-2 py-1 rounded flex items-center space-x-xs border border-white/5">
+<span class="material-symbols-outlined text-primary-fixed text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-data-display text-data-display text-white">4.9</span>
+</div>
+<div class="h-[180px] w-full bg-surface-container-high relative">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" data-alt="A sleek, matte black tub of premium whey protein isolate standing against a dark, dramatic background. The tub features minimalistic, aggressive branding with glowing electric green accents. Dynamic, misty lighting swirls around the base of the product, suggesting raw power and recovery. The image is hyper-detailed, showcasing the texture of the packaging in a high-contrast, modern athletic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACWQp8AKTlbkCp-oXxHEP_wg9Zdx39KXeadaXatgxWz0yxhVoVP3gNITNF3mJi8YSra4TUPvWhxqGvAljBnbGL2vFnYXzuEdrZFNSBYsPwcYO3NKsrCW8uzUJW0gYddV7BZx66ui_yEn20mM2bdc4JwRWJYhDV2zqydR3dpoYN-3ON1xwDc6ZiEh7Y97yHqQdilcnAdfQZqnIUpMtPyirD4dM-MjEiyg6C3uqglo_8OzxrLQkmgIkg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-highest to-transparent opacity-80"></div>
+</div>
+<div class="p-sm flex flex-col justify-between space-y-sm bg-surface-container-highest/50">
+<div>
+<h3 class="font-headline-md text-headline-md text-white">Vollon Whey Protein</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm mt-xs">Premium Isolate Blend - 2lbs</p>
+</div>
+<div class="flex justify-between items-center pt-xs">
+<div class="font-data-display text-data-display text-primary-fixed text-lg">$45.00</div>
+<button class="bg-primary-fixed text-on-primary font-label-caps text-label-caps px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-primary-fixed-dim transition-colors shadow-[0_0_10px_rgba(195,244,0,0.2)]">Buy Now</button>
+</div>
+</div>
+</article>
+<!-- Product 2: Creatina Monohidratada -->
+<article class="col-span-1 glass-panel rounded-xl overflow-hidden relative group active:scale-[0.98] transition-transform duration-200 flex flex-col">
+<div class="absolute top-xs right-xs z-10 bg-surface/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center space-x-1 border border-white/5">
+<span class="material-symbols-outlined text-primary-fixed text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-data-display text-data-display text-white text-xs">4.8</span>
+</div>
+<div class="h-[140px] w-full bg-surface-container-high relative">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" data-alt="A clean, clinical-looking pouch of Creatine Monohydrate placed on a dark, reflective surface. The packaging is minimalist dark grey with sharp, angular typography and subtle neon green highlights. The lighting is cold and precise, emphasizing the scientific, high-performance nature of the supplement. The overall mood is serious and professional, fitting a high-end athletic brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcK7Fm6r1RgGfZhJpM16WPlDQyGvi9Nh2z4q-g8u2l81xPOdJjKAnbw6MvXYbjVIqHEev0uEuSX-Y2GFs76iWbvqXCBa3nG4EA-FiHRWEWMfcPVVLRNxSDSp0SO-dleemDoUg40MI2ZWT2VzfkkR_SHk7Kxjq8ZmSiPf6Bc6xgs7FVgBkKfHNI3HZyc9ydPyYz5bQY7NZ9aIhpSpEQL3RoqN9_56LK_YxsP7MIAmSmZTohzYcN0maL"/>
+</div>
+<div class="p-xs flex flex-col flex-grow justify-between bg-surface-container-highest/50">
+<div class="mb-sm">
+<h3 class="font-body-md text-body-md font-bold text-white leading-tight">Creatina Monohidratada</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-70 mt-1 lowercase">300g pure</p>
+</div>
+<div class="flex flex-col space-y-2 mt-auto">
+<div class="font-data-display text-data-display text-primary-fixed">$22.50</div>
+<button class="w-full bg-transparent border border-primary-fixed text-primary-fixed font-label-caps text-label-caps py-1.5 rounded uppercase hover:bg-primary-fixed/10 transition-colors">Add</button>
+</div>
+</div>
+</article>
+<!-- Product 3: Pro Training Shirt -->
+<article class="col-span-1 glass-panel rounded-xl overflow-hidden relative group active:scale-[0.98] transition-transform duration-200 flex flex-col">
+<div class="absolute top-xs right-xs z-10 bg-surface/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center space-x-1 border border-white/5">
+<span class="material-symbols-outlined text-primary-fixed text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-data-display text-data-display text-white text-xs">5.0</span>
+</div>
+<div class="h-[140px] w-full bg-surface-container-high relative">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" data-alt="A premium, dark graphite athletic training shirt displayed against a deep black background. The fabric texture looks highly breathable and technical, with subtle geometric patterns indicating ventilation zones. The lighting catches a faint electric green logo on the chest. The visual style is fast, modern, and aggressive, appealing to serious athletes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA74EoBmA8Jz-0E5YRjly2fCl21Q-8YLVdTafLTsWW85b_CPI4nPo7PJABUkRWrHJO_TNhmfmjNJue2Oo781l9JAsbkmc5IxVVS1ZZzcUcLFR1KRqlt9tRS8u4XqHy3QOQAo1cW6YWFXkeslNMg7Nr5fHwwobWCPFjHSh0XtqA3Y4uoyqcDVPACCKQaA-gxBJzebpeU-5OMAhIphB6oCNfLyDDs2Hv0GfmMCLDGd88NwuZLuAPsQ1tc"/>
+</div>
+<div class="p-xs flex flex-col flex-grow justify-between bg-surface-container-highest/50">
+<div class="mb-sm">
+<h3 class="font-body-md text-body-md font-bold text-white leading-tight">Pro Training Shirt</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-70 mt-1 lowercase">kinetic weave</p>
+</div>
+<div class="flex flex-col space-y-2 mt-auto">
+<div class="font-data-display text-data-display text-primary-fixed">$38.00</div>
+<button class="w-full bg-transparent border border-primary-fixed text-primary-fixed font-label-caps text-label-caps py-1.5 rounded uppercase hover:bg-primary-fixed/10 transition-colors">Add</button>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/90 dark:bg-surface-container/90 backdrop-blur-lg border-t border-white/5 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2">
+<!-- Inactive -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-label-caps mt-1">Training</span>
+</button>
+<!-- Active (Shopping/Marketplace isn't directly listed in tabs, but assuming it sits conceptually under a general or profile context, or maybe Squads if social commerce. Given strict hierarchy, we map to Profile for personal purchases, or keep them all inactive if it's a dedicated store top-level not in the main 4. However, the rule says "MUST pick the single closest match". Profile is closest to "Student"). Actually, let's keep it clean, maybe none are active if it's a transactional branch, but the prompt says "Student Marketplace Screen". I will set 'Profile' as active as it relates to the user's account/student status. -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps mt-1">Squads</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant py-1.5 hover:text-primary-fixed-dim active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-caps text-label-caps mt-1">Progress</span>
+</button>
+<!-- Active context: Profile / Account -> Student Store -->
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1.5 transition-all duration-300 shadow-[0_0_15px_rgba(195,244,0,0.3)] active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

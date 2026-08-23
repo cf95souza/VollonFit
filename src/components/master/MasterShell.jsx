@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
-import {
-  LayoutDashboard, Users2, Receipt, Dumbbell, Settings,
-  LogOut, Gem, Menu, X, ChevronRight, Building2, ShoppingBag
-} from 'lucide-react'
 
 export default function MasterShell({ children, activeTab, setActiveTab }) {
   const navigate = useNavigate()
@@ -16,23 +12,23 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
   }
 
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'academies', label: 'Academias (B2B)', icon: Building2 },
-    { id: 'teachers', label: 'Professores', icon: Users2 },
-    { id: 'billing', label: 'Faturamento', icon: Receipt },
-    { id: 'exercises', label: 'Exercícios', icon: Dumbbell },
-    { id: 'products', label: 'Marketplace ADM', icon: ShoppingBag },
-    { id: 'settings', label: 'Configurações', icon: Settings },
+    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+    { id: 'academies', label: 'Academias (B2B)', icon: 'domain' },
+    { id: 'teachers', label: 'Professores', icon: 'groups' },
+    { id: 'billing', label: 'Faturamento', icon: 'receipt_long' },
+    { id: 'exercises', label: 'Exercícios', icon: 'fitness_center' },
+    { id: 'products', label: 'Marketplace ADM', icon: 'shopping_bag' },
+    { id: 'settings', label: 'Configurações', icon: 'settings' },
   ]
 
   const NavContent = () => (
     <>
-      <div className="p-5 border-b border-slate-700/50 flex items-center gap-3">
-        <div className="bg-primary p-2 rounded-lg text-black">
-          <Gem className="w-5 h-5" />
+      <div className="p-5 border-b border-outline-variant/30 flex items-center gap-3">
+        <div className="bg-primary-container p-2 rounded-lg text-on-primary-container shadow-lg shadow-primary-container/20 neon-glow">
+          <span className="material-symbols-outlined text-xl">diamond</span>
         </div>
-        <span className="text-white font-bold tracking-tight text-lg">
-          VOLLON<span className="text-primary text-xs font-normal ml-0.5">FIT</span>
+        <span className="text-on-surface font-display-md tracking-tight text-lg">
+          VOLLON<span className="text-primary-container text-xs font-normal ml-0.5">FIT</span>
         </span>
       </div>
       <nav className="flex-1 px-3 py-6 space-y-1">
@@ -40,24 +36,24 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
           <button
             key={item.id}
             onClick={() => { setActiveTab(item.id); setDrawerOpen(false) }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-label-caps text-[10px] uppercase tracking-widest transition-all ${
               activeTab === item.id
-                ? 'bg-primary text-black font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-primary-container text-on-primary-container shadow-lg shadow-primary-container/20 neon-glow'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
             }`}
           >
-            <item.icon className="w-5 h-5" />
+            <span className="material-symbols-outlined text-lg">{item.icon}</span>
             {item.label}
-            {activeTab === item.id && <ChevronRight className="w-4 h-4 ml-auto" />}
+            {activeTab === item.id && <span className="material-symbols-outlined text-sm ml-auto">chevron_right</span>}
           </button>
         ))}
       </nav>
-      <div className="p-3 border-t border-slate-700/50">
+      <div className="p-3 border-t border-outline-variant/30">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-rose-400 hover:bg-rose-400/5 rounded-lg transition-all text-sm"
+          className="w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all font-label-caps text-[10px] uppercase tracking-widest"
         >
-          <LogOut className="w-5 h-5" />
+          <span className="material-symbols-outlined text-lg">logout</span>
           Sair
         </button>
       </div>
@@ -65,22 +61,22 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
   )
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-black font-sans text-slate-200">
+    <div className="flex h-screen w-full overflow-hidden bg-surface font-sans text-on-surface">
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex w-60 bg-[#0F172A] border-r border-white/5 flex-col shrink-0">
+      <aside className="hidden lg:flex w-60 bg-surface-container border-r border-outline-variant/30 flex-col shrink-0">
         <NavContent />
       </aside>
 
       {/* Drawer Mobile */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-          <aside className="relative w-64 h-full bg-[#0F172A] flex flex-col animate-in slide-in-from-left duration-200 border-r border-white/10">
+          <div className="absolute inset-0 bg-surface/80 backdrop-blur-md" onClick={() => setDrawerOpen(false)} />
+          <aside className="relative w-64 h-full bg-surface-container flex flex-col animate-in slide-in-from-left duration-200 border-r border-outline-variant/30">
             <button
               onClick={() => setDrawerOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface"
             >
-              <X className="w-5 h-5" />
+              <span className="material-symbols-outlined">close</span>
             </button>
             <NavContent />
           </aside>
@@ -88,17 +84,17 @@ export default function MasterShell({ children, activeTab, setActiveTab }) {
       )}
 
       {/* Main */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0A]">
-        <header className="h-14 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 px-4 lg:px-8 flex items-center justify-between shrink-0">
+      <main className="flex-1 flex flex-col overflow-hidden bg-surface">
+        <header className="h-14 bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/30 px-4 lg:px-8 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => setDrawerOpen(true)} className="lg:hidden text-slate-400 hover:text-white">
-              <Menu className="w-6 h-6" />
+            <button onClick={() => setDrawerOpen(true)} className="lg:hidden text-on-surface-variant hover:text-on-surface">
+              <span className="material-symbols-outlined">menu</span>
             </button>
-            <h2 className="text-base lg:text-lg font-bold text-white truncate">
+            <h2 className="font-headline-md text-on-surface truncate">
               {navItems.find(n => n.id === activeTab)?.label || 'VollonFit'}
             </h2>
           </div>
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-black font-bold text-xs shadow-[0_0_10px_rgba(223,255,94,0.3)]">
+          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-caps text-[10px] shadow-[0_0_10px_rgba(195,244,0,0.3)] neon-glow">
             CS
           </div>
         </header>

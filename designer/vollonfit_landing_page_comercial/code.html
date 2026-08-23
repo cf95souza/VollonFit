@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VollonFit - Transforme sua gestão de treinos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#323539",
+                        "surface": "#101417",
+                        "on-secondary-fixed-variant": "#45474a",
+                        "surface-container-high": "#272a2e",
+                        "secondary-container": "#4a4b4f",
+                        "on-secondary-container": "#bbbbbf",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#1a1c1f",
+                        "inverse-on-surface": "#2d3135",
+                        "on-secondary": "#2f3034",
+                        "on-background": "#e0e2e8",
+                        "inverse-primary": "#506600",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-surface": "#e0e2e8",
+                        "tertiary-container": "#7df4ff",
+                        "surface-bright": "#36393e",
+                        "outline-variant": "#444933",
+                        "background": "#101417",
+                        "surface-container-low": "#181c20",
+                        "on-tertiary": "#00363a",
+                        "primary": "#ffffff",
+                        "tertiary": "#ffffff",
+                        "surface-container": "#1c2024",
+                        "primary-fixed": "#c3f400",
+                        "inverse-surface": "#e0e2e8",
+                        "secondary": "#c6c6ca",
+                        "error-container": "#93000a",
+                        "surface-tint": "#abd600",
+                        "secondary-fixed-dim": "#c6c6ca",
+                        "on-tertiary-container": "#006f77",
+                        "primary-fixed-dim": "#abd600",
+                        "surface-container-lowest": "#0b0f12",
+                        "surface-dim": "#101417",
+                        "on-primary": "#283500",
+                        "surface-variant": "#323539",
+                        "on-primary-fixed": "#161e00",
+                        "on-primary-container": "#556d00",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "tertiary-fixed": "#7df4ff",
+                        "secondary-fixed": "#e2e2e6",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "outline": "#8e9379",
+                        "primary-container": "#c3f400",
+                        "on-tertiary-fixed": "#002022",
+                        "on-primary-fixed-variant": "#3c4d00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "8px",
+                        "gutter": "16px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "container-max": "1280px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Montserrat"],
+                        "headline-lg": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "display-xl": ["Montserrat"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "800" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-display": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-xl": ["64px", { "lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "900" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(195, 244, 0, 0.2);
+        }
+        .glass-panel {
+            background: rgba(39, 42, 46, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<nav class="fixed w-full z-50 bg-surface/80 backdrop-blur-md">
+<div class="flex justify-between items-center w-full px-gutter py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-3xl">fitness_center</span>
+<span class="text-headline-md font-headline-md font-black text-primary dark:text-primary tracking-tight">VollonFit</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary pb-1" href="#features">Product</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#solutions">Solutions</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#pricing">Pricing</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#about">About</a>
+</div>
+<a class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary font-label-caps text-label-caps px-6 py-3 rounded-lg hover:shadow-[0_0_15px_rgba(195,244,0,0.4)] transition-all hover:-translate-y-0.5" href="https://wa.me/yournumber" target="_blank">
+                Start Free Trial
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+</div>
+</nav>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-gutter overflow-hidden">
+<!-- Background Elements -->
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-surface-container-highest via-background to-background opacity-80 -z-10"></div>
+<div class="absolute top-1/4 right-0 w-[500px] h-[500px] bg-primary-container/5 rounded-full blur-[100px] -z-10"></div>
+<div class="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-tertiary-container/5 rounded-full blur-[120px] -z-10"></div>
+<div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-xl items-center w-full">
+<div class="flex flex-col items-start z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-outline-variant bg-surface-container-high/50 mb-6">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">SaaS para Treinadores e Academias</span>
+</div>
+<h1 class="font-display-xl text-display-xl text-primary leading-tight mb-6">
+                        Transforme sua <br class="hidden md:block"/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-tertiary-fixed">gestão de treinos</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-xl">
+                        A plataforma definitiva que combina inteligência artificial, gamificação e gestão robusta para elevar o desempenho dos seus alunos e o faturamento do seu negócio.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+<a class="flex items-center justify-center gap-2 bg-primary-container text-on-primary font-headline-md text-headline-md px-8 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(195,244,0,0.5)] transition-all transform hover:-translate-y-1" href="https://wa.me/yournumber" target="_blank">
+<span class="material-symbols-outlined">chat</span>
+                            Teste Grátis Agora
+                        </a>
+<a class="flex items-center justify-center gap-2 bg-transparent text-primary font-headline-md text-headline-md px-8 py-4 rounded-xl border-2 border-primary-container hover:bg-primary-container/10 transition-colors" href="#features">
+                            Ver Funcionalidades
+                        </a>
+</div>
+</div>
+<div class="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square z-10 flex items-center justify-center">
+<!-- Dashboard Preview Hero Image -->
+<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-high to-surface-container rounded-2xl border border-outline-variant/30 shadow-2xl overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-500 ease-out">
+<img class="w-full h-full object-cover opacity-80" data-alt="A sleek, modern high-tech dashboard interface displayed on a tablet device, angled slightly to show depth. The screen displays complex fitness data charts, glowing neon green and blue progress rings, and a dark mode UI. The background is a dimly lit, professional high-performance gym with subtle lens flares and a cinematic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_ifNwcDIGsVOIvlmjyDzZR_dYU2z-7FK3BvPYIAaAVZugSPBlPX1AGKk2QfPXqNXJKMc9uSs3_adJduj9Cc2SkvM8WO5LjWtaYTx4oogMg8fWaf60TPj2mNsTm1iep4XHYHGanvbMF-jJhNYlP2i2JcYdYiUkP53Die9m9PUsEqBASQPBUSRsIGyXZa6M_ioJVYGtMZJBuMwxjqw1h4eKevzxpAPmWSoEXPIeCEa6Lfle_qNpfFix"/>
+<!-- Floating Glass Elements overlay -->
+<div class="absolute top-1/4 -left-8 glass-panel p-4 rounded-xl shadow-lg flex items-center gap-3 animate-[bounce_4s_ease-in-out_infinite]">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary">trending_up</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">1RM PREDICT</p>
+<p class="font-data-display text-data-display text-primary">+15% FORÇA</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Grid -->
+<section class="py-xl px-gutter bg-surface-container-lowest relative" id="features">
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-4">Potência em cada funcionalidade</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">Tecnologia desenvolvida para o esporte de alto rendimento, acessível para o seu box ou academia.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="glass-panel rounded-2xl p-8 hover:border-primary-container/50 transition-colors group">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary-container">psychology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-3">IA Coach 2.0</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Predição de 1RM em tempo real e ajustes dinâmicos de carga baseados no histórico de fadiga e performance do atleta.</p>
+</div>
+<!-- Feature 2 -->
+<div class="glass-panel rounded-2xl p-8 hover:border-tertiary-fixed/50 transition-colors group">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:bg-tertiary-fixed/20 transition-colors">
+<span class="material-symbols-outlined text-3xl text-tertiary-fixed">groups</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-3">Squads &amp; Gamificação</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Crie comunidades engajadas. Leaderboards ao vivo, badges de conquista e interação social estilo rede para motivar treinos.</p>
+</div>
+<!-- Feature 3 -->
+<div class="glass-panel rounded-2xl p-8 hover:border-primary-container/50 transition-colors group">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center mb-6 group-hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary-container">admin_panel_settings</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-3">Gestão Multi-tenant</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Administre múltiplas filiais, treinadores e milhares de alunos em um único painel centralizado com permissões granulares.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- B2B Enterprise Section -->
+<section class="py-xl px-gutter relative overflow-hidden" id="solutions">
+<div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="order-2 lg:order-1 relative rounded-2xl overflow-hidden glass-panel h-[500px]">
+<img class="w-full h-full object-cover opacity-70 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700" data-alt="A detailed view of a dark mode business intelligence dashboard for a gym management software. Highlighting revenue graphs in bright neon green, member retention charts, and active user counters. The UI is sleek, data-dense, with a professional B2B SaaS aesthetic, sharply focused with soft ambient lighting around the edges." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbq6HqT2FE1EGlxUSePV1Q7SCaiHzRPaQ-HzFT0UMKnaIHbrUV0P4saIYxDsEX5B7XSQ-kGILVNC6Nn1HAUmq7ctfpesZk6pDTtZnhzlc6KQv6ygXRk3mlUZXxAPQ4ieaZsSH0zHZ3lvnw_pa8UD-m4FxRmsLJpkmhuzKwKzD1gt5JOAB9o7FwFCF1Mh8ggzKQ8zzB0hQl3ZFM9gAufYwH28_X4cUBnYJ5wyeAjytX_WJ1nYDIvTL1"/>
+<!-- Data overlay components -->
+<div class="absolute bottom-6 left-6 right-6 bg-surface-container-highest/80 backdrop-blur-md rounded-xl p-6 border border-outline-variant/50">
+<div class="flex justify-between items-center mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant">KPIs da Unidade Principal</span>
+<span class="material-symbols-outlined text-primary-container">more_horiz</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<span class="font-data-display text-data-display text-primary text-2xl">R$ 145k</span>
+<span class="font-label-caps text-label-caps text-tertiary-fixed flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-xs">arrow_upward</span> +12% MRR</span>
+</div>
+<div>
+<span class="font-data-display text-data-display text-primary text-2xl">98.2%</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1 mt-1">Retenção Ativa</span>
+</div>
+</div>
+</div>
+</div>
+<div class="order-1 lg:order-2">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Gestão completa para sua academia</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8">
+                        Vá além da montagem de treinos. Nossa solução B2B oferece uma visão 360º da saúde financeira e engajamento do seu negócio. Controle assinaturas, automatize cobranças e preveja churn com nossa IA.
+                    </p>
+<ul class="space-y-4 mb-8">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container mt-1">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Dashboard de performance financeira em tempo real.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container mt-1">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Integração com principais gateways de pagamento.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container mt-1">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">CRM focado em aquisição e retenção de alunos.</span>
+</li>
+</ul>
+<a class="inline-flex items-center gap-2 text-primary-container hover:text-primary font-headline-md text-headline-md border-b-2 border-primary-container pb-1 transition-colors" href="https://wa.me/yournumber" target="_blank">
+                        Falar com Especialista B2B <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="py-xl px-gutter bg-surface-container-lowest relative" id="pricing">
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-4">Planos que escalam com você</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">Invista na tecnologia que os profissionais usam. Sem taxas ocultas.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+<!-- Basic Plan -->
+<div class="glass-panel rounded-2xl p-8 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Personal Starter</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Para treinadores independentes.</p>
+<div class="mb-8">
+<span class="font-display-xl text-display-xl text-primary">R$30</span>
+<span class="font-body-md text-body-md text-on-surface-variant">/aluno</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Até 30 alunos ativos</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Montagem de treinos básica</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">App do Atleta (PWA)</span>
+</li>
+</ul>
+<a class="w-full py-3 rounded-lg border border-primary-container text-primary-container font-headline-md text-headline-md text-center hover:bg-primary-container/10 transition-colors" href="https://wa.me/yournumber?text=Interesse%20no%20plano%20Starter" target="_blank">
+                            Assinar Starter
+                        </a>
+</div>
+<!-- Premium Plan -->
+<div class="bg-surface-container-high rounded-2xl p-8 flex flex-col relative border-2 border-primary-container transform md:-translate-y-4 shadow-[0_0_30px_rgba(195,244,0,0.15)]">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary font-label-caps text-label-caps px-4 py-1 rounded-full">
+                            MAIS POPULAR
+                        </div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Box / Studio PRO</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">A experiência completa para seu espaço.</p>
+<div class="mb-8">
+<span class="font-display-xl text-display-xl text-primary">R$299</span>
+<span class="font-body-md text-body-md text-on-surface-variant">/mês fixo</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Alunos Ilimitados</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">IA Coach &amp; Predição 1RM</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Squads e Leaderboards ao vivo</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Controle Financeiro Básico</span>
+</li>
+</ul>
+<a class="w-full py-3 rounded-lg bg-primary-container text-on-primary font-headline-md text-headline-md text-center hover:shadow-[0_0_15px_rgba(195,244,0,0.4)] transition-all" href="https://wa.me/yournumber?text=Interesse%20no%20plano%20PRO" target="_blank">
+                            Começar Trial de 14 Dias
+                        </a>
+</div>
+<!-- Enterprise Plan -->
+<div class="glass-panel rounded-2xl p-8 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Rede Enterprise</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Gestão em escala para múltiplas unidades.</p>
+<div class="mb-8">
+<span class="font-display-xl text-display-xl text-primary">R$899</span>
+<span class="font-body-md text-body-md text-on-surface-variant">/mês (base)</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Tudo do plano PRO</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Painel Multi-unidades</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">API de Integração Aberta</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-sm mt-1">check</span>
+<span class="font-body-md text-body-md text-on-surface">Gerente de Conta Dedicado</span>
+</li>
+</ul>
+<a class="w-full py-3 rounded-lg border border-outline-variant text-primary font-headline-md text-headline-md text-center hover:border-primary transition-colors" href="https://wa.me/yournumber?text=Interesse%20no%20plano%20Enterprise" target="_blank">
+                            Falar com Vendas
+                        </a>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant">
+<div class="w-full py-xl px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto">
+<div class="flex items-center gap-2 mb-6 md:mb-0">
+<span class="material-symbols-outlined text-primary-container text-2xl">fitness_center</span>
+<span class="font-headline-md text-headline-md text-primary">VollonFit</span>
+</div>
+<div class="text-center md:text-left mb-6 md:mb-0">
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 VollonFit Performance Systems</p>
+</div>
+<div class="flex gap-6">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="https://wa.me/yournumber">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>

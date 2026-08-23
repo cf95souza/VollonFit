@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Dumbbell, 
-  ClipboardList, 
-  Users, 
-  Activity, 
-  AlertCircle, 
-  CheckCircle2 
-} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import { getTodayLocally } from '../../utils/dateUtils'
 
-function KPICard({ title, value, change, trend }) {
+function KPICard({ title, value, change, trend, icon }) {
   return (
-    <div className="bg-[#111111] p-6 rounded-xl border border-white/5 shadow-sm">
-      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{title}</p>
+    <div className="glass-panel p-6 rounded-2xl border border-outline-variant/30 shadow-sm relative overflow-hidden group">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="material-symbols-outlined text-on-surface-variant text-lg group-hover:text-primary-container transition-colors">{icon}</span>
+        <p className="text-on-surface-variant text-xs font-label-caps uppercase tracking-wider">{title}</p>
+      </div>
       <div className="flex items-end justify-between">
-        <h3 className="text-3xl font-bold text-white">{value}</h3>
+        <h3 className="text-3xl font-display-lg text-on-surface tracking-tight">{value}</h3>
         {change && (
-          <span className={`text-xs font-bold ${
-            trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-rose-400' : 'text-slate-400'
+          <span className={`text-[10px] font-label-caps uppercase ${
+            trend === 'up' ? 'text-primary-container' : trend === 'down' ? 'text-error' : 'text-on-surface-variant'
           }`}>
             {change}
           </span>
@@ -115,83 +110,83 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard title="Exercícios" value={stats.exercises} icon={Dumbbell} trend="up" change="+3" />
-        <KPICard title="Treinos Ativos" value={stats.workouts} icon={ClipboardList} />
-        <KPICard title="Alunos" value={stats.students} icon={Users} />
-        <KPICard title="Sessões Hoje" value={stats.sessionsToday} icon={Activity} trend="up" change="+100%" />
+        <KPICard title="Exercícios" value={stats.exercises} icon="fitness_center" trend="up" change="+3" />
+        <KPICard title="Treinos Ativos" value={stats.workouts} icon="assignment" />
+        <KPICard title="Alunos" value={stats.students} icon="groups" />
+        <KPICard title="Sessões Hoje" value={stats.sessionsToday} icon="insights" trend="up" change="+100%" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
+        <section className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-white">Alunos Recentes</h3>
+            <span className="material-symbols-outlined text-primary-container">groups</span>
+            <h3 className="font-headline-lg text-on-surface text-lg">Alunos Recentes</h3>
           </div>
           <div className="space-y-4">
             {filteredRecent.map((student) => (
-              <div key={student.id} onClick={() => onViewProfile(student)} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer group">
+              <div key={student.id} onClick={() => onViewProfile(student)} className="flex items-center justify-between p-4 bg-surface rounded-2xl border border-outline-variant/30 hover:border-primary-container/30 transition-all cursor-pointer group">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300 border border-white/5 group-hover:border-primary/30">
+                  <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center font-headline-lg text-on-surface-variant border border-outline-variant/30 group-hover:border-primary-container/30">
                     {student.name[0]}
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-sm">{student.name}</h4>
-                    <p className="text-xs text-slate-400">@{student.username}</p>
+                    <h4 className="font-headline-md text-on-surface text-sm">{student.name}</h4>
+                    <p className="font-body-md text-xs text-on-surface-variant">@{student.username}</p>
                   </div>
                 </div>
                 <button 
-                  className="text-[10px] font-bold text-primary hover:text-primary-dark"
+                  className="font-label-caps text-[10px] text-primary-container hover:brightness-110"
                 >
                   Ver Perfil ›
                 </button>
               </div>
             ))}
             {!loading && recentStudents.length === 0 && (
-              <p className="text-center py-10 text-slate-400 italic">Nenhum aluno cadastrado.</p>
+              <p className="text-center py-10 font-body-md text-on-surface-variant italic">Nenhum aluno cadastrado.</p>
             )}
           </div>
         </section>
 
-        <section className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
+        <section className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <ClipboardList className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-white">Atividades Recentes</h3>
+            <span className="material-symbols-outlined text-primary-container">assignment</span>
+            <h3 className="font-headline-lg text-on-surface text-lg">Atividades Recentes</h3>
           </div>
           <div className="space-y-6">
             {recentActivities.map(log => (
               <div key={log.id} className="flex gap-4 relative">
-                <div className="w-2 h-2 bg-primary rounded-full mt-1.5 ring-4 ring-primary/20 shrink-0" />
+                <div className="w-2 h-2 bg-primary-container rounded-full mt-1.5 ring-4 ring-primary-container/20 shrink-0 neon-glow" />
                 <div className="flex-1">
-                  <p className="text-sm text-slate-400">
-                    <span className="font-bold text-white">{log.gym_students?.name}</span> treinou 
-                    <span className="font-bold text-white"> {log.gym_exercises?.name}</span>
+                  <p className="font-body-md text-sm text-on-surface-variant">
+                    <span className="font-headline-md text-on-surface">{log.gym_students?.name}</span> treinou 
+                    <span className="font-headline-md text-on-surface"> {log.gym_exercises?.name}</span>
                   </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">
                     {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {log.weight_kg}kg
                   </p>
                 </div>
               </div>
             ))}
             {!loading && recentActivities.length === 0 && (
-              <p className="text-center py-10 text-slate-400 italic">Nenhuma atividade registrada hoje.</p>
+              <p className="text-center py-10 font-body-md text-on-surface-variant italic">Nenhuma atividade registrada hoje.</p>
             )}
           </div>
         </section>
       </div>
 
       {/* Radar de Evasão */}
-      <section className="bg-[#111111] p-8 rounded-[40px] border border-white/5 shadow-sm">
+      <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-400 shadow-sm">
-              <AlertCircle className="w-6 h-6" />
+            <div className="w-12 h-12 bg-error/10 rounded-2xl flex items-center justify-center text-error shadow-sm">
+              <span className="material-symbols-outlined text-2xl">warning</span>
             </div>
             <div>
-              <h3 className="text-xl font-black text-white font-display">Radar de Evasão</h3>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Alunos em risco de desistência (+3 dias off)</p>
+              <h3 className="text-xl font-display-xl text-on-surface tracking-tight">Radar de Evasão</h3>
+              <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mt-0.5">Alunos em risco de desistência (+3 dias off)</p>
             </div>
           </div>
-          <span className="bg-rose-500/10 text-rose-400 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/20">
+          <span className="bg-error/10 text-error px-4 py-2 rounded-full font-label-caps text-[10px] uppercase tracking-widest border border-error/20">
             {atRiskStudents.length} Alunos
           </span>
         </div>
@@ -199,42 +194,42 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
         {filteredAtRisk.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAtRisk.map(student => (
-              <div key={student.id} className="p-6 bg-white/5 rounded-[32px] border border-white/5 hover:border-rose-500/30 transition-all group relative overflow-hidden">
+              <div key={student.id} className="p-6 bg-surface rounded-3xl border border-outline-variant/30 hover:border-error/30 transition-all group relative overflow-hidden">
                 <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center font-black text-slate-300 text-xl border border-white/5 shadow-sm group-hover:border-rose-500/30 transition-colors">
+                  <div className="w-14 h-14 bg-surface-container rounded-2xl flex items-center justify-center font-headline-lg text-on-surface-variant text-xl border border-outline-variant/30 shadow-sm group-hover:border-error/30 transition-colors">
                     {student.name[0]}
                   </div>
                   <div>
-                    <h4 className="font-black text-white text-sm group-hover:text-rose-400 transition-colors">{student.name}</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">@{student.username}</p>
+                    <h4 className="font-headline-md text-on-surface text-sm group-hover:text-error transition-colors">{student.name}</h4>
+                    <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">@{student.username}</p>
                   </div>
                 </div>
                 
                 <div className="mt-6 flex items-end justify-between relative z-10">
                   <div>
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Inatividade</p>
-                    <p className="text-2xl font-black text-rose-500 font-display">
+                    <p className="font-label-caps text-[8px] text-on-surface-variant uppercase tracking-[0.2em] mb-1">Inatividade</p>
+                    <p className="text-2xl font-display-lg text-error tracking-tight">
                       {student.daysInactive >= 99 ? 'Nunca' : `${student.daysInactive} dias`}
                     </p>
                   </div>
                   <button 
                     onClick={() => onMotivate({ open: true, student: student, message: '' })}
-                    className="bg-slate-800 text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-500/20"
+                    className="bg-surface-container text-error px-4 py-2 rounded-xl font-label-caps text-[10px] uppercase tracking-widest shadow-sm hover:bg-error hover:text-on-error transition-all active:scale-95 border border-error/20"
                   >
                     Motivar ›
                   </button>
                 </div>
                 
-                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-colors" />
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-error/10 rounded-full blur-2xl group-hover:bg-error/20 transition-colors" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
-            <div className="w-16 h-16 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-white/5">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
+          <div className="text-center py-20 bg-surface rounded-3xl border-2 border-dashed border-outline-variant/30">
+            <div className="w-16 h-16 bg-surface-container rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-outline-variant/30">
+              <span className="material-symbols-outlined text-4xl text-primary-container">check_circle</span>
             </div>
-            <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Todos os alunos estão ativos! 🚀</p>
+            <p className="font-label-caps text-sm text-on-surface-variant uppercase tracking-widest">Todos os alunos estão ativos! 🚀</p>
           </div>
         )}
       </section>

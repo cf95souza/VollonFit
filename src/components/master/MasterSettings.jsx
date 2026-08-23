@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import { Settings, DollarSign, Save, AlertTriangle, ShieldCheck, Award, Building2 } from 'lucide-react'
 
 export default function MasterSettings({ showToast }) {
   const [priceBasic, setPriceBasic] = useState('30')
@@ -85,110 +84,110 @@ export default function MasterSettings({ showToast }) {
     priceEnterprise !== originalEnterprise
 
   if (loading) {
-    return <div className="bg-[#111111] border border-white/5 rounded-lg p-8 animate-pulse h-96" />
+    return <div className="glass-panel border border-outline-variant/30 rounded-3xl p-8 animate-pulse h-96" />
   }
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in duration-500">
-      <div className="bg-[#111111] border border-white/5 rounded-[32px] p-8 shadow-2xl">
+      <div className="glass-panel border border-outline-variant/30 rounded-[32px] p-8 shadow-2xl">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Settings className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary-container">settings</span>
           </div>
           <div>
-            <h3 className="text-xl font-black text-white uppercase tracking-tight font-display">Gestão Global de Planos</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">Defina os valores das licenças e cobranças recorrentes</p>
+            <h3 className="text-xl font-display-md text-on-surface uppercase tracking-tight">Gestão Global de Planos</h3>
+            <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest mt-0.5">Defina os valores das licenças e cobranças recorrentes</p>
           </div>
         </div>
 
         <div className="space-y-6">
           {/* Plano Basic */}
-          <div className="p-6 bg-black/40 border border-white/5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/10 transition-colors">
+          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-slate-300" />
+              <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0 border border-outline-variant/30">
+                <span className="material-symbols-outlined w-5 h-5 text-on-surface-variant flex items-center justify-center text-[20px]">shield</span>
               </div>
               <div>
-                <h4 className="font-black text-white text-sm uppercase tracking-wider">Professor Basic</h4>
-                <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm">Valor cobrado mensalmente por aluno ativo do Personal Trainer.</p>
+                <h4 className="font-headline-sm text-on-surface text-sm uppercase tracking-wider">Professor Basic</h4>
+                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor cobrado mensalmente por aluno ativo do Personal Trainer.</p>
               </div>
             </div>
             <div className="w-full md:w-44 space-y-1">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Valor por Aluno</label>
+              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Valor por Aluno</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={priceBasic}
                   onChange={e => setPriceBasic(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-black border border-white/10 rounded-xl text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
                 />
               </div>
             </div>
           </div>
 
           {/* Plano Premium */}
-          <div className="p-6 bg-black/40 border border-white/5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/10 transition-colors">
+          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                <Award className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined w-5 h-5 text-primary-container flex items-center justify-center text-[20px]">workspace_premium</span>
               </div>
               <div>
-                <h4 className="font-black text-primary text-sm uppercase tracking-wider">Professor Premium</h4>
-                <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm">Valor por aluno que inclui customização White Label e IA Coach.</p>
+                <h4 className="font-headline-sm text-primary-container text-sm uppercase tracking-wider">Professor Premium</h4>
+                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor por aluno que inclui customização White Label e IA Coach.</p>
               </div>
             </div>
             <div className="w-full md:w-44 space-y-1">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Valor por Aluno</label>
+              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Valor por Aluno</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={pricePremium}
                   onChange={e => setPricePremium(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-black border border-white/10 rounded-xl text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
                 />
               </div>
             </div>
           </div>
 
           {/* Plano Enterprise */}
-          <div className="p-6 bg-black/40 border border-white/5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/10 transition-colors">
+          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#C6C4FF]/10 border border-[#C6C4FF]/20 flex items-center justify-center shrink-0">
-                <Building2 className="w-5 h-5 text-[#C6C4FF]" />
+              <div className="w-10 h-10 rounded-xl bg-secondary-container/10 border border-secondary-container/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined w-5 h-5 text-secondary-container flex items-center justify-center text-[20px]">domain</span>
               </div>
               <div>
-                <h4 className="font-black text-[#C6C4FF] text-sm uppercase tracking-wider">Academia Enterprise</h4>
-                <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm">Valor mensal fixo para academias e redes de grande porte.</p>
+                <h4 className="font-headline-sm text-secondary-container text-sm uppercase tracking-wider">Academia Enterprise</h4>
+                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor mensal fixo para academias e redes de grande porte.</p>
               </div>
             </div>
             <div className="w-full md:w-44 space-y-1">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Mensalidade Fixa</label>
+              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Mensalidade Fixa</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={priceEnterprise}
                   onChange={e => setPriceEnterprise(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-black border border-white/10 rounded-xl text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
                 />
               </div>
             </div>
           </div>
 
           {hasChanged && (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-              <p className="text-xs text-slate-400 leading-relaxed">
+            <div className="bg-warning/10 border border-warning/20 rounded-2xl p-4 flex items-start gap-3">
+              <span className="material-symbols-outlined text-warning mt-0.5 shrink-0 text-[20px]">warning</span>
+              <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
                 Você fez alterações nas tabelas de preços dos planos. 
-                Os novos valores serão aplicados em <strong className="text-amber-300">todas as próximas cobranças mensais</strong> geradas. 
+                Os novos valores serão aplicados em <strong className="text-warning">todas as próximas cobranças mensais</strong> geradas. 
                 Mensalidades e faturas históricas não serão recalculadas.
               </p>
             </div>
@@ -197,19 +196,22 @@ export default function MasterSettings({ showToast }) {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanged}
-            className="w-full bg-primary hover:bg-primary-dark text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-98"
+            className="w-full bg-primary-container hover:brightness-110 text-on-primary-container py-4 rounded-2xl font-label-caps text-[10px] uppercase tracking-widest disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 active:scale-95 neon-glow"
           >
-            <Save className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[18px]">save</span>
             {saving ? 'Salvando...' : 'Salvar Alterações de Preço'}
           </button>
         </div>
       </div>
 
-      <div className="bg-white/5 border border-white/5 rounded-2xl p-6">
-        <h4 className="text-xs font-black text-white uppercase tracking-wider mb-2">💡 Gestão Macro e White Label</h4>
-        <p className="text-xs text-slate-400 leading-relaxed">
+      <div className="bg-surface-container border border-outline-variant/30 rounded-2xl p-6">
+        <h4 className="font-label-caps text-[10px] text-on-surface uppercase tracking-widest mb-2 flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-[14px] text-primary-container">lightbulb</span> 
+          Gestão Macro e White Label
+        </h4>
+        <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
           O plano do professor define diretamente as permissões e funcionalidades disponíveis em seu painel:
-          professores no plano <span className="text-primary font-bold">Premium</span> ganham acesso imediato à customização de cores, logotipos próprios e à integração do IA Coach para seus alunos, enquanto o plano <span className="text-slate-300 font-bold">Basic</span> mantém a marca neutra da VollonFit.
+          professores no plano <span className="text-primary-container font-headline-sm">Premium</span> ganham acesso imediato à customização de cores, logotipos próprios e à integração do IA Coach para seus alunos, enquanto o plano <span className="text-on-surface font-headline-sm">Basic</span> mantém a marca neutra da VollonFit.
         </p>
       </div>
     </div>

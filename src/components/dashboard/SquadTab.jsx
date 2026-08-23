@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Users, Copy, CheckCircle2, UserPlus, LogOut, Trophy, Target, Trash2, XCircle, MessageSquare, Activity, BellRing, Moon } from 'lucide-react'
+
 import { supabase } from '../../supabaseClient'
 import SquadLeaderboard from './SquadLeaderboard'
 
@@ -327,24 +327,24 @@ export default function SquadTab({ student, showToast }) {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-20"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div></div>
+    return <div className="flex justify-center py-20"><div className="w-8 h-8 rounded-full border-4 border-primary-container border-t-transparent animate-spin"></div></div>
   }
 
   if (!squad) {
     return (
       <div className="animate-in fade-in duration-500 py-6 space-y-10">
         <div className="text-center space-y-2">
-          <div className="w-20 h-20 bg-primary/10 text-primary rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20 border border-primary/20">
-            <Users className="w-10 h-10" />
+          <div className="w-20 h-20 bg-primary-container/10 text-primary-container rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(195,244,0,0.2)] border border-primary-container/20">
+            <span className="material-symbols-outlined text-5xl">groups</span>
           </div>
-          <h2 className="text-3xl font-black text-white font-display uppercase tracking-tight">Seu Bando</h2>
-          <p className="text-slate-400 font-medium text-sm px-4">Treinar em grupo é o melhor jeito de manter a constância. Junte-se ao bando!</p>
+          <h2 className="font-display-xl text-3xl text-primary uppercase tracking-tight">Seu Bando</h2>
+          <p className="font-body-md text-on-surface-variant px-4">Treinar em grupo é o melhor jeito de manter a constância. Junte-se ao bando!</p>
         </div>
 
-        <div className="bg-[#1A1A1A] p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-6">
+        <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-2xl space-y-6">
           <div className="space-y-4">
-            <h3 className="font-black text-white text-lg font-display tracking-tight flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
+            <h3 className="font-display-lg text-on-surface text-lg tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary-container">track_changes</span>
               Criar um Squad
             </h3>
             <div className="flex gap-2">
@@ -353,23 +353,23 @@ export default function SquadTab({ student, showToast }) {
                 placeholder="Nome do Squad"
                 value={newSquadName}
                 onChange={e => setNewSquadName(e.target.value)}
-                className="flex-1 bg-black border border-white/10 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all placeholder:text-slate-600"
+                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl p-4 text-sm font-headline-md text-on-surface outline-none focus:border-primary-container transition-all placeholder:text-on-surface-variant/50"
               />
               <button 
                 onClick={handleCreateSquad}
                 disabled={isCreating}
-                className="bg-primary text-black font-black uppercase tracking-widest text-xs px-6 rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20"
+                className="bg-primary-container text-on-primary-container font-label-caps tracking-widest text-xs px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary-container/20"
               >
                 {isCreating ? '...' : 'Criar'}
               </button>
             </div>
           </div>
 
-          <div className="h-px bg-white/5 w-full my-6"></div>
+          <div className="h-px bg-outline-variant/30 w-full my-6"></div>
 
           <div className="space-y-4">
-            <h3 className="font-black text-white text-lg font-display tracking-tight flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-accent" />
+            <h3 className="font-display-lg text-on-surface text-lg tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary-container">person_add</span>
               Entrar em um Squad
             </h3>
             <div className="flex gap-2">
@@ -378,12 +378,12 @@ export default function SquadTab({ student, showToast }) {
                 placeholder="Código de Convite"
                 value={inviteCode}
                 onChange={e => setInviteCode(e.target.value.toUpperCase())}
-                className="flex-1 bg-black border border-white/10 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:border-accent/50 transition-all placeholder:text-slate-600 uppercase"
+                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl p-4 text-sm font-headline-md text-on-surface outline-none focus:border-secondary-container transition-all placeholder:text-on-surface-variant/50 uppercase"
               />
               <button 
                 onClick={handleJoinSquad}
                 disabled={isJoining}
-                className="bg-accent text-black font-black uppercase tracking-widest text-xs px-6 rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-accent/20"
+                className="bg-secondary-container text-on-secondary-container font-label-caps tracking-widest text-xs px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-secondary-container/20"
               >
                 {isJoining ? '...' : 'Entrar'}
               </button>
@@ -395,38 +395,38 @@ export default function SquadTab({ student, showToast }) {
   }
 
   return (
-    <div className="animate-in fade-in duration-500 py-6 space-y-8">
+    <div className="animate-in fade-in duration-500 py-6 space-y-lg">
       {/* Header do Squad com Placar */}
-      <div className="bg-[#1A1A1A] rounded-[40px] border border-white/5 shadow-2xl relative mb-10">
-        <div className="h-24 fitness-gradient w-full opacity-20 absolute top-0 left-0 rounded-t-[40px]"></div>
+      <div className="glass-panel rounded-3xl border border-outline-variant/30 shadow-2xl relative mb-10 mt-8">
+        <div className="h-24 bg-gradient-to-b from-primary-container/20 to-transparent w-full absolute top-0 left-0 rounded-t-3xl"></div>
         <div className="p-8 relative z-10 text-center space-y-4">
-          <div className="w-20 h-20 bg-black border-[3px] border-[#1A1A1A] rounded-full flex items-center justify-center mx-auto shadow-2xl -mt-14 text-primary neon-shadow transition-transform hover:scale-110 duration-500">
-            <Trophy className="w-10 h-10 drop-shadow-[0_0_10px_rgba(223,255,94,0.8)]" />
+          <div className="w-20 h-20 bg-surface-container-high border-4 border-surface rounded-full flex items-center justify-center mx-auto shadow-2xl -mt-16 text-primary-container neon-glow transition-transform hover:scale-110 duration-500">
+            <span className="material-symbols-outlined text-4xl drop-shadow-[0_0_10px_rgba(195,244,0,0.8)]">emoji_events</span>
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Squad Ativo</p>
-            <h2 className="text-3xl font-black text-white font-display uppercase tracking-tight">{squad.name}</h2>
+            <p className="font-label-caps text-[10px] uppercase tracking-widest text-primary-container mb-1">Squad Ativo</p>
+            <h2 className="font-display-xl text-3xl text-primary uppercase tracking-tight">{squad.name}</h2>
           </div>
           
           <div className="flex justify-center gap-4">
-            <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-primary/20 flex flex-col items-center shadow-lg">
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">Pontos do Bando</p>
-              <p className="text-2xl font-black text-white font-display tracking-tight">{totalPoints.toLocaleString()}</p>
+            <div className="glass-panel px-6 py-3 rounded-2xl border border-primary-container/30 flex flex-col items-center shadow-lg">
+              <p className="font-label-caps text-[9px] text-primary-container uppercase tracking-[0.2em] mb-1">Pontos do Bando</p>
+              <p className="font-display-xl text-2xl text-on-surface tracking-tight">{totalPoints.toLocaleString()}</p>
             </div>
-            <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/5 flex flex-col items-center">
-              <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Ranking Global</p>
-              <p className="text-2xl font-black text-white font-display tracking-tight">#12</p>
+            <div className="glass-panel px-6 py-3 rounded-2xl border border-outline-variant/30 flex flex-col items-center">
+              <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-[0.2em] mb-1">Ranking Global</p>
+              <p className="font-display-xl text-2xl text-on-surface tracking-tight">#12</p>
             </div>
           </div>
           
           <div className="pt-4 flex justify-center">
             <button 
               onClick={copyCode}
-              className="bg-black border border-white/10 px-6 py-3 rounded-full flex items-center gap-3 hover:border-primary/50 transition-all group"
+              className="bg-surface border border-outline-variant/30 px-6 py-3 rounded-full flex items-center gap-3 hover:border-primary-container/50 transition-all group"
             >
-              <span className="text-xs font-bold text-slate-400">CÓDIGO:</span>
-              <span className="text-sm font-black text-white tracking-wider font-mono group-hover:text-primary transition-colors">{squad.invite_code}</span>
-              {copied ? <CheckCircle2 className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-slate-500 group-hover:text-primary transition-colors" />}
+              <span className="font-label-caps text-xs text-on-surface-variant">CÓDIGO:</span>
+              <span className="font-headline-lg text-sm text-on-surface tracking-wider group-hover:text-primary-container transition-colors">{squad.invite_code}</span>
+              {copied ? <span className="material-symbols-outlined text-sm text-primary-container">check_circle</span> : <span className="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-primary-container transition-colors">content_copy</span>}
             </button>
           </div>
         </div>
@@ -435,9 +435,9 @@ export default function SquadTab({ student, showToast }) {
       <button 
         onClick={handlePingSquad}
         disabled={isPingingSquad}
-        className="w-full bg-primary/10 border border-primary/20 text-primary py-4 rounded-[32px] font-black uppercase tracking-widest text-sm shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        className="w-full glass-panel border border-primary-container/30 text-primary-container py-4 rounded-2xl font-label-caps uppercase tracking-widest text-sm shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-primary-container/10"
       >
-        <Activity className="w-5 h-5" /> {isPingingSquad ? 'Enviando...' : 'Ping no Bando'}
+        <span className="material-symbols-outlined">campaign</span> {isPingingSquad ? 'Enviando...' : 'Ping no Bando'}
       </button>
 
       {/* Leaderboard Semanal */}
@@ -446,48 +446,48 @@ export default function SquadTab({ student, showToast }) {
       {/* Members List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
-          <h3 className="font-black text-white text-lg font-display tracking-tight flex items-center gap-2">
+          <h3 className="font-display-lg text-on-surface text-lg tracking-tight flex items-center gap-2">
             Membros
-            <span className="bg-white/10 text-white text-xs px-2 py-0.5 rounded-full">{members.length}</span>
+            <span className="bg-surface-container-high border border-outline-variant/30 text-on-surface-variant font-label-caps text-[10px] px-2 py-0.5 rounded-full">{members.length}</span>
           </h3>
         </div>
         
         <div className="space-y-3">
           {members.map(member => (
-            <div key={member.student_id} className="bg-[#1A1A1A] p-4 rounded-3xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-black border border-white/10 flex items-center justify-center font-black text-white">
+            <div key={member.student_id} className="glass-panel p-4 rounded-2xl border border-outline-variant/30 flex items-center gap-4 hover:border-primary-container/30 transition-colors">
+              <div className="w-12 h-12 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center font-headline-lg text-on-surface">
                 {member.name?.[0]}
               </div>
               <div className="flex-1">
-                <p className="font-black text-white text-sm flex items-center gap-2">
+                <p className="font-headline-md text-on-surface text-sm flex items-center gap-2">
                   {member.name} 
-                  {member.student_id === student.id && <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Você</span>}
-                  {member.role === 'admin' && <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full uppercase tracking-widest">Admin</span>}
+                  {member.student_id === student.id && <span className="font-label-caps text-[8px] bg-primary-container/20 text-primary-container px-2 py-0.5 rounded-full uppercase tracking-widest">Você</span>}
+                  {member.role === 'admin' && <span className="font-label-caps text-[8px] bg-secondary-container/20 text-secondary-container px-2 py-0.5 rounded-full uppercase tracking-widest">Admin</span>}
                   {member.isInactive && member.student_id !== student.id && (
-                    <span className="inline-flex items-center gap-1 text-[8px] bg-rose-500/10 text-rose-500 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest font-black">
-                      <Moon className="w-2.5 h-2.5 shrink-0 animate-pulse" /> Dormindo
+                    <span className="inline-flex items-center gap-1 font-label-caps text-[8px] bg-error/10 text-error border border-error/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      <span className="material-symbols-outlined text-[10px] animate-pulse">bedtime</span> Dormindo
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-slate-500 font-medium">@{member.username}</p>
+                <p className="font-body-md text-[10px] text-on-surface-variant">@{member.username}</p>
               </div>
 
               {member.isInactive && member.student_id !== student.id && (
                 <button 
                   onClick={() => handleNudge(member.student_id, member.name)}
-                  className="px-3 h-8 rounded-full bg-white/5 text-white font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-black transition-all border border-white/10 flex items-center gap-1"
+                  className="px-3 h-8 rounded-full bg-surface-container text-on-surface font-label-caps text-[10px] uppercase tracking-widest hover:bg-primary-container hover:text-on-primary-container transition-all border border-outline-variant/30 flex items-center gap-1"
                 >
-                  <BellRing className="w-3 h-3" /> Cobrar
+                  <span className="material-symbols-outlined text-xs">notifications_active</span> Cobrar
                 </button>
               )}
 
               {squad.myRole === 'admin' && member.student_id !== student.id && (
                 <button 
                   onClick={() => handleKickMember(member.student_id, member.name)}
-                  className="w-8 h-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                  className="w-8 h-8 rounded-full bg-error/10 text-error flex items-center justify-center hover:bg-error hover:text-on-error transition-all"
                   title="Remover Membro"
                 >
-                  <XCircle className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-sm">cancel</span>
                 </button>
               )}
             </div>
@@ -498,30 +498,30 @@ export default function SquadTab({ student, showToast }) {
       {/* Feed Social */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
-          <h3 className="font-black text-white text-lg font-display tracking-tight flex items-center gap-2">
+          <h3 className="font-display-lg text-on-surface text-lg tracking-tight flex items-center gap-2">
             Feed do Bando
-            <MessageSquare className="w-4 h-4 text-primary" />
+            <span className="material-symbols-outlined text-primary-container">forum</span>
           </h3>
         </div>
         
         <div className="space-y-3">
           {posts.length === 0 ? (
-            <p className="text-slate-500 text-sm font-bold text-center py-4 bg-[#1A1A1A] rounded-3xl border border-white/5">Nenhuma atividade ainda.</p>
+            <p className="font-body-md text-on-surface-variant text-center py-4 glass-panel rounded-2xl border border-outline-variant/30">Nenhuma atividade ainda.</p>
           ) : (
             posts.map(post => (
-              <div key={post.id} className="bg-[#1A1A1A] p-4 rounded-3xl border border-white/5 space-y-2">
+              <div key={post.id} className="glass-panel p-4 rounded-2xl border border-outline-variant/30 space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary text-xs shadow-inner">
+                  <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center font-headline-md text-primary-container text-xs shadow-inner">
                     {post.gym_students?.name?.[0]}
                   </div>
                   <div>
-                    <p className="font-black text-white text-sm">{post.gym_students?.name}</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                    <p className="font-headline-md text-on-surface text-sm">{post.gym_students?.name}</p>
+                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest">
                       {new Date(post.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
-                <p className="text-sm font-medium text-slate-300 pl-11">{post.content}</p>
+                <p className="font-body-md text-sm text-on-surface pl-11">{post.content}</p>
               </div>
             ))
           )}
@@ -532,17 +532,17 @@ export default function SquadTab({ student, showToast }) {
         {squad.myRole === 'admin' ? (
           <button 
             onClick={handleDeleteSquad}
-            className="w-full py-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-rose-500 bg-rose-500/10 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-500/20 shadow-lg shadow-rose-500/5"
+            className="w-full py-4 flex items-center justify-center gap-2 font-label-caps text-xs uppercase tracking-widest text-error bg-error/10 rounded-2xl hover:bg-error hover:text-on-error transition-all active:scale-95 border border-error/20 shadow-lg shadow-error/5"
           >
-            <Trash2 className="w-4 h-4" />
+            <span className="material-symbols-outlined text-sm">delete</span>
             Excluir Squad Permanentemente
           </button>
         ) : (
           <button 
             onClick={handleLeaveSquad}
-            className="w-full py-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 bg-white/5 rounded-2xl hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-white/5"
+            className="w-full py-4 flex items-center justify-center gap-2 font-label-caps text-xs uppercase tracking-widest text-on-surface-variant bg-surface-container rounded-2xl hover:bg-error hover:text-on-error transition-all active:scale-95 border border-outline-variant/30"
           >
-            <LogOut className="w-4 h-4" />
+            <span className="material-symbols-outlined text-sm">logout</span>
             Sair do Squad
           </button>
         )}

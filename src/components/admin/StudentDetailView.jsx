@@ -1,15 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  ChevronLeft, 
-  TrendingUp, 
-  Activity, 
-  Scale, 
-  ClipboardList, 
-  Dumbbell, 
-  History, 
-  X, 
-  Timer 
-} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import { 
   AreaChart, 
@@ -129,27 +118,27 @@ export default function StudentDetailView({ student, onBack, showToast }) {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-right duration-300">
-      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors font-bold text-sm">
-        <ChevronLeft className="w-4 h-4" /> Voltar para Alunos
+      <button onClick={onBack} className="flex items-center gap-2 text-on-surface-variant hover:text-primary-container transition-colors font-label-caps text-[10px] uppercase tracking-widest">
+        <span className="material-symbols-outlined text-lg">chevron_left</span> Voltar para Alunos
       </button>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#111111] p-6 sm:p-8 rounded-3xl border border-white/5 shadow-sm gap-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between glass-panel p-6 sm:p-8 rounded-3xl border border-outline-variant/30 shadow-sm gap-6">
         <div className="flex items-center gap-4 sm:gap-6">
-          <div className="w-16 h-16 sm:w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-bold text-primary">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-container/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-display-lg text-primary-container">
             {student?.name?.[0] || 'A'}
           </div>
           <div>
-            <h2 className="text-xl sm:text-3xl font-bold text-white truncate max-w-[200px] sm:max-w-none">{student?.name || 'Aluno'}</h2>
-            <p className="text-sm text-slate-400">@{student?.username || 'usuario'}</p>
+            <h2 className="text-xl sm:text-3xl font-display-xl text-on-surface truncate max-w-[200px] sm:max-w-none">{student?.name || 'Aluno'}</h2>
+            <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mt-1">@{student?.username || 'usuario'}</p>
           </div>
         </div>
         
-        <div className="flex w-full sm:w-auto bg-black/50 p-1 rounded-2xl border border-white/10 overflow-x-auto custom-scrollbar">
+        <div className="flex w-full sm:w-auto bg-surface-container p-1 rounded-2xl border border-outline-variant/30 overflow-x-auto custom-scrollbar">
           {['overview', 'workouts', 'evolution'].map(tab => (
             <button 
               key={tab}
               onClick={() => setCurrentSubTab(tab)}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${currentSubTab === tab ? 'bg-primary text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-label-caps text-[10px] sm:text-xs transition-all whitespace-nowrap uppercase tracking-widest ${currentSubTab === tab ? 'bg-primary-container text-on-primary-container shadow-sm neon-glow' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
               {tab === 'overview' ? 'Visão Geral' : tab === 'workouts' ? 'Treinos' : 'Evolução'}
             </button>
@@ -161,9 +150,9 @@ export default function StudentDetailView({ student, onBack, showToast }) {
         {currentSubTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm">
-                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" /> Evolução Recente
+              <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm">
+                <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary-container">trending_up</span> Evolução Recente
                 </h3>
                 {bioRecords.length > 0 ? (
                   <div className="h-64 w-full">
@@ -178,51 +167,51 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-center py-20 text-slate-400 italic">Nenhum dado de biopedância registrado.</p>
+                  <p className="text-center py-20 font-body-md text-on-surface-variant italic">Nenhum dado de biopedância registrado.</p>
                 )}
               </section>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-[#0F172A] border border-white/5 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden group">
-                <Activity className="absolute -right-4 -top-4 w-32 h-32 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8">Status Atual</h4>
+              <div className="glass-panel bg-surface-container-highest border border-outline-variant/30 p-8 rounded-3xl shadow-xl relative overflow-hidden group">
+                <span className="material-symbols-outlined absolute -right-4 -top-4 text-9xl text-on-surface-variant/10 rotate-12 group-hover:scale-110 transition-transform duration-700">monitor_heart</span>
+                <h4 className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-[0.2em] mb-8">Status Atual</h4>
                 {bioRecords.length > 0 ? (
                   <div className="space-y-6 relative z-10">
                     <div className="flex justify-between items-end">
-                      <span className="text-slate-400 text-xs font-medium">Peso Total</span>
-                      <span className="text-3xl font-black">{bioRecords[bioRecords.length-1]?.weight || 0}kg</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">Peso Total</span>
+                      <span className="font-display-lg text-3xl text-on-surface">{bioRecords[bioRecords.length-1]?.weight || 0}kg</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className="text-slate-400 text-xs font-medium">% Gordura</span>
-                      <span className="text-3xl font-black text-rose-400">{bioRecords[bioRecords.length-1]?.body_fat_pct || 0}%</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">% Gordura</span>
+                      <span className="font-display-lg text-3xl text-error">{bioRecords[bioRecords.length-1]?.body_fat_pct || 0}%</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className="text-slate-400 text-xs font-medium">Massa Magra</span>
-                      <span className="text-3xl font-black text-emerald-400">{bioRecords[bioRecords.length-1]?.muscle_mass_kg || 0}kg</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">Massa Magra</span>
+                      <span className="font-display-lg text-3xl text-primary-container">{bioRecords[bioRecords.length-1]?.muscle_mass_kg || 0}kg</span>
                     </div>
                   </div>
                 ) : (
                   <div className="py-10 text-center relative z-10">
-                    <Scale className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                    <p className="text-slate-500 text-sm italic">Aguardando biopedância.</p>
+                    <span className="material-symbols-outlined text-5xl text-on-surface-variant/30 mx-auto mb-4 block">monitor_weight</span>
+                    <p className="font-body-md text-on-surface-variant italic">Aguardando biopedância.</p>
                   </div>
                 )}
               </div>
 
-              <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm">
-                <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Metas do Professor</h4>
+              <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
+                <h4 className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mb-4">Metas do Professor</h4>
                 <div className="space-y-4">
                   <textarea 
                     value={goals}
                     onChange={(e) => setGoals(e.target.value)}
                     placeholder="Defina metas para o aluno..."
-                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-primary/50 transition-all min-h-[120px] resize-none"
+                    className="w-full bg-surface-container border border-outline-variant/30 rounded-2xl p-4 font-body-md text-sm text-on-surface outline-none focus:border-primary-container transition-all min-h-[120px] resize-none"
                   />
                   <button 
                     onClick={handleSaveGoals}
                     disabled={isSavingGoals}
-                    className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl text-xs hover:bg-primary hover:text-black transition-all disabled:opacity-50"
+                    className="w-full bg-primary-container/10 text-primary-container font-label-caps py-3 rounded-xl text-xs hover:bg-primary-container hover:text-on-primary-container transition-all disabled:opacity-50 uppercase tracking-widest"
                   >
                     {isSavingGoals ? 'Salvando...' : 'Atualizar Metas'}
                   </button>
@@ -233,26 +222,26 @@ export default function StudentDetailView({ student, onBack, showToast }) {
         )}
 
         {currentSubTab === 'workouts' && (
-          <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-primary" /> Treinos do Aluno
+          <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm animate-in slide-in-from-right-4 duration-300">
+            <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary-container">assignment</span> Treinos do Aluno
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workouts.map((w, idx) => (
                 <div key={w.id} className="relative group">
                   <button 
                     onClick={() => handleViewWorkoutDetail(w)}
-                    className="w-full p-6 bg-white/5 rounded-[32px] border border-white/5 flex flex-col justify-between hover:border-primary/30 transition-all shadow-sm text-left active:scale-95 relative overflow-hidden"
+                    className="w-full p-6 bg-surface rounded-3xl border border-outline-variant/30 flex flex-col justify-between hover:border-primary-container/30 transition-all shadow-sm text-left active:scale-95 relative overflow-hidden"
                   >
                     <div className="mb-6 pr-24">
-                      <p className="font-bold text-white text-xl mb-1 group-hover:text-primary transition-colors line-clamp-2">{w.name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      <p className="font-headline-md text-on-surface text-xl mb-1 group-hover:text-primary-container transition-colors line-clamp-2">{w.name}</p>
+                      <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
                         Criado em {new Date(w.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full">Ver Exercícios</span>
-                      <Dumbbell className="w-5 h-5 text-slate-600 group-hover:text-primary transition-colors" />
+                      <span className="font-label-caps text-[10px] text-primary-container bg-primary-container/10 px-3 py-1.5 rounded-full uppercase">Ver Exercícios</span>
+                      <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors">fitness_center</span>
                     </div>
                   </button>
 
@@ -260,23 +249,23 @@ export default function StudentDetailView({ student, onBack, showToast }) {
                     <button 
                       disabled={idx === 0}
                       onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'up'); }}
-                      className="p-2.5 bg-black/60 rounded-xl text-primary hover:bg-primary hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
+                      className="p-2 bg-surface-container/80 rounded-xl text-primary-container hover:bg-primary-container hover:text-on-primary-container disabled:opacity-20 border border-outline-variant/30 shadow-lg transition-all backdrop-blur-sm"
                     >
-                      <ChevronLeft className="w-4 h-4 rotate-90" />
+                      <span className="material-symbols-outlined text-lg">expand_less</span>
                     </button>
                     <button 
                       disabled={idx === workouts.length - 1}
                       onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'down'); }}
-                      className="p-2.5 bg-black/60 rounded-xl text-primary hover:bg-primary hover:text-black disabled:opacity-20 border border-white/10 shadow-lg transition-all backdrop-blur-sm"
+                      className="p-2 bg-surface-container/80 rounded-xl text-primary-container hover:bg-primary-container hover:text-on-primary-container disabled:opacity-20 border border-outline-variant/30 shadow-lg transition-all backdrop-blur-sm"
                     >
-                      <ChevronLeft className="w-4 h-4 -rotate-90" />
+                      <span className="material-symbols-outlined text-lg">expand_more</span>
                     </button>
                   </div>
                 </div>
               ))}
               {workouts.length === 0 && (
-                <div className="col-span-full py-20 text-center bg-[#111111] rounded-3xl border-2 border-dashed border-white/5">
-                  <p className="text-slate-400 italic">Nenhum treino criado ainda.</p>
+                <div className="col-span-full py-20 text-center glass-panel rounded-3xl border-2 border-dashed border-outline-variant/30">
+                  <p className="font-body-md text-on-surface-variant italic">Nenhum treino criado ainda.</p>
                 </div>
               )}
             </div>
@@ -284,30 +273,30 @@ export default function StudentDetailView({ student, onBack, showToast }) {
         )}
 
         {currentSubTab === 'evolution' && (
-          <div className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <History className="w-5 h-5 text-primary" /> Histórico de Evolução
+          <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm animate-in slide-in-from-right-4 duration-300">
+            <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary-container">history</span> Histórico de Evolução
             </h3>
             <div className="space-y-4">
               {bioRecords.slice().reverse().map((r, i) => (
-                <div key={i} className="flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 group hover:bg-white/10 hover:border-white/10 hover:shadow-md transition-all">
+                <div key={i} className="flex items-center justify-between p-6 bg-surface rounded-3xl border border-outline-variant/30 group hover:bg-surface-container hover:border-outline-variant/50 hover:shadow-md transition-all">
                   <div className="flex items-center gap-6">
-                    <div className="bg-black/50 w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-sm border border-white/5">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">{new Date(r.record_date).toLocaleDateString('pt-BR', { month: 'short' })}</p>
-                      <p className="text-lg font-black text-white">{new Date(r.record_date).getDate()}</p>
+                    <div className="bg-surface-container w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-sm border border-outline-variant/30">
+                      <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">{new Date(r.record_date).toLocaleDateString('pt-BR', { month: 'short' })}</p>
+                      <p className="font-display-lg text-lg text-on-surface">{new Date(r.record_date).getDate()}</p>
                     </div>
                     <div>
-                      <p className="font-bold text-primary text-lg">{r.weight}kg</p>
+                      <p className="font-display-lg text-primary-container text-lg">{r.weight}kg</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                        <span className="text-[10px] text-slate-400 font-medium">Gordura: <b className="text-white">{r.body_fat_pct}%</b></span>
-                        <span className="text-[10px] text-slate-400 font-medium">Músculo: <b className="text-white">{r.muscle_mass_kg}kg</b></span>
+                        <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Gordura: <b className="text-on-surface">{r.body_fat_pct}%</b></span>
+                        <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Músculo: <b className="text-on-surface">{r.muscle_mass_kg}kg</b></span>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
               {bioRecords.length === 0 && (
-                <p className="text-center py-20 text-slate-400 italic">Nenhum registro encontrado.</p>
+                <p className="text-center py-20 font-body-md text-on-surface-variant italic">Nenhum registro encontrado.</p>
               )}
             </div>
           </div>
@@ -315,44 +304,44 @@ export default function StudentDetailView({ student, onBack, showToast }) {
       </div>
 
       {isWorkoutModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111111] border border-white/10 w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-8 border-b border-white/5 flex justify-between items-center">
+        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-panel border border-outline-variant/30 w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-8 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest">
               <div>
-                <h3 className="text-2xl font-black text-white">{selectedWorkoutDetail?.name}</h3>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Lista de Exercícios</p>
+                <h3 className="font-display-xl text-2xl text-on-surface">{selectedWorkoutDetail?.name}</h3>
+                <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">Lista de Exercícios</p>
               </div>
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="p-3 bg-white/5 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-white/5"
+                className="p-3 bg-surface-container rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"
               >
-                <X className="w-6 h-6" />
+                <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
             
             <div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">
               {loadingItems ? (
                 <div className="py-20 text-center">
-                  <Activity className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
-                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando Itens...</p>
+                  <span className="material-symbols-outlined text-4xl text-primary-container animate-spin mx-auto mb-4 block">sync</span>
+                  <p className="font-label-caps text-on-surface-variant text-xs uppercase tracking-widest">Carregando Itens...</p>
                 </div>
               ) : (
                 workoutItems.map((item, idx) => {
                   const ex = Array.isArray(item.gym_exercises) ? item.gym_exercises[0] : item.gym_exercises
                   return (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/5 group">
-                      <div className="w-14 h-14 rounded-2xl bg-black/50 flex items-center justify-center overflow-hidden border border-white/5">
+                    <div key={idx} className="flex items-center gap-4 p-4 bg-surface rounded-3xl border border-outline-variant/30 group hover:border-primary-container/30 transition-colors">
+                      <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant/30">
                         {ex?.gif_url ? (
                           <img src={ex.gif_url} className="w-full h-full object-cover" />
                         ) : (
-                          <Dumbbell className="w-6 h-6 text-slate-500" />
+                          <span className="material-symbols-outlined text-on-surface-variant">fitness_center</span>
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-bold text-white">{ex?.name || 'Exercício'}</p>
+                        <p className="font-headline-md text-sm text-on-surface">{ex?.name || 'Exercício'}</p>
                         <div className="flex gap-3 mt-1">
-                          <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase">{item.target_sets} Sets</span>
-                          <span className="text-[10px] font-bold text-[#C6C4FF] bg-[#C6C4FF]/10 px-2 py-0.5 rounded-md uppercase">{item.target_reps} Reps</span>
+                          <span className="font-label-caps text-[10px] text-primary-container bg-primary-container/10 px-2 py-0.5 rounded-md uppercase tracking-wider">{item.target_sets} Sets</span>
+                          <span className="font-label-caps text-[10px] text-[#C6C4FF] bg-[#C6C4FF]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">{item.target_reps} Reps</span>
                         </div>
                       </div>
                     </div>
@@ -361,10 +350,10 @@ export default function StudentDetailView({ student, onBack, showToast }) {
               )}
             </div>
             
-            <div className="p-8 bg-black/50 border-t border-white/5">
+            <div className="p-8 bg-surface-container-highest border-t border-outline-variant/30">
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="w-full bg-primary text-black font-bold py-4 rounded-2xl hover:bg-primary-dark transition-all"
+                className="w-full bg-primary-container text-on-primary-container font-label-caps py-4 rounded-2xl hover:brightness-110 transition-all uppercase tracking-widest neon-glow"
               >
                 Fechar Detalhes
               </button>

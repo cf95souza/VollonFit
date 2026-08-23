@@ -382,402 +382,432 @@ export default function Login() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Iniciando VollonFit...</p>
+        <p className="text-on-surface-variant font-bold text-xs uppercase tracking-widest">Iniciando VollonFit...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden bg-black">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105"
-        style={{ backgroundImage: 'url("/assets/login-bg.png")' }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-primary/20" />
+    <div className="min-h-screen w-full flex bg-background selection:bg-primary/30 text-on-surface font-sans overflow-hidden">
       
-      {/* Animated Elements */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
-
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-10">
-          {inviteAcademy ? (
-            /* BRANDED ACADEMY HEADER */
-            <>
-              <div className="inline-flex items-center justify-center bg-white/5 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/10 relative group">
-                {inviteAcademy.logo_url ? (
-                  <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
-                    <img src={inviteAcademy.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 rounded-[26px] bg-primary/20 flex items-center justify-center text-primary">
-                    <Dumbbell className="w-10 h-10 animate-pulse" />
-                  </div>
-                )}
-                {/* Glow layer */}
-                <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
-              </div>
-              <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display uppercase leading-tight">
-                PORTAL <span className="text-primary">{inviteAcademy.name.toUpperCase()}</span>
-              </h1>
-              <p className="text-slate-400 font-bold tracking-widest text-[9px] uppercase">Credenciamento de Professor B2B</p>
-            </>
-          ) : inviteTeacher ? (
-            /* BRANDED TEACHER HEADER */
-            <>
-              <div className="inline-flex items-center justify-center bg-white/5 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/10 relative group">
-                {inviteTeacher.logo_url ? (
-                  <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
-                    <img src={inviteTeacher.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 rounded-[26px] bg-primary/20 flex items-center justify-center text-primary">
-                    <User className="w-10 h-10 animate-pulse" />
-                  </div>
-                )}
-                {/* Glow layer */}
-                <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
-              </div>
-              <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display uppercase leading-tight">
-                STUDIO <span className="text-primary">{inviteTeacher.name.toUpperCase()}</span>
-              </h1>
-              <p className="text-slate-400 font-bold tracking-widest text-[9px] uppercase">Seu Personal Trainer Oficial</p>
-            </>
-          ) : (
-            /* DEFAULT VOLLONFIT HEADER */
-            <>
-              <div className="inline-flex items-center justify-center bg-primary p-4 rounded-3xl mb-6 shadow-2xl shadow-primary/40 animate-bounce-subtle text-black">
-                <Dumbbell className="text-white w-8 h-8" />
-              </div>
-              <h1 className="text-5xl font-black text-white tracking-tighter mb-2 font-display uppercase">
-                VOLLON<span className="text-primary">FIT</span>
-              </h1>
-              <p className="text-slate-400 font-medium tracking-widest text-[10px] uppercase">Evolution Management System</p>
-            </>
-          )}
+      {/* LEFT PANEL - Branding Image (Hidden on Mobile) */}
+      <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-black border-r border-outline-variant/30">
+        <img 
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop" 
+          alt="Gym aesthetic" 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity hover:scale-105 transition-transform duration-[20s]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+        
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="bg-primary/10 p-3 rounded-2xl border border-primary/20 backdrop-blur-md">
+             <Dumbbell className="w-8 h-8 text-primary glow-effect" />
+          </div>
+          <span className="text-3xl font-display-xl font-black tracking-tighter text-white">
+            VOLLON<span className="text-primary">FIT</span>
+          </span>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-2xl p-10 rounded-[40px] border border-white/10 shadow-2xl shadow-black/50">
+        <div className="relative z-10 max-w-lg mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface-container-high/80 border border-outline-variant/30 rounded-full mb-8 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              SaaS para Alta Performance
+            </span>
+          </div>
+          <h1 className="text-5xl font-display-xl font-black text-white leading-[1.1] mb-6 tracking-tight">
+            Eleve o nível do seu <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-fixed-dim">negócio fitness.</span>
+          </h1>
+          <p className="text-on-surface-variant text-lg font-body-lg">
+            A plataforma definitiva de inteligência artificial, gamificação e gestão B2B. Junte-se à elite dos treinadores.
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL - Login / Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-surface-container-lowest">
+        
+        {/* Mobile Background Image & Overlays */}
+        <div className="absolute inset-0 lg:hidden">
+          <img 
+            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop" 
+            alt="Gym aesthetic" 
+            className="w-full h-full object-cover opacity-10 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-background/80" />
+        </div>
+
+        {/* Ambient Glows */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="w-full max-w-md relative z-10">
           
-          {isAcademyRegisterMode ? (
-            /* ACADEMY TEACHER AUTO-REGISTRATION FORM */
-            <div className="space-y-6">
-              <div className="text-center mb-4">
-                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Cadastro de Professor B2B</h2>
-                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                  Preencha seus dados para começar a atuar como professor credenciado da equipe.
-                </p>
+          <div className="text-center mb-10">
+            {inviteAcademy ? (
+              /* BRANDED ACADEMY HEADER */
+              <>
+                <div className="inline-flex items-center justify-center bg-surface-container-high/50 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/5 relative group backdrop-blur-xl">
+                  {inviteAcademy.logo_url ? (
+                    <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
+                      <img src={inviteAcademy.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-[26px] bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                      <Dumbbell className="w-10 h-10 animate-pulse" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
+                </div>
+                <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display-xl uppercase leading-tight">
+                  PORTAL <span className="text-primary">{inviteAcademy.name}</span>
+                </h1>
+                <p className="text-on-surface-variant font-bold tracking-widest text-[9px] uppercase">Credenciamento de Professor B2B</p>
+              </>
+            ) : inviteTeacher ? (
+              /* BRANDED TEACHER HEADER */
+              <>
+                <div className="inline-flex items-center justify-center bg-surface-container-high/50 p-1.5 rounded-[32px] mb-6 shadow-2xl border border-white/5 relative group backdrop-blur-xl">
+                  {inviteTeacher.logo_url ? (
+                    <div className="w-20 h-20 rounded-[26px] overflow-hidden bg-black/40 flex items-center justify-center">
+                      <img src={inviteTeacher.logo_url} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-[26px] bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                      <User className="w-10 h-10 animate-pulse" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 rounded-[32px] bg-primary/10 blur-xl -z-10 group-hover:bg-primary/20 transition-colors duration-500" />
+                </div>
+                <h1 className="text-3xl font-black text-white tracking-tighter mb-2 font-display-xl uppercase leading-tight">
+                  STUDIO <span className="text-primary">{inviteTeacher.name}</span>
+                </h1>
+                <p className="text-on-surface-variant font-bold tracking-widest text-[9px] uppercase">Seu Personal Trainer Oficial</p>
+              </>
+            ) : (
+              /* DEFAULT VOLLONFIT HEADER (Mobile Only) */
+              <div className="lg:hidden">
+                <div className="inline-flex items-center justify-center bg-primary/10 p-4 rounded-3xl mb-6 shadow-2xl shadow-primary/20 border border-primary/20 backdrop-blur-md">
+                  <Dumbbell className="text-primary w-8 h-8" />
+                </div>
+                <h1 className="text-4xl font-black text-white tracking-tighter mb-2 font-display-xl uppercase">
+                  VOLLON<span className="text-primary">FIT</span>
+                </h1>
+                <p className="text-on-surface-variant font-bold tracking-widest text-[9px] uppercase">Acesso ao Sistema</p>
               </div>
+            )}
+          </div>
 
-              <form onSubmit={handleAcademyRegister} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                      <User className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={regTeacherForm.name}
-                      onChange={(e) => setRegTeacherForm({ ...regTeacherForm, name: e.target.value })}
-                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
-                      placeholder="Seu nome completo"
-                    />
-                  </div>
+          <div className="glass-panel bg-surface-container/40 backdrop-blur-2xl p-8 sm:p-10 rounded-[32px] border border-outline-variant/30 shadow-2xl relative">
+            
+            {isAcademyRegisterMode ? (
+              /* ACADEMY TEACHER AUTO-REGISTRATION FORM */
+              <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-black text-white font-display-xl uppercase tracking-tight">Cadastro B2B</h2>
+                  <p className="text-[11px] text-on-surface-variant mt-2 leading-relaxed">
+                    Preencha seus dados para começar a atuar na equipe.
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">E-mail (Acesso)</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                      <Mail className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={regTeacherForm.email}
-                      onChange={(e) => setRegTeacherForm({ ...regTeacherForm, email: e.target.value })}
-                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
-                      placeholder="professor@academia.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form onSubmit={handleAcademyRegister} className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Senha</label>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Nome Completo</label>
                     <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                        <ShieldCheck className="w-4 h-4" />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={regTeacherForm.name}
+                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, name: e.target.value })}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="Seu nome"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">E-mail Corporativo</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <Mail className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="email"
+                        required
+                        value={regTeacherForm.email}
+                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, email: e.target.value })}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="nome@academia.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Senha</label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="password"
+                          required
+                          value={regTeacherForm.password}
+                          onChange={(e) => setRegTeacherForm({ ...regTeacherForm, password: e.target.value })}
+                          className="w-full pl-10 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">WhatsApp</label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                          <Phone className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={regTeacherForm.phone}
+                          onChange={(e) => setRegTeacherForm({ ...regTeacherForm, phone: e.target.value })}
+                          className="w-full pl-10 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                          placeholder="(11) 90000-0000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="p-3 bg-error/10 border border-error/20 text-error text-[11px] font-bold rounded-xl text-center">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-widest disabled:opacity-50 mt-4 group"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        Criar Conta
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center pt-4 border-t border-outline-variant/30 mt-4">
+                    <button 
+                      type="button" 
+                      onClick={() => setIsAcademyRegisterMode(false)}
+                      className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                    >
+                      Já tem cadastro? Entrar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : isRegisterMode ? (
+              /* STUDENT AUTO-REGISTRATION FORM */
+              <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-black text-white font-display-xl uppercase tracking-tight">Cadastro de Aluno</h2>
+                  {inviteTeacher && (
+                    <p className="text-[11px] text-on-surface-variant mt-2 leading-relaxed">
+                      Você foi convidado pelo(a) treinador(a) <span className="text-primary font-bold">{inviteTeacher.name}</span>.
+                    </p>
+                  )}
+                </div>
+
+                <form onSubmit={handleRegister} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Nome Completo</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={regForm.name}
+                        onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="Ex: Carlos Silva"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Username de Acesso</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={regForm.username}
+                        onChange={(e) => setRegForm({ ...regForm, username: e.target.value })}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="Ex: carlos.silva"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Senha de Acesso</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <ShieldCheck className="w-5 h-5" />
                       </div>
                       <input
                         type="password"
                         required
-                        value={regTeacherForm.password}
-                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, password: e.target.value })}
-                        className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-xs"
+                        value={regForm.password}
+                        onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
                         placeholder="••••••••"
                       />
                     </div>
                   </div>
 
+                  {error && (
+                    <div className="p-3 bg-error/10 border border-error/20 text-error text-[11px] font-bold rounded-xl text-center">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-widest disabled:opacity-50 mt-4 group"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        Entrar no App
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center pt-4 border-t border-outline-variant/30 mt-4">
+                    <button 
+                      type="button" 
+                      onClick={() => setIsRegisterMode(false)}
+                      className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                    >
+                      Já tem acesso? Entrar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              /* STANDARD LOGIN FORM */
+              <div className="animate-in fade-in zoom-in-95 duration-500">
+                <div className="lg:hidden text-center mb-6">
+                  <h2 className="text-xl font-black text-white font-display-xl uppercase tracking-tight">Login</h2>
+                </div>
+                
+                <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Celular / WhatsApp</label>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Credencial</label>
                     <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                        <Phone className="w-4 h-4" />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <User className="w-5 h-5" />
                       </div>
                       <input
                         type="text"
                         required
-                        value={regTeacherForm.phone}
-                        onChange={(e) => setRegTeacherForm({ ...regTeacherForm, phone: e.target.value })}
-                        className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-xs"
-                        placeholder="(11) 99999-9999"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="Email ou Usuário"
                       />
                     </div>
                   </div>
-                </div>
 
-                {error && (
-                  <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
-                    {error}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Senha</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/50 rounded-2xl text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all font-bold text-sm"
+                        placeholder="••••••••"
+                      />
+                    </div>
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-md active:scale-95 disabled:opacity-50 group"
-                >
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>
-                      CRIAR CONTA & ENTRAR
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
+                  {error && (
+                    <div className="p-3 bg-error/10 border border-error/20 text-error text-[11px] font-bold rounded-xl text-center">
+                      {error}
+                    </div>
                   )}
-                </button>
 
-                <div className="text-center pt-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setIsAcademyRegisterMode(false)}
-                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-widest disabled:opacity-50 mt-2 group"
                   >
-                    Já tem cadastro? Entrar na conta
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        ACESSAR SISTEMA
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </button>
-                </div>
-              </form>
-            </div>
-          ) : isRegisterMode ? (
-            /* AUTO-REGISTRATION FORM */
-            <div className="space-y-6">
-              <div className="text-center mb-4">
-                <h2 className="text-xl font-black text-white font-display uppercase tracking-tight">Auto-Cadastro de Aluno</h2>
-                {inviteTeacher && (
-                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                    Você foi convidado pelo professor <span className="text-primary font-bold">{inviteTeacher.name}</span>! Preencha seus dados abaixo para iniciar sua jornada.
-                  </p>
-                )}
-              </div>
 
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                      <User className="w-5 h-5" />
+                  {inviteId && (
+                    <div className="text-center pt-4 border-t border-outline-variant/30 mt-4">
+                      <button 
+                        type="button" 
+                        onClick={() => setIsRegisterMode(true)}
+                        className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                      >
+                        Não tem conta? Cadastrar-se
+                      </button>
                     </div>
-                    <input
-                      type="text"
-                      required
-                      value={regForm.name}
-                      onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
-                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
-                      placeholder="Ex: João da Silva"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome de Usuário (Login)</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                      <User className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={regForm.username}
-                      onChange={(e) => setRegForm({ ...regForm, username: e.target.value })}
-                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
-                      placeholder="Ex: joao.silva"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Senha de Acesso</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      value={regForm.password}
-                      onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                      className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold text-sm"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-md active:scale-95 disabled:opacity-50 group"
-                >
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>
-                      CRIAR CONTA & ENTRAR
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
                   )}
-                </button>
 
-                <div className="text-center pt-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setIsRegisterMode(false)}
-                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
-                  >
-                    Já tem cadastro? Entrar na conta
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            /* STANDARD LOGIN FORM */
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Acesso do Usuário</label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
-                    placeholder="Email ou Username"
-                  />
-                </div>
+                  {inviteAcademyId && (
+                    <div className="text-center pt-4 border-t border-outline-variant/30 mt-4">
+                      <button 
+                        type="button" 
+                        onClick={() => setIsAcademyRegisterMode(true)}
+                        className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                      >
+                        Cadastrar-se na Academia
+                      </button>
+                    </div>
+                  )}
+                </form>
               </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Chave de Segurança</label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:bg-white/10 transition-all font-bold"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl text-center animate-shake">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary-dark text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-lg active:scale-95 disabled:opacity-50 group"
-              >
-                {loading ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <>
-                    ACESSAR SISTEMA
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </button>
-
-              {inviteId && (
-                <div className="text-center pt-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setIsRegisterMode(true)}
-                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
-                  >
-                    Não tem conta? Cadastrar-se
-                  </button>
-                </div>
-              )}
-
-              {inviteAcademyId && (
-                <div className="text-center pt-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setIsAcademyRegisterMode(true)}
-                    className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
-                  >
-                    Cadastrar-se na Academia
-                  </button>
-                </div>
-              )}
-            </form>
-          )}
+            )}
+          </div>
+          
+          <p className="mt-8 text-on-surface-variant/40 text-[9px] text-center font-bold uppercase tracking-[0.3em]">
+            Powered by VollonFit OS © 2026
+          </p>
         </div>
-
-        <p className="mt-8 text-slate-500 text-[10px] text-center font-bold uppercase tracking-[0.3em]">
-          Powered by VollonFit OS © 2026
-        </p>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes bounce-subtle {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        .animate-bounce-subtle {
-          animation: bounce-subtle 3s ease-in-out infinite;
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-        .animate-shake {
-          animation: shake 0.2s ease-in-out 0s 2;
-        }
-      `}} />
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { ClipboardList, Plus, ChevronRight, LogOut } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
@@ -156,12 +155,12 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
-          <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm space-y-4">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Selecione o Aluno</label>
+          <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm space-y-4">
+            <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">1. Selecione o Aluno</label>
             <select 
               value={selectedStudent}
               onChange={e => { setSelectedStudent(e.target.value); resetForm(); }}
-              className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-4 font-body-md outline-none focus:border-primary-container transition-all"
             >
               <option value="">Selecione um aluno...</option>
               {filteredStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -169,10 +168,10 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
           </div>
 
           {selectedStudent && (
-            <div className="bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-sm space-y-4 animate-in slide-in-from-left duration-300">
+            <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm space-y-4 animate-in slide-in-from-left duration-300">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Treinos do Aluno</label>
-                <button onClick={resetForm} className="text-[10px] font-bold text-primary hover:underline">Novo Treino</button>
+                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Treinos do Aluno</label>
+                <button onClick={resetForm} className="font-label-caps text-[10px] text-primary-container hover:brightness-110 transition-all uppercase">Novo Treino</button>
               </div>
               <div className="space-y-2">
                 {studentWorkouts.map(w => (
@@ -180,14 +179,14 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                     key={w.id}
                     onClick={() => loadWorkoutForEdit(w)}
                     className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
-                      editingWorkoutId === w.id ? 'bg-primary/10 border-primary text-primary' : 'bg-white/5 border-white/5 text-slate-300 hover:border-white/20'
+                      editingWorkoutId === w.id ? 'bg-primary-container/10 border-primary-container text-primary-container' : 'bg-surface border-outline-variant/30 text-on-surface-variant hover:border-outline-variant/50 hover:text-on-surface'
                     }`}
                   >
-                    <span className="font-bold text-sm">{w.name}</span>
-                    <ChevronRight className={`w-4 h-4 transition-transform ${editingWorkoutId === w.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
+                    <span className="font-headline-md text-sm">{w.name}</span>
+                    <span className={`material-symbols-outlined text-lg transition-transform ${editingWorkoutId === w.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`}>chevron_right</span>
                   </button>
                 ))}
-                {studentWorkouts.length === 0 && <p className="text-xs text-slate-400 text-center py-4 italic">Nenhum treino encontrado.</p>}
+                {studentWorkouts.length === 0 && <p className="font-body-md text-xs text-on-surface-variant text-center py-4 italic">Nenhum treino encontrado.</p>}
               </div>
             </div>
           )}
@@ -196,59 +195,59 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
         <div className="lg:col-span-2 space-y-6">
           {selectedStudent ? (
             <div className="space-y-6">
-              <section className="bg-[#111111] p-8 rounded-3xl border border-white/5 shadow-sm space-y-6">
+              <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <ClipboardList className="w-6 h-6 text-primary" /> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
+                  <h3 className="font-display-lg text-xl text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary-container">assignment</span> {editingWorkoutId ? 'Editando Treino' : 'Novo Treino'}
                   </h3>
                   {editingWorkoutId && (
-                    <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20">Existente</span>
+                    <span className="font-label-caps text-[10px] bg-primary-container/20 text-primary-container px-2 py-1 rounded-full uppercase tracking-widest border border-primary-container/20">Existente</span>
                   )}
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Identificação do Treino</label>
+                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Identificação do Treino</label>
                   <input 
                     type="text" 
                     value={workoutName}
                     onChange={e => setWorkoutName(e.target.value)}
                     placeholder="Ex: Treino A - Superior (Foco Peito)"
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-4 font-body-md focus:border-primary-container outline-none transition-all placeholder:text-on-surface-variant/50"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Foco / Descrição (Pílula de Filtro)</label>
+                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Foco / Descrição (Pílula de Filtro)</label>
                   <input 
                     type="text" 
                     value={workoutDescription}
                     onChange={e => setWorkoutDescription(e.target.value)}
                     placeholder="Ex: Foco Peito, Superior, Cardio..."
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-4 font-body-md focus:border-primary-container outline-none transition-all placeholder:text-on-surface-variant/50"
                   />
                 </div>
               </section>
 
               <section className="space-y-4">
                 <div className="flex justify-between items-center px-2">
-                  <h3 className="text-lg font-bold text-white">Exercícios da Rotina</h3>
+                  <h3 className="font-headline-lg text-lg text-on-surface">Exercícios da Rotina</h3>
                   <button 
                     onClick={addExercise}
-                    className="flex items-center gap-2 text-primary hover:text-primary-dark font-bold text-sm transition-colors"
+                    className="flex items-center gap-2 text-primary-container hover:brightness-110 font-label-caps text-xs transition-all uppercase tracking-wider"
                   >
-                    <Plus className="w-4 h-4 p-0.5 bg-primary/10 rounded-full" /> Adicionar Exercício
+                    <span className="material-symbols-outlined text-sm p-0.5 bg-primary-container/10 rounded-full">add</span> Adicionar Exercício
                   </button>
                 </div>
 
                 <div className="space-y-4">
                   {workoutItems.map((item, index) => (
-                    <div key={index} className="bg-[#111111] p-6 rounded-2xl border border-white/5 shadow-sm flex flex-wrap md:flex-nowrap gap-4 items-end animate-in zoom-in-95 duration-200">
+                    <div key={index} className="bg-surface p-6 rounded-3xl border border-outline-variant/30 shadow-sm flex flex-wrap md:flex-nowrap gap-4 items-end animate-in zoom-in-95 duration-200">
                       <div className="flex-1 min-w-[200px] space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Exercício {index + 1}</label>
+                        <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Exercício {index + 1}</label>
                         <select 
                           value={item.exercise_id}
                           onChange={e => updateItem(index, 'exercise_id', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm outline-none focus:border-primary/50"
+                          className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md outline-none focus:border-primary-container transition-all"
                         >
                           <option value="">Selecione...</option>
                           {exercises.map(ex => (
@@ -258,30 +257,30 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                       </div>
 
                       <div className="w-20 space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sets</label>
+                        <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Sets</label>
                         <input 
                           type="number" 
                           value={item.target_sets}
                           onChange={e => updateItem(index, 'target_sets', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-primary/50"
+                          className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md text-center outline-none focus:border-primary-container transition-all"
                         />
                       </div>
 
                       <div className="w-24 space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reps</label>
+                        <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Reps</label>
                         <input 
                           type="text" 
                           value={item.target_reps}
                           onChange={e => updateItem(index, 'target_reps', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 text-white rounded-lg p-3 text-sm text-center outline-none focus:border-primary/50"
+                          className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md text-center outline-none focus:border-primary-container transition-all"
                         />
                       </div>
 
                       <button 
                         onClick={() => removeExercise(index)}
-                        className="p-3 text-slate-500 hover:text-rose-400 transition-colors"
+                        className="p-3 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-xl transition-colors flex items-center justify-center"
                       >
-                        <LogOut className="w-5 h-5 rotate-180" />
+                        <span className="material-symbols-outlined text-xl">delete</span>
                       </button>
                     </div>
                   ))}
@@ -292,16 +291,16 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                 <button 
                   onClick={handleSaveWorkout}
                   disabled={isSaving}
-                  className="bg-primary hover:bg-primary-dark text-black px-10 py-4 rounded-2xl font-bold shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50"
+                  className="bg-primary-container hover:brightness-110 text-on-primary-container px-10 py-4 rounded-xl font-label-caps uppercase tracking-widest shadow-[0_0_15px_rgba(195,244,0,0.2)] neon-glow transition-all flex items-center gap-3 disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : editingWorkoutId ? 'Salvar Alterações' : 'Criar Treino'}
                 </button>
               </div>
             </div>
           ) : (
-            <div className="h-[400px] flex flex-col items-center justify-center text-center bg-[#111111] border-2 border-dashed border-white/5 rounded-[40px]">
-              <ClipboardList className="w-16 h-16 text-white/10 mb-4" />
-              <p className="text-slate-400 font-medium">Selecione um aluno ao lado <br/> para começar a montar ou editar treinos.</p>
+            <div className="h-[400px] flex flex-col items-center justify-center text-center glass-panel border-2 border-dashed border-outline-variant/30 rounded-3xl">
+              <span className="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4">assignment</span>
+              <p className="font-body-md text-on-surface-variant">Selecione um aluno ao lado <br/> para começar a montar ou editar treinos.</p>
             </div>
           )}
         </div>

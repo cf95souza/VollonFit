@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
-import { Users2, Dumbbell, Receipt, TrendingUp, AlertTriangle, Bell, ChevronRight, Activity, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 export default function MasterOverview({ onNavigate }) {
@@ -92,44 +91,44 @@ export default function MasterOverview({ onNavigate }) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-[#111111] rounded-lg animate-pulse border border-white/5" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-28 glass-panel border border-outline-variant/30 rounded-3xl animate-pulse" />)}
         </div>
-        <div className="h-48 bg-[#111111] rounded-lg animate-pulse border border-white/5" />
+        <div className="h-48 glass-panel border border-outline-variant/30 rounded-[32px] animate-pulse" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* SaaS KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard 
           title="MRR Estimado" 
           value={`R$ ${stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={TrendingUp} color="text-primary" bg="bg-primary/10"
+          icon="trending_up" color="text-primary-container" bg="bg-primary-container/10"
         />
         <KPICard 
           title="LTV (Ciclo de Vida)" 
           value={`R$ ${stats.ltv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={DollarSign} color="text-emerald-400" bg="bg-emerald-500/10" 
+          icon="attach_money" color="text-[#4ade80]" bg="bg-[#4ade80]/10" 
         />
         <KPICard 
           title="Churn Rate" 
           value={`${stats.churn.toFixed(1)}%`} 
-          icon={Activity} color={stats.churn > 5 ? "text-rose-400" : "text-sky-400"} bg={stats.churn > 5 ? "bg-rose-500/10" : "bg-sky-500/10"} 
+          icon="monitoring" color={stats.churn > 5 ? "text-error" : "text-[#4ade80]"} bg={stats.churn > 5 ? "bg-error/10" : "bg-[#4ade80]/10"} 
         />
-        <KPICard title="Cobranças Pendentes" value={stats.pending} icon={Receipt} color="text-amber-400" bg="bg-amber-500/10" />
+        <KPICard title="Cobranças Pendentes" value={stats.pending} icon="receipt_long" color="text-warning" bg="bg-warning/10" />
       </div>
 
       {/* Gráfico de Evolução de MRR (Simulado) */}
-      <div className="bg-[#111111] rounded-[32px] border border-white/5 p-8">
+      <div className="glass-panel rounded-[32px] border border-outline-variant/30 p-8 shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-xl font-black text-white font-display uppercase tracking-tight">Evolução do MRR</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Crescimento da Receita Recorrente</p>
+            <h3 className="font-display-md text-xl text-on-surface uppercase tracking-tight">Evolução do MRR</h3>
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">Crescimento da Receita Recorrente</p>
           </div>
-          <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-black">
-            <ArrowUpRight className="w-4 h-4" /> +12.5%
+          <div className="flex items-center gap-2 bg-[#4ade80]/10 text-[#4ade80] px-3 py-1.5 rounded-full text-xs font-label-caps tracking-widest">
+            <span className="material-symbols-outlined text-sm">arrow_outward</span> +12.5%
           </div>
         </div>
         <div className="h-64 w-full">
@@ -163,38 +162,38 @@ export default function MasterOverview({ onNavigate }) {
       </div>
 
       {/* Preço global */}
-      <div className="bg-[#111111] rounded-lg border border-white/5 p-4 flex items-center justify-between">
+      <div className="glass-panel rounded-3xl border border-outline-variant/30 p-6 flex items-center justify-between shadow-sm">
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Preço Global por Aluno</p>
-          <p className="text-2xl font-bold text-white">R$ {pricePerStudent.toFixed(2)}</p>
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Preço Global por Aluno</p>
+          <p className="font-display-lg text-2xl text-on-surface mt-1">R$ {pricePerStudent.toFixed(2)}</p>
         </div>
         <button
           onClick={() => onNavigate('settings')}
-          className="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1"
+          className="font-label-caps text-xs text-primary-container hover:brightness-110 flex items-center gap-1 transition-all"
         >
-          Alterar <ChevronRight className="w-3 h-3" />
+          Alterar <span className="material-symbols-outlined text-sm">chevron_right</span>
         </button>
       </div>
 
       {/* Alertas de Vencimento */}
       {alerts.length > 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Bell className="w-5 h-5 text-amber-400" />
-            <h3 className="font-bold text-amber-400 text-sm">Cobranças Próximas do Vencimento</h3>
+        <div className="glass-panel bg-warning/10 border border-warning/20 rounded-3xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-warning text-xl">notifications</span>
+            <h3 className="font-headline-md text-warning text-sm">Cobranças Próximas do Vencimento</h3>
           </div>
           <div className="space-y-2">
             {alerts.map(t => (
-              <div key={t.id} className="flex items-center justify-between bg-black/50 rounded-md p-3 border border-amber-500/10">
+              <div key={t.id} className="flex items-center justify-between bg-surface/50 rounded-2xl p-4 border border-warning/10">
                 <div>
-                  <p className="font-semibold text-white text-sm">{t.name}</p>
-                  <p className="text-xs text-slate-400">{t.email}</p>
+                  <p className="font-headline-sm text-on-surface text-sm">{t.name}</p>
+                  <p className="font-body-md text-xs text-on-surface-variant mt-0.5">{t.email}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-amber-400">
+                  <p className="font-label-caps text-xs text-warning uppercase tracking-widest mb-1">
                     {t._daysUntilDue === 0 ? 'Vence hoje!' : `Vence em ${t._daysUntilDue} dia(s)`}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="font-body-md text-xs text-on-surface-variant">
                     {t._nextDueDate?.toLocaleDateString('pt-BR')}
                   </p>
                 </div>
@@ -205,36 +204,36 @@ export default function MasterOverview({ onNavigate }) {
       )}
 
       {/* Professores Recentes */}
-      <div className="bg-[#111111] rounded-lg border border-white/5">
-        <div className="p-4 border-b border-white/5 flex items-center justify-between">
-          <h3 className="font-bold text-white text-sm">Últimos Professores</h3>
-          <button onClick={() => onNavigate('teachers')} className="text-xs font-semibold text-[#C6C4FF] hover:text-white">
-            Ver todos →
+      <div className="glass-panel rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-outline-variant/30 flex items-center justify-between">
+          <h3 className="font-headline-sm text-on-surface text-sm">Últimos Professores</h3>
+          <button onClick={() => onNavigate('teachers')} className="font-label-caps text-xs text-secondary-container hover:text-on-surface transition-all tracking-widest uppercase">
+            Ver todos &rarr;
           </button>
         </div>
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-outline-variant/10">
           {recentTeachers.map(t => (
-            <div key={t.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 font-bold text-xs">
+            <div key={t.id} className="flex items-center justify-between p-6 hover:bg-surface-container transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-surface border border-outline-variant/30 flex items-center justify-center text-on-surface-variant font-headline-sm text-xs">
                   {t.name?.[0] || '?'}
                 </div>
                 <div>
-                  <p className="font-semibold text-white text-sm">{t.name}</p>
-                  <p className="text-xs text-slate-400">{t.email}</p>
+                  <p className="font-headline-sm text-on-surface text-sm">{t.name}</p>
+                  <p className="font-body-md text-xs text-on-surface-variant mt-0.5">{t.email}</p>
                 </div>
               </div>
-              <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
-                t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
-                t.status === 'blocked' ? 'bg-rose-500/10 text-rose-400' :
-                'bg-amber-500/10 text-amber-400'
+              <span className={`font-label-caps text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border ${
+                t.status === 'active' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
+                t.status === 'blocked' ? 'bg-error/10 text-error border-error/20' :
+                'bg-warning/10 text-warning border-warning/20'
               }`}>
                 {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
               </span>
             </div>
           ))}
           {recentTeachers.length === 0 && (
-            <p className="text-center py-8 text-slate-500 text-sm">Nenhum professor cadastrado.</p>
+            <p className="text-center py-8 font-body-md text-on-surface-variant text-sm">Nenhum professor cadastrado.</p>
           )}
         </div>
       </div>
@@ -242,16 +241,16 @@ export default function MasterOverview({ onNavigate }) {
   )
 }
 
-function KPICard({ title, value, icon: Icon, color, bg }) {
+function KPICard({ title, value, icon, color, bg }) {
   return (
-    <div className="bg-[#111111] rounded-lg border border-white/5 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider leading-tight">{title}</p>
-        <div className={`w-8 h-8 rounded-md ${bg} flex items-center justify-center`}>
-          <Icon className={`w-4 h-4 ${color}`} />
+    <div className="glass-panel rounded-3xl border border-outline-variant/30 p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <p className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest leading-tight">{title}</p>
+        <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
+          <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
         </div>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="font-display-lg text-2xl text-on-surface">{value}</p>
     </div>
   )
 }

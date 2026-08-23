@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { 
-  Building2, Users, LayoutDashboard, LogOut, Plus, Search, 
-  Mail, Phone, Shield, Edit3, Trash2, Lock, Unlock, 
-  Settings, Loader2, CheckCircle2, AlertCircle, Key, X, 
-  RefreshCw, DollarSign, Award, ArrowUpRight, ShoppingBag
-} from 'lucide-react';
 
 export default function AcademyDashboard() {
   const navigate = useNavigate();
@@ -410,9 +404,9 @@ export default function AcademyDashboard() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Autenticando Gestor...</p>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center">
+        <span className="material-symbols-outlined text-4xl text-primary-container animate-spin mb-4">sync</span>
+        <p className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-[0.3em]">Autenticando Gestor...</p>
       </div>
     );
   }
@@ -420,48 +414,48 @@ export default function AcademyDashboard() {
   const teacherQuotaPct = academy ? Math.min(100, Math.round((teachers.length / academy.max_teachers) * 100)) : 0;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col pb-12 relative overflow-x-hidden">
+    <div className="min-h-screen bg-surface text-on-surface font-sans flex flex-col pb-12 relative overflow-x-hidden">
       
       {/* Toast Alert Component */}
       {toast && (
         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-4 ${
           toast.type === 'error' 
-            ? 'bg-rose-950/95 border-rose-500/30 text-rose-200' 
-            : 'bg-emerald-950/95 border-emerald-500/30 text-emerald-200'
+            ? 'bg-error/10 border-error/30 text-error' 
+            : 'bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]'
         }`}>
-          {toast.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-400" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-          <span className="font-semibold text-sm">{toast.message}</span>
+          <span className="material-symbols-outlined text-[20px]">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
+          <span className="font-headline-sm text-sm">{toast.message}</span>
         </div>
       )}
 
       {/* Corporate Dashboard Header */}
-      <header className="border-b border-white/5 bg-[#0A0A0A]/85 backdrop-blur-xl sticky top-0 z-30 px-6 py-4">
+      <header className="border-b border-outline-variant/30 bg-surface/80 backdrop-blur-xl sticky top-0 z-30 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl border border-white/5 bg-[#121212] overflow-hidden flex items-center justify-center relative">
+            <div className="w-12 h-12 rounded-2xl border border-outline-variant/30 bg-surface-container overflow-hidden flex items-center justify-center relative">
               {academy?.logo_url ? (
                 <img src={academy.logo_url} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.target.src = ''; }} />
               ) : (
-                <Building2 className="w-6 h-6 text-primary" />
+                <span className="material-symbols-outlined text-[24px] text-primary-container">domain</span>
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-white font-display tracking-tight leading-none">{academy?.name || 'Academia B2B'}</h1>
-                <span className="bg-primary/10 text-primary border border-primary/20 text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-widest">Enterprise</span>
+                <h1 className="text-lg font-display-md text-on-surface tracking-tight leading-none">{academy?.name || 'Academia B2B'}</h1>
+                <span className="bg-primary-container/10 text-primary-container border border-primary-container/20 text-[8px] font-label-caps uppercase px-2 py-0.5 rounded-full tracking-widest">Enterprise</span>
               </div>
-              <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Painel do Gestor Corporativo</p>
+              <p className="text-[10px] font-label-caps text-on-surface-variant mt-1 uppercase tracking-wider">Painel do Gestor Corporativo</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="hidden md:block text-right">
-              <p className="text-xs font-bold text-white leading-tight">{adminData?.name || 'Gestor Principal'}</p>
-              <p className="text-[10px] text-slate-500 font-semibold">{adminData?.email}</p>
+              <p className="text-xs font-headline-sm text-on-surface leading-tight">{adminData?.name || 'Gestor Principal'}</p>
+              <p className="text-[10px] text-on-surface-variant font-body-md">{adminData?.email}</p>
             </div>
-            <button onClick={handleLogout} className="bg-white/5 hover:bg-rose-500/10 hover:text-rose-400 text-slate-300 p-3 rounded-2xl border border-white/5 transition-all active:scale-95" title="Sair do Portal">
-              <LogOut className="w-5 h-5" />
+            <button onClick={handleLogout} className="bg-surface-container hover:bg-error/10 hover:text-error text-on-surface-variant p-3 rounded-2xl border border-outline-variant/30 transition-all active:scale-95 flex items-center justify-center" title="Sair do Portal">
+              <span className="material-symbols-outlined text-[20px]">logout</span>
             </button>
           </div>
 
@@ -472,57 +466,57 @@ export default function AcademyDashboard() {
       <main className="max-w-7xl mx-auto px-6 mt-8 flex-1 w-full space-y-8">
         
         {/* Navigation Tabs */}
-        <div className="flex gap-2 p-1.5 bg-[#0D0D0D] border border-white/5 rounded-2xl max-w-fit">
+        <div className="flex gap-2 p-1.5 glass-panel border border-outline-variant/30 rounded-2xl max-w-fit overflow-x-auto">
           <button 
             onClick={() => setActiveTab('overview')} 
-            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
-              activeTab === 'overview' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            className={`px-6 py-2.5 rounded-xl font-label-caps text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'overview' ? 'bg-primary-container text-on-primary-container neon-glow' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4" /> Visão Geral
+            <span className="material-symbols-outlined text-[16px]">dashboard</span> Visão Geral
           </button>
           
           <button 
             onClick={() => setActiveTab('teachers')} 
-            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
-              activeTab === 'teachers' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            className={`px-6 py-2.5 rounded-xl font-label-caps text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'teachers' ? 'bg-primary-container text-on-primary-container neon-glow' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
-            <Users className="w-4 h-4" /> Professores
+            <span className="material-symbols-outlined text-[16px]">group</span> Professores
           </button>
 
           <button 
             onClick={() => setActiveTab('students')} 
-            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
-              activeTab === 'students' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            className={`px-6 py-2.5 rounded-xl font-label-caps text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'students' ? 'bg-primary-container text-on-primary-container neon-glow' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
-            <Shield className="w-4 h-4" /> Alunos
+            <span className="material-symbols-outlined text-[16px]">shield</span> Alunos
           </button>
 
           <button 
             onClick={() => setActiveTab('marketplace')} 
-            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
-              activeTab === 'marketplace' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            className={`px-6 py-2.5 rounded-xl font-label-caps text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'marketplace' ? 'bg-primary-container text-on-primary-container neon-glow' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
-            <ShoppingBag className="w-4 h-4" /> Marketplace
+            <span className="material-symbols-outlined text-[16px]">shopping_bag</span> Marketplace
           </button>
 
           <button 
             onClick={() => setActiveTab('profile')} 
-            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${
-              activeTab === 'profile' ? 'bg-primary text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            className={`px-6 py-2.5 rounded-xl font-label-caps text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'profile' ? 'bg-primary-container text-on-primary-container neon-glow' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
-            <Settings className="w-4 h-4" /> Configurações
+            <span className="material-symbols-outlined text-[16px]">settings</span> Configurações
           </button>
         </div>
 
         {loadingData ? (
-          <div className="flex flex-col items-center justify-center min-h-[300px] bg-[#0A0A0A] rounded-[32px] border border-white/5">
-            <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Sincronizando dados...</p>
+          <div className="flex flex-col items-center justify-center min-h-[300px] glass-panel rounded-3xl border border-outline-variant/30">
+            <span className="material-symbols-outlined text-[40px] text-primary-container animate-spin mb-4">sync</span>
+            <p className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-widest">Sincronizando dados...</p>
           </div>
         ) : (
           <div className="animate-in fade-in duration-300">
@@ -535,37 +529,37 @@ export default function AcademyDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   
                   {/* Metric: Teacher Quota limit */}
-                  <div className="bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5 relative overflow-hidden group hover:border-primary/20 transition-all flex flex-col justify-between">
+                  <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 relative overflow-hidden group hover:border-primary-container/30 transition-all flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Cota de Professores</p>
-                          <h3 className="text-3xl font-black font-display text-white">{teachers.length} <span className="text-xs text-slate-500 font-bold">/ {academy?.max_teachers || 10}</span></h3>
+                          <p className="font-label-caps text-[10px] uppercase text-on-surface-variant tracking-widest mb-1">Cota de Professores</p>
+                          <h3 className="text-3xl font-display-lg text-on-surface">{teachers.length} <span className="font-body-md text-xs text-on-surface-variant">/ {academy?.max_teachers || 10}</span></h3>
                         </div>
-                        <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                          <Users className="w-5 h-5" />
+                        <div className="w-10 h-10 rounded-2xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center text-primary-container">
+                          <span className="material-symbols-outlined text-[20px]">group</span>
                         </div>
                       </div>
                       
                       {/* Interactive Progress Bar */}
                       <div className="mt-6">
-                        <div className="flex justify-between text-[9px] uppercase font-bold text-slate-400 mb-1.5">
+                        <div className="flex justify-between font-label-caps text-[9px] uppercase text-on-surface-variant mb-1.5">
                           <span>Uso de Licenças</span>
                           <span>{teacherQuotaPct}%</span>
                         </div>
-                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ${
-                              teacherQuotaPct >= 90 ? 'bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 
-                              teacherQuotaPct >= 70 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 
-                              'bg-primary shadow-[0_0_10px_rgba(223,255,94,0.2)]'
+                              teacherQuotaPct >= 90 ? 'bg-error shadow-[0_0_10px_rgba(255,84,73,0.2)]' : 
+                              teacherQuotaPct >= 70 ? 'bg-warning shadow-[0_0_10px_rgba(253,184,39,0.2)]' : 
+                              'bg-primary-container shadow-[0_0_10px_rgba(223,255,94,0.2)] neon-glow'
                             }`} 
                             style={{ width: `${teacherQuotaPct}%` }} 
                           />
                         </div>
                       </div>
                     </div>
-                    <p className="text-[9px] text-slate-400 uppercase font-black tracking-wider mt-4">
+                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-wider mt-4">
                       {teachers.length >= (academy?.max_teachers || 10) 
                         ? '🚫 Limite atingido. Contate o suporte para liberar licenças.' 
                         : `✅ Mais ${ (academy?.max_teachers || 10) - teachers.length } licenças de professores disponíveis.`}
@@ -573,60 +567,60 @@ export default function AcademyDashboard() {
                   </div>
 
                   {/* Metric: Total Active Students */}
-                  <div className="bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5 hover:border-primary/20 transition-all flex flex-col justify-between">
+                  <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 hover:border-primary-container/30 transition-all flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Total de Alunos</p>
-                        <h3 className="text-3xl font-black font-display text-white">{students.length}</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">Matriculados na rede corporativa</p>
+                        <p className="font-label-caps text-[10px] uppercase text-on-surface-variant tracking-widest mb-1">Total de Alunos</p>
+                        <h3 className="text-3xl font-display-lg text-on-surface">{students.length}</h3>
+                        <p className="font-body-md text-[10px] text-on-surface-variant mt-1">Matriculados na rede corporativa</p>
                       </div>
-                      <div className="w-10 h-10 rounded-2xl bg-[#C6C4FF]/10 border border-[#C6C4FF]/20 flex items-center justify-center text-[#C6C4FF]">
-                        <Shield className="w-5 h-5" />
+                      <div className="w-10 h-10 rounded-2xl bg-secondary-container/10 border border-secondary-container/20 flex items-center justify-center text-secondary-container">
+                        <span className="material-symbols-outlined text-[20px]">shield</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-primary font-bold mt-6">
-                      <Award className="w-4 h-4" /> Licenças Premium Ilimitadas inclusas
+                    <div className="flex items-center gap-1.5 font-headline-sm text-xs text-primary-container mt-6">
+                      <span className="material-symbols-outlined text-[16px]">workspace_premium</span> Licenças Premium Ilimitadas inclusas
                     </div>
                   </div>
 
                   {/* Metric: Monthly Subscription Fixed Fee */}
-                  <div className="bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5 hover:border-primary/20 transition-all flex flex-col justify-between">
+                  <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 hover:border-primary-container/30 transition-all flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Faturamento Fixo B2B</p>
-                        <h3 className="text-3xl font-black font-display text-white">R$ {academy?.monthly_fee?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '899,00'}</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">Cobrança Mensalidade Recorrente</p>
+                        <p className="font-label-caps text-[10px] uppercase text-on-surface-variant tracking-widest mb-1">Faturamento Fixo B2B</p>
+                        <h3 className="text-3xl font-display-lg text-on-surface">R$ {academy?.monthly_fee?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '899,00'}</h3>
+                        <p className="font-body-md text-[10px] text-on-surface-variant mt-1">Cobrança Mensalidade Recorrente</p>
                       </div>
-                      <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                        <DollarSign className="w-5 h-5" />
+                      <div className="w-10 h-10 rounded-2xl bg-tertiary-container/10 border border-tertiary-container/20 flex items-center justify-center text-tertiary-container">
+                        <span className="material-symbols-outlined text-[20px]">attach_money</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-[9px] uppercase font-black text-emerald-400 tracking-wider mt-6">
-                      <ArrowUpRight className="w-4 h-4" /> Assinatura Ativa & Saudável
+                    <div className="flex items-center gap-1 font-label-caps text-[9px] uppercase text-tertiary-container tracking-wider mt-6">
+                      <span className="material-symbols-outlined text-[16px]">trending_up</span> Assinatura Ativa & Saudável
                     </div>
                   </div>
 
                 </div>
 
                 {/* Academy Profile & Corporate Info Panel */}
-                <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5">
-                  <h3 className="text-lg font-black text-white font-display mb-6">Informações e Dados Corporativos</h3>
+                <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30">
+                  <h3 className="text-lg font-display-md text-on-surface mb-6">Informações e Dados Corporativos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-black/40 p-5 rounded-2xl border border-white/5">
-                      <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">Razão Social / Nome</p>
-                      <p className="text-sm font-bold text-white">{academy?.name}</p>
+                    <div className="bg-surface-container/40 p-5 rounded-2xl border border-outline-variant/30">
+                      <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Razão Social / Nome</p>
+                      <p className="font-headline-sm text-sm text-on-surface">{academy?.name}</p>
                     </div>
-                    <div className="bg-black/40 p-5 rounded-2xl border border-white/5">
-                      <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">CNPJ de Faturamento</p>
-                      <p className="text-sm font-bold text-white">{academy?.cnpj || 'Não cadastrado'}</p>
+                    <div className="bg-surface-container/40 p-5 rounded-2xl border border-outline-variant/30">
+                      <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">CNPJ de Faturamento</p>
+                      <p className="font-headline-sm text-sm text-on-surface">{academy?.cnpj || 'Não cadastrado'}</p>
                     </div>
-                    <div className="bg-black/40 p-5 rounded-2xl border border-white/5">
-                      <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">Data de Ingresso</p>
-                      <p className="text-sm font-bold text-white">{academy?.created_at ? new Date(academy.created_at).toLocaleDateString('pt-BR') : 'Hoje'}</p>
+                    <div className="bg-surface-container/40 p-5 rounded-2xl border border-outline-variant/30">
+                      <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Data de Ingresso</p>
+                      <p className="font-headline-sm text-sm text-on-surface">{academy?.created_at ? new Date(academy.created_at).toLocaleDateString('pt-BR') : 'Hoje'}</p>
                     </div>
-                    <div className="bg-black/40 p-5 rounded-2xl border border-white/5">
-                      <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">Suporte Integrado</p>
-                      <p className="text-xs font-semibold text-primary">suporte@vollonfit.com.br</p>
+                    <div className="bg-surface-container/40 p-5 rounded-2xl border border-outline-variant/30">
+                      <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Suporte Integrado</p>
+                      <p className="font-headline-sm text-xs text-primary-container">suporte@vollonfit.com.br</p>
                     </div>
                   </div>
                 </div>
@@ -639,76 +633,76 @@ export default function AcademyDashboard() {
               <div className="space-y-6">
                 
                 {/* Search / Action bar */}
-                <div className="flex justify-between items-center bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5">
+                <div className="flex justify-between items-center glass-panel p-6 rounded-3xl border border-outline-variant/30">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display">Corpo Docente da Rede</h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Gerencie a cota e o acesso de seus professores associados</p>
+                    <h3 className="text-lg font-display-md text-on-surface">Corpo Docente da Rede</h3>
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">Gerencie a cota e o acesso de seus professores associados</p>
                   </div>
                   <button 
                     onClick={openNewTeacher} 
-                    className="bg-primary hover:bg-primary-dark text-black px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                    className="bg-primary-container text-on-primary-container hover:bg-primary-container/90 px-6 py-3 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center gap-2 transition-all neon-glow active:scale-95"
                   >
-                    <Plus className="w-5 h-5" /> Cadastrar Professor
+                    <span className="material-symbols-outlined text-[20px]">add</span> Cadastrar Professor
                   </button>
                 </div>
 
                 {/* Teachers Grid */}
                 {teachers.length === 0 ? (
-                  <div className="text-center py-16 bg-[#0A0A0A] rounded-[32px] border border-white/5">
-                    <Users className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                    <p className="text-slate-500 font-bold uppercase tracking-wider text-xs">Nenhum professor cadastrado ainda.</p>
-                    <button onClick={openNewTeacher} className="mt-4 text-xs font-black text-primary uppercase tracking-widest hover:underline">Adicione o primeiro agora</button>
+                  <div className="text-center py-16 glass-panel rounded-3xl border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[64px] text-on-surface-variant/50 mx-auto mb-4">group</span>
+                    <p className="font-label-caps text-on-surface-variant uppercase tracking-wider text-xs">Nenhum professor cadastrado ainda.</p>
+                    <button onClick={openNewTeacher} className="mt-4 text-xs font-label-caps text-primary-container uppercase tracking-widest hover:underline">Adicione o primeiro agora</button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {teachers.map(t => (
-                      <div key={t.id} className="bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5 hover:border-primary/20 transition-all flex flex-col justify-between group">
+                      <div key={t.id} className="glass-panel p-6 rounded-3xl border border-outline-variant/30 hover:border-primary-container/30 transition-all flex flex-col justify-between group">
                         
                         <div>
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 text-sm">
+                              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-bold text-on-surface-variant text-sm">
                                 {t.name?.[0]}
                               </div>
                               <div>
-                                <h4 className="font-bold text-white text-sm leading-none">{t.name}</h4>
-                                <p className="text-[10px] text-slate-500 font-semibold mt-1 flex items-center gap-1">
-                                  <Mail className="w-2.5 h-2.5" /> {t.email}
+                                <h4 className="font-headline-sm text-on-surface text-sm leading-none">{t.name}</h4>
+                                <p className="font-body-md text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[12px]">mail</span> {t.email}
                                 </p>
                               </div>
                             </div>
-                            <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-                              t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                            <span className={`text-[9px] font-label-caps uppercase px-2.5 py-0.5 rounded-full ${
+                              t.status === 'active' ? 'bg-tertiary-container/10 text-tertiary-container' : 'bg-error/10 text-error'
                             }`}>
                               {t.status === 'active' ? 'Ativo' : 'Bloqueado'}
                             </span>
                           </div>
 
-                          <div className="bg-black/50 p-4 rounded-2xl border border-white/5 space-y-3 mb-4">
+                          <div className="bg-surface-container/50 p-4 rounded-2xl border border-outline-variant/30 space-y-3 mb-4">
                             <div className="flex justify-between items-center text-xs">
-                              <span className="text-slate-400 font-medium">Alunos Vinculados</span>
-                              <span className="font-bold text-white">{t.studentCount} / {t.quota_limit}</span>
+                              <span className="font-label-caps text-on-surface-variant uppercase text-[10px] tracking-wider">Alunos Vinculados</span>
+                              <span className="font-headline-sm text-on-surface">{t.studentCount} / {t.quota_limit}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-[#C6C4FF]" 
+                                className="h-full bg-secondary-container" 
                                 style={{ width: `${Math.min(100, Math.round((t.studentCount / (t.quota_limit || 10)) * 100))}%` }} 
                               />
                             </div>
                             {t.phone && (
-                              <p className="text-[10px] text-slate-400 flex items-center gap-1.5 font-medium">
-                                <Phone className="w-3 h-3 text-slate-500" /> {t.phone}
+                              <p className="font-body-md text-[10px] text-on-surface-variant flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[12px]">phone</span> {t.phone}
                               </p>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex gap-2 pt-3 border-t border-white/5">
+                        <div className="flex gap-2 pt-3 border-t border-outline-variant/30">
                           <button 
                             onClick={() => openEditTeacher(t)} 
-                            className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-semibold text-slate-300 bg-white/5 hover:bg-white/10 rounded-md transition-colors"
+                            className="flex-1 flex items-center justify-center gap-1 py-2 text-xs font-label-caps uppercase tracking-wider text-on-surface-variant bg-surface-container hover:bg-surface-container/80 rounded-md transition-colors"
                           >
-                            <Edit3 className="w-3 h-3" /> Editar
+                            <span className="material-symbols-outlined text-[16px]">edit</span> Editar
                           </button>
                           
                           <button 
@@ -716,19 +710,19 @@ export default function AcademyDashboard() {
                             title={t.status === 'blocked' ? 'Desbloquear' : 'Bloquear'} 
                             className={`py-2 px-3 rounded-md transition-colors ${
                               t.status === 'blocked' 
-                                ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' 
-                                : 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                                ? 'text-tertiary-container bg-tertiary-container/10 hover:bg-tertiary-container/20' 
+                                : 'text-warning bg-warning/10 hover:bg-warning/20'
                             }`}
                           >
-                            {t.status === 'blocked' ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                            {t.status === 'blocked' ? <span className="material-symbols-outlined text-[16px]">lock_open</span> : <span className="material-symbols-outlined text-[16px]">lock</span>}
                           </button>
 
                           <button 
                             onClick={() => setConfirmDeleteId(t.id)} 
-                            className="py-2 px-3 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-md transition-colors"
+                            className="py-2 px-3 text-error bg-error/10 hover:bg-error/20 rounded-md transition-colors"
                             title="Remover Professor"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
                         </div>
 
@@ -745,36 +739,36 @@ export default function AcademyDashboard() {
               <div className="space-y-6">
                 
                 {/* Search and Title */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-panel p-6 rounded-3xl border border-outline-variant/30">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display">Alunos Corporativos</h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Monitoramento unificado de todos os matriculados na academia</p>
+                    <h3 className="text-lg font-display-md text-on-surface">Alunos Corporativos</h3>
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">Monitoramento unificado de todos os matriculados na academia</p>
                   </div>
                   
                   <div className="relative w-full md:w-80">
-                    <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <span className="material-symbols-outlined text-[16px] text-on-surface-variant absolute left-4 top-1/2 -translate-y-1/2">search</span>
                     <input 
                       type="text" 
                       placeholder="Pesquisar por aluno ou professor..." 
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary/50"
+                      className="w-full pl-10 pr-4 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                     />
                   </div>
                 </div>
 
                 {/* Students Table */}
                 {filteredStudents.length === 0 ? (
-                  <div className="text-center py-16 bg-[#0A0A0A] rounded-[32px] border border-white/5">
-                    <Users className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                    <p className="text-slate-500 font-bold uppercase tracking-wider text-xs">Nenhum aluno cadastrado na rede corporativa.</p>
+                  <div className="text-center py-16 glass-panel rounded-3xl border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[64px] text-on-surface-variant/50 mx-auto mb-4">group</span>
+                    <p className="font-label-caps text-on-surface-variant uppercase tracking-wider text-xs">Nenhum aluno cadastrado na rede corporativa.</p>
                   </div>
                 ) : (
-                  <div className="bg-[#0A0A0A] rounded-[32px] border border-white/5 overflow-hidden">
+                  <div className="glass-panel rounded-3xl border border-outline-variant/30 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-white/5 bg-white/5 text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+                          <tr className="border-b border-outline-variant/30 bg-surface-container/50 font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant">
                             <th className="px-6 py-4">Nome do Aluno</th>
                             <th className="px-6 py-4">Professor Responsável</th>
                             <th className="px-6 py-4">E-mail</th>
@@ -782,23 +776,23 @@ export default function AcademyDashboard() {
                             <th className="px-6 py-4">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-outline-variant/30">
                           {filteredStudents.map(s => (
-                            <tr key={s.id} className="hover:bg-white/5 transition-colors duration-150 text-sm">
-                              <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300">
+                            <tr key={s.id} className="hover:bg-surface-container/50 transition-colors duration-150 text-sm">
+                              <td className="px-6 py-4 font-headline-sm text-on-surface flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center font-bold text-xs text-on-surface-variant">
                                   {s.name?.[0]}
                                 </div>
                                 {s.name}
                               </td>
-                              <td className="px-6 py-4 text-slate-300 font-medium">
+                              <td className="px-6 py-4 text-on-surface-variant font-body-md">
                                 {s.teacher?.name || 'Não atribuído'}
                               </td>
-                              <td className="px-6 py-4 text-slate-400 text-xs">{s.email}</td>
-                              <td className="px-6 py-4 text-slate-400 text-xs font-semibold">{s.phone || '-'}</td>
+                              <td className="px-6 py-4 text-on-surface-variant text-xs font-body-md">{s.email}</td>
+                              <td className="px-6 py-4 text-on-surface-variant text-xs font-body-md font-semibold">{s.phone || '-'}</td>
                               <td className="px-6 py-4">
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                                  s.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'
+                                <span className={`font-label-caps text-[9px] uppercase px-2 py-0.5 rounded-full ${
+                                  s.status === 'active' ? 'bg-tertiary-container/10 text-tertiary-container' : 'bg-surface-container text-on-surface-variant'
                                 }`}>
                                   {s.status === 'active' ? 'Ativo' : 'Dormindo'}
                                 </span>
@@ -819,69 +813,69 @@ export default function AcademyDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* Form configuration block */}
-                <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5 lg:col-span-2 space-y-6">
+                <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 lg:col-span-2 space-y-6">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display">Dados da Academia</h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Configure o perfil público e identidade visual da sua marca corporativa</p>
+                    <h3 className="text-lg font-display-md text-on-surface">Dados da Academia</h3>
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">Configure o perfil público e identidade visual da sua marca corporativa</p>
                   </div>
 
                   <form onSubmit={handleSaveProfile} className="space-y-5">
                     <div>
-                      <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Razão Social / Nome da Academia</label>
+                      <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-2">Razão Social / Nome da Academia</label>
                       <input 
                         type="text" 
                         value={profileForm.name} 
                         onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                        className="w-full px-4 py-3 bg-black border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-primary/50" 
+                        className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-2xl text-sm text-on-surface focus:outline-none focus:border-primary-container/50" 
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">CNPJ Corporativo</label>
+                      <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-2">CNPJ Corporativo</label>
                       <input 
                         type="text" 
                         value={profileForm.cnpj} 
                         onChange={(e) => setProfileForm({ ...profileForm, cnpj: e.target.value })}
                         placeholder="Ex: 00.000.000/0001-00"
-                        className="w-full px-4 py-3 bg-black border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-primary/50" 
+                        className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-2xl text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50" 
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">URL da Logomarca (PNG/JPG)</label>
+                      <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-2">URL da Logomarca (PNG/JPG)</label>
                       <input 
                         type="url" 
                         value={profileForm.logo_url} 
                         onChange={(e) => setProfileForm({ ...profileForm, logo_url: e.target.value })}
                         placeholder="Insira a URL de hospedagem da sua imagem de logo"
-                        className="w-full px-4 py-3 bg-black border border-white/5 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-primary/50" 
+                        className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-2xl text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50" 
                       />
                     </div>
 
                     <button 
                       type="submit" 
                       disabled={isSaving}
-                      className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-black px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                      className="bg-primary-container text-on-primary-container hover:bg-primary-container/90 disabled:opacity-50 px-8 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all neon-glow active:scale-95"
                     >
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Alterações'}
+                      {isSaving ? <span className="material-symbols-outlined text-[16px] animate-spin">sync</span> : 'Salvar Alterações'}
                     </button>
                   </form>
                 </div>
 
                 {/* BLOC: Link de Convite para Professores */}
-                <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5 lg:col-span-2 space-y-6 mt-6">
+                <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 lg:col-span-2 space-y-6 mt-6">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display flex items-center gap-2">
-                      <Key className="w-5 h-5 text-primary" /> Link de Convite para Professores
+                    <h3 className="text-lg font-display-md text-on-surface flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[20px] text-primary-container">key</span> Link de Convite para Professores
                     </h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">
                       Compartilhe este link exclusivo para que os professores da sua academia se cadastrem de forma autônoma
                     </p>
                   </div>
 
                   <div className="space-y-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
                       Ao abrir este link, os professores poderão criar suas próprias contas no VollonFit e serão **automaticamente vinculados à sua academia corporativa**, consumindo sua cota ativa de licenças de forma transparente e imediata.
                     </p>
 
@@ -890,7 +884,7 @@ export default function AcademyDashboard() {
                         type="text" 
                         readOnly
                         value={`${window.location.origin}/login?academy=${adminData?.academy_id || ''}`}
-                        className="flex-1 bg-black border border-white/5 rounded-2xl px-5 py-4 text-xs font-bold text-primary select-all focus:outline-none"
+                        className="flex-1 bg-surface-container border border-outline-variant/30 rounded-2xl px-5 py-4 text-xs font-headline-sm text-primary-container select-all focus:outline-none"
                       />
                       <button 
                         type="button"
@@ -898,7 +892,7 @@ export default function AcademyDashboard() {
                           navigator.clipboard.writeText(`${window.location.origin}/login?academy=${adminData?.academy_id || ''}`)
                           showToast('Link de convite do professor copiado com sucesso!')
                         }}
-                        className="px-6 py-4 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="px-6 py-4 bg-surface-container border border-outline-variant/30 hover:bg-surface-container/80 hover:border-outline-variant/50 text-on-surface rounded-2xl text-xs font-label-caps uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
                         Copiar Link
                       </button>
@@ -907,38 +901,38 @@ export default function AcademyDashboard() {
                 </div>
 
                 {/* Sidebar summary info block */}
-                <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/5 space-y-6">
+                <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 space-y-6">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display">Resumo do Plano</h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Sua modalidade de parceria ativa</p>
+                    <h3 className="text-lg font-display-md text-on-surface">Resumo do Plano</h3>
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">Sua modalidade de parceria ativa</p>
                   </div>
 
-                  <div className="border-t border-white/5 pt-6 space-y-5">
+                  <div className="border-t border-outline-variant/30 pt-6 space-y-5">
                     
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Cota de Professores</span>
-                      <span className="font-bold text-white text-sm">{academy?.max_teachers || 10}</span>
+                      <span className="font-label-caps text-on-surface-variant uppercase tracking-wider text-[10px]">Cota de Professores</span>
+                      <span className="font-headline-sm text-on-surface text-sm">{academy?.max_teachers || 10}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Mensalidade Recorrente</span>
-                      <span className="font-black text-primary text-sm">R$ {academy?.monthly_fee?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '899,00'}</span>
+                      <span className="font-label-caps text-on-surface-variant uppercase tracking-wider text-[10px]">Mensalidade Recorrente</span>
+                      <span className="font-headline-sm text-primary-container text-sm">R$ {academy?.monthly_fee?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '899,00'}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Alunos Permitidos</span>
-                      <span className="font-black text-emerald-400 text-sm uppercase tracking-wider">Ilimitados</span>
+                      <span className="font-label-caps text-on-surface-variant uppercase tracking-wider text-[10px]">Alunos Permitidos</span>
+                      <span className="font-headline-sm text-tertiary-container text-sm uppercase tracking-wider">Ilimitados</span>
                     </div>
 
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Módulo White Label</span>
-                      <span className="font-black text-primary text-sm uppercase tracking-wider">Ativo</span>
+                      <span className="font-label-caps text-on-surface-variant uppercase tracking-wider text-[10px]">Módulo White Label</span>
+                      <span className="font-headline-sm text-primary-container text-sm uppercase tracking-wider">Ativo</span>
                     </div>
 
                     {academy?.logo_url && (
-                      <div className="border-t border-white/5 pt-6 text-center">
-                        <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-3">Prévia do Logo</p>
-                        <div className="w-24 h-24 rounded-3xl border border-white/5 bg-black/60 mx-auto overflow-hidden flex items-center justify-center">
+                      <div className="border-t border-outline-variant/30 pt-6 text-center">
+                        <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-3">Prévia do Logo</p>
+                        <div className="w-24 h-24 rounded-3xl border border-outline-variant/30 bg-surface-container/60 mx-auto overflow-hidden flex items-center justify-center">
                           <img src={academy.logo_url} alt="Logo" className="w-full h-full object-cover" />
                         </div>
                       </div>
@@ -955,50 +949,50 @@ export default function AcademyDashboard() {
               <div className="space-y-6 animate-in fade-in duration-300">
                 
                 {/* Header block */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#0A0A0A] p-6 rounded-[32px] border border-white/5">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-panel p-6 rounded-3xl border border-outline-variant/30">
                   <div>
-                    <h3 className="text-lg font-black text-white font-display">Produtos & Marketplace</h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Gerencie os suplementos, vestuários e planos extras que seus alunos visualizam no app</p>
+                    <h3 className="text-lg font-display-md text-on-surface">Produtos & Marketplace</h3>
+                    <p className="font-body-md text-xs text-on-surface-variant mt-1">Gerencie os suplementos, vestuários e planos extras que seus alunos visualizam no app</p>
                   </div>
                   
                   <button 
                     onClick={openNewProduct}
-                    className="bg-primary hover:bg-primary-dark text-black px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 animate-pulse"
+                    className="bg-primary-container hover:bg-primary-container/90 text-on-primary-container px-6 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center gap-2 transition-all neon-glow active:scale-95"
                   >
-                    <Plus className="w-4 h-4" /> Novo Produto
+                    <span className="material-symbols-outlined text-[16px]">add</span> Novo Produto
                   </button>
                 </div>
 
                 {/* Products Grid */}
                 {academyProducts.length === 0 ? (
-                  <div className="text-center py-20 bg-[#0A0A0A] rounded-[32px] border border-white/5">
-                    <ShoppingBag className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                    <p className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-2">Nenhum produto cadastrado pela academia.</p>
-                    <p className="text-[11px] text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  <div className="text-center py-20 glass-panel rounded-3xl border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[64px] text-on-surface-variant/50 mx-auto mb-4">shopping_bag</span>
+                    <p className="font-label-caps text-on-surface-variant uppercase tracking-wider text-xs mb-2">Nenhum produto cadastrado pela academia.</p>
+                    <p className="font-body-md text-[11px] text-on-surface-variant max-w-sm mx-auto leading-relaxed">
                       Seus alunos verão uma vitrine vazia. Clique em "Novo Produto" para adicionar suplementos, vestuários ou acessórios personalizados!
                     </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {academyProducts.map(prod => (
-                      <div key={prod.id} className="bg-[#0A0A0A] rounded-[32px] border border-white/5 overflow-hidden flex flex-col group transition-all hover:border-primary/20">
+                      <div key={prod.id} className="glass-panel rounded-3xl border border-outline-variant/30 overflow-hidden flex flex-col group transition-all hover:border-primary-container/30">
                         {/* Image Preview */}
-                        <div className="aspect-[16/10] relative overflow-hidden bg-black/40 border-b border-white/5">
+                        <div className="aspect-[16/10] relative overflow-hidden bg-surface-container/40 border-b border-outline-variant/30">
                           {prod.image_url ? (
                             <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-700">
-                              <ShoppingBag className="w-12 h-12" />
+                            <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50">
+                              <span className="material-symbols-outlined text-[48px]">shopping_bag</span>
                             </div>
                           )}
                           <div className="absolute top-4 left-4">
-                            <span className="bg-black/85 backdrop-blur-md text-[8px] font-black text-primary px-2.5 py-1 rounded-full uppercase tracking-widest border border-primary/20">
+                            <span className="bg-surface/85 backdrop-blur-md font-label-caps text-[8px] text-primary-container px-2.5 py-1 rounded-full uppercase tracking-widest border border-primary-container/20">
                               {prod.category}
                             </span>
                           </div>
                           {!prod.is_active && (
                             <div className="absolute top-4 right-4">
-                              <span className="bg-rose-500/90 text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full tracking-widest">
+                              <span className="bg-error/90 text-on-error font-label-caps text-[8px] uppercase px-2.5 py-1 rounded-full tracking-widest">
                                 Inativo
                               </span>
                             </div>
@@ -1008,31 +1002,31 @@ export default function AcademyDashboard() {
                         {/* Info Block */}
                         <div className="p-6 flex-1 flex flex-col justify-between gap-4">
                           <div>
-                            <h4 className="text-sm font-black text-white leading-tight line-clamp-2">{prod.name}</h4>
-                            <p className="text-xs text-slate-500 font-semibold mt-1 line-clamp-2 leading-relaxed">{prod.description || 'Sem descrição cadastrada.'}</p>
+                            <h4 className="font-headline-sm text-sm text-on-surface leading-tight line-clamp-2">{prod.name}</h4>
+                            <p className="font-body-md text-xs text-on-surface-variant mt-1 line-clamp-2 leading-relaxed">{prod.description || 'Sem descrição cadastrada.'}</p>
                           </div>
 
-                          <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                          <div className="pt-2 border-t border-outline-variant/30 flex items-center justify-between">
                             <div>
-                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Preço</p>
-                              <p className="text-base font-black text-primary font-display">R$ {parseFloat(prod.price).toFixed(2)}</p>
+                              <p className="font-label-caps text-[8px] text-on-surface-variant uppercase tracking-widest leading-none mb-1">Preço</p>
+                              <p className="font-display-md text-base text-primary-container">R$ {parseFloat(prod.price).toFixed(2)}</p>
                             </div>
                             
                             <div className="flex gap-2">
                               <button 
                                 onClick={() => openEditProduct(prod)}
-                                className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-black transition-all"
+                                className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all"
                                 title="Editar Produto"
                               >
-                                <Edit3 className="w-3.5 h-3.5" />
+                                <span className="material-symbols-outlined text-[16px]">edit</span>
                               </button>
                               
                               <button 
                                 onClick={() => handleDeleteProduct(prod.id)}
-                                className="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-450 hover:text-white flex items-center justify-center transition-all"
+                                className="w-8 h-8 rounded-xl bg-error/10 hover:bg-error text-error hover:text-on-error flex items-center justify-center transition-all"
                                 title="Excluir Produto"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
                               </button>
                             </div>
                           </div>
@@ -1052,61 +1046,61 @@ export default function AcademyDashboard() {
 
       {/* MODAL: TEACHER FORM (NEW & EDIT) */}
       {isTeacherModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0A0A0A] border border-white/5 rounded-[40px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel border border-outline-variant/30 rounded-[40px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
             
             <button 
               onClick={() => setIsTeacherModalOpen(false)} 
-              className="absolute top-6 right-6 p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+              className="absolute top-6 right-6 p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
             >
-              <X className="w-5 h-5" />
+              <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
 
             <div className="mb-6">
-              <h3 className="text-xl font-black text-white font-display flex items-center gap-2">
-                {editingTeacher ? <Edit3 className="w-5 h-5 text-primary" /> : <Plus className="w-5 h-5 text-primary" />}
+              <h3 className="text-xl font-display-md text-on-surface flex items-center gap-2">
+                {editingTeacher ? <span className="material-symbols-outlined text-[20px] text-primary-container">edit</span> : <span className="material-symbols-outlined text-[20px] text-primary-container">add</span>}
                 {editingTeacher ? 'Editar Professor' : 'Cadastrar Professor'}
               </h3>
-              <p className="text-xs font-semibold text-slate-400 mt-1">Preencha as informações do profissional de educação física</p>
+              <p className="font-body-md text-xs text-on-surface-variant mt-1">Preencha as informações do profissional de educação física</p>
             </div>
 
             <form onSubmit={handleSaveTeacher} className="space-y-4">
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Nome Completo</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Nome Completo</label>
                 <input 
                   type="text" 
                   value={teacherForm.name}
                   onChange={(e) => setTeacherForm({ ...teacherForm, name: e.target.value })}
                   placeholder="Nome do profissional"
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">E-mail (Login de Acesso)</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">E-mail (Login de Acesso)</label>
                 <input 
                   type="email" 
                   value={teacherForm.email}
                   onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
                   placeholder="email@empresa.com"
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">
                   {editingTeacher ? 'Senha (Deixe em branco para manter)' : 'Senha de Acesso'}
                 </label>
                 <div className="relative">
-                  <Key className="w-3.5 h-3.5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <span className="material-symbols-outlined text-[14px] text-on-surface-variant absolute left-4 top-1/2 -translate-y-1/2">key</span>
                   <input 
                     type="password" 
                     value={teacherForm.password}
                     onChange={(e) => setTeacherForm({ ...teacherForm, password: e.target.value })}
                     placeholder={editingTeacher ? '••••••••' : 'Defina a senha'}
-                    className="w-full pl-10 pr-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-750 focus:outline-none focus:border-primary/50"
+                    className="w-full pl-10 pr-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                     required={!editingTeacher}
                   />
                 </div>
@@ -1114,23 +1108,23 @@ export default function AcademyDashboard() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Telefone / WhatsApp</label>
+                  <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Telefone / WhatsApp</label>
                   <input 
                     type="text" 
                     value={teacherForm.phone}
                     onChange={(e) => setTeacherForm({ ...teacherForm, phone: e.target.value })}
                     placeholder="(11) 99999-9999"
-                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                    className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Limite de Alunos</label>
+                  <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Limite de Alunos</label>
                   <input 
                     type="number" 
                     value={teacherForm.quota_limit}
                     onChange={(e) => setTeacherForm({ ...teacherForm, quota_limit: e.target.value })}
                     min="1"
-                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-primary/50"
+                    className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:border-primary-container/50"
                     required
                   />
                 </div>
@@ -1140,16 +1134,16 @@ export default function AcademyDashboard() {
                 <button 
                   type="button" 
                   onClick={() => setIsTeacherModalOpen(false)}
-                  className="flex-1 py-3.5 rounded-xl border border-white/5 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all text-slate-400"
+                  className="flex-1 py-3.5 rounded-xl border border-outline-variant/30 font-label-caps text-xs uppercase tracking-widest hover:bg-surface-container transition-all text-on-surface-variant"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSaving}
-                  className="flex-1 py-3.5 bg-primary text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 bg-primary-container text-on-primary-container rounded-xl font-label-caps text-xs uppercase tracking-widest hover:bg-primary-container/90 transition-all flex items-center justify-center gap-2 neon-glow"
                 >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar'}
+                  {isSaving ? <span className="material-symbols-outlined text-[16px] animate-spin">sync</span> : 'Salvar'}
                 </button>
               </div>
 
@@ -1160,22 +1154,22 @@ export default function AcademyDashboard() {
 
       {/* CONFIRM DELETE MODAL */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0A0A0A] border border-rose-500/10 rounded-[32px] w-full max-w-sm p-6 shadow-2xl relative text-center">
-            <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-            <h4 className="text-md font-black text-white font-display mb-2">Excluir Professor?</h4>
-            <p className="text-xs text-slate-400 mb-6">Esta ação é irreversível. Todos os alunos associados a este professor perderão a conexão e dados.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel border border-error/30 rounded-3xl w-full max-w-sm p-6 shadow-2xl relative text-center">
+            <span className="material-symbols-outlined text-[48px] text-error mx-auto mb-4">error</span>
+            <h4 className="text-md font-display-md text-on-surface mb-2">Excluir Professor?</h4>
+            <p className="font-body-md text-xs text-on-surface-variant mb-6">Esta ação é irreversível. Todos os alunos associados a este professor perderão a conexão e dados.</p>
             
             <div className="flex gap-3">
               <button 
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-2.5 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 text-slate-400"
+                className="flex-1 py-2.5 rounded-xl border border-outline-variant/30 font-label-caps text-[10px] uppercase tracking-widest hover:bg-surface-container text-on-surface-variant"
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleDeleteTeacher}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                className="flex-1 py-2.5 bg-error hover:bg-error/90 text-on-error rounded-xl font-label-caps text-[10px] uppercase tracking-widest transition-all"
               >
                 Confirmar
               </button>
@@ -1186,51 +1180,51 @@ export default function AcademyDashboard() {
 
       {/* MODAL: PRODUCT FORM (NEW & EDIT) */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0A0A0A] border border-white/5 rounded-[40px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel border border-outline-variant/30 rounded-[40px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
             
             <button 
               onClick={() => setIsProductModalOpen(false)} 
-              className="absolute top-6 right-6 p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+              className="absolute top-6 right-6 p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
             >
-              <X className="w-5 h-5" />
+              <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
 
             <div className="mb-6">
-              <h3 className="text-xl font-black text-white font-display flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-primary" />
+              <h3 className="text-xl font-display-md text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-primary-container">shopping_bag</span>
                 {editingProduct ? 'Editar Produto' : 'Cadastrar Novo Produto'}
               </h3>
-              <p className="text-xs font-semibold text-slate-400 mt-1">Preencha as informações do produto ou serviço ofertado</p>
+              <p className="font-body-md text-xs text-on-surface-variant mt-1">Preencha as informações do produto ou serviço ofertado</p>
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Nome do Produto</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Nome do Produto</label>
                 <input 
                   type="text" 
                   value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                   placeholder="Ex: Creatina Pura 300g"
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Descrição Curta</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Descrição Curta</label>
                 <input 
                   type="text" 
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   placeholder="Ex: Auxilia no ganho de força e volume muscular."
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Preço (R$)</label>
+                  <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Preço (R$)</label>
                   <input 
                     type="number" 
                     step="0.01"
@@ -1238,16 +1232,16 @@ export default function AcademyDashboard() {
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                     placeholder="99.90"
-                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-primary/50"
+                    className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:border-primary-container/50"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Categoria</label>
+                  <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Categoria</label>
                   <select 
                     value={productForm.category}
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                    className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-primary/50"
+                    className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface focus:outline-none focus:border-primary-container/50"
                   >
                     <option value="suplementos">Suplementos</option>
                     <option value="equipamentos">Equipamentos</option>
@@ -1259,24 +1253,24 @@ export default function AcademyDashboard() {
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">URL da Imagem do Produto</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">URL da Imagem do Produto</label>
                 <input 
                   type="url" 
                   value={productForm.image_url}
                   onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
                   placeholder="https://exemplo.com/imagem-produto.png"
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Link de Compra / Afiliado (Stripe/WhatsApp)</label>
+                <label className="block font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant mb-1.5">Link de Compra / Afiliado (Stripe/WhatsApp)</label>
                 <input 
                   type="url" 
                   value={productForm.affiliate_url}
                   onChange={(e) => setProductForm({ ...productForm, affiliate_url: e.target.value })}
                   placeholder="https://wa.me/..."
-                  className="w-full px-4 py-3 bg-black border border-white/5 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-primary/50"
+                  className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container/50"
                 />
               </div>
 
@@ -1286,9 +1280,9 @@ export default function AcademyDashboard() {
                   id="prod_active"
                   checked={productForm.is_active}
                   onChange={(e) => setProductForm({ ...productForm, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded bg-black border-white/5 text-primary focus:ring-primary/50"
+                  className="w-4 h-4 rounded bg-surface-container border-outline-variant/30 text-primary-container focus:ring-primary-container/50"
                 />
-                <label htmlFor="prod_active" className="text-xs font-bold text-slate-350 cursor-pointer">
+                <label htmlFor="prod_active" className="font-headline-sm text-xs text-on-surface cursor-pointer">
                   Disponível para venda (Ativo)
                 </label>
               </div>
@@ -1297,16 +1291,16 @@ export default function AcademyDashboard() {
                 <button 
                   type="button" 
                   onClick={() => setIsProductModalOpen(false)}
-                  className="flex-1 py-3.5 rounded-xl border border-white/5 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all text-slate-400"
+                  className="flex-1 py-3.5 rounded-xl border border-outline-variant/30 font-label-caps text-xs uppercase tracking-widest hover:bg-surface-container transition-all text-on-surface-variant"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSaving}
-                  className="flex-1 py-3.5 bg-primary text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 bg-primary-container text-on-primary-container rounded-xl font-label-caps text-xs uppercase tracking-widest hover:bg-primary-container/90 transition-all flex items-center justify-center gap-2 neon-glow"
                 >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar'}
+                  {isSaving ? <span className="material-symbols-outlined text-[16px] animate-spin">sync</span> : 'Salvar'}
                 </button>
               </div>
 

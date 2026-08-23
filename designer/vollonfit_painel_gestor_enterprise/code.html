@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VollonFit Enterprise Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#323539",
+                        "surface": "#101417",
+                        "on-secondary-fixed-variant": "#45474a",
+                        "surface-container-high": "#272a2e",
+                        "secondary-container": "#4a4b4f",
+                        "on-secondary-container": "#bbbbbf",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#1a1c1f",
+                        "inverse-on-surface": "#2d3135",
+                        "on-secondary": "#2f3034",
+                        "on-background": "#e0e2e8",
+                        "inverse-primary": "#506600",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-surface": "#e0e2e8",
+                        "tertiary-container": "#7df4ff",
+                        "surface-bright": "#36393e",
+                        "outline-variant": "#444933",
+                        "background": "#101417",
+                        "surface-container-low": "#181c20",
+                        "on-tertiary": "#00363a",
+                        "primary": "#ffffff",
+                        "tertiary": "#ffffff",
+                        "surface-container": "#1c2024",
+                        "primary-fixed": "#c3f400",
+                        "inverse-surface": "#e0e2e8",
+                        "secondary": "#c6c6ca",
+                        "error-container": "#93000a",
+                        "surface-tint": "#abd600",
+                        "secondary-fixed-dim": "#c6c6ca",
+                        "on-tertiary-container": "#006f77",
+                        "primary-fixed-dim": "#abd600",
+                        "surface-container-lowest": "#0b0f12",
+                        "surface-dim": "#101417",
+                        "on-primary": "#283500",
+                        "surface-variant": "#323539",
+                        "on-primary-fixed": "#161e00",
+                        "on-primary-container": "#556d00",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "tertiary-fixed": "#7df4ff",
+                        "secondary-fixed": "#e2e2e6",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "outline": "#8e9379",
+                        "primary-container": "#c3f400",
+                        "on-tertiary-fixed": "#002022",
+                        "on-primary-fixed-variant": "#3c4d00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "8px",
+                        "gutter": "16px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "container-max": "1280px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Montserrat"],
+                        "headline-lg": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "display-xl": ["Montserrat"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "800" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-display": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-xl": ["64px", { "lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "900" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #101417; color: #e0e2e8; }
+        .glass-panel {
+            background: rgba(45, 49, 53, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-lime { box-shadow: 0 0 15px rgba(195, 244, 0, 0.3); }
+        .glow-blue { box-shadow: 0 0 15px rgba(125, 244, 255, 0.3); }
+        .text-gradient { background: linear-gradient(to right, #ffffff, #bbbbbf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Custom scrollbar for inner areas */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #45474a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8e9379; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased font-body-md text-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (JSON Component) -->
+<nav class="hidden md:flex flex-col h-full py-md bg-surface-container-low dark:bg-surface-container-low text-primary dark:text-primary font-body-md text-body-md docked h-screen left-0 w-64 bg-surface-container-low border-r border-outline-variant flat no shadows">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="Coach Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a fitness coach or enterprise admin, shot with high contrast dramatic lighting against a dark slate background, conveying authority and focus, suitable for a dark mode enterprise dashboard avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeGMbxy9exVWKQQ8IiBxtMXA5G4F0fKO87h93yT77GihkHtVHIPOMSXlLbbuAohJoAg7S2CzNz8VdHa6GvJhQ3-vDXV5Lo9fBfecaaMT8sOSK4RNQB2z46G5V-qbo1nk9DeB1TipVUjlX8VAy71vovyhlKQ4dEttPKFg9ngA1k_sOIOJ3iNP0oG8Y-BZ5kn4MysaEMsPO0riyIRl_2UPtb6IA6X7K3Wg9o4yYvAf4T5g9aXoSFL5Iz"/>
+</div>
+<div>
+<h1 class="text-headline-md font-headline-md font-black text-primary">Coach Dashboard</h1>
+<p class="text-on-surface-variant text-sm font-label-caps">VollonFit B2B</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-2">
+<!-- Active Item -->
+<li>
+<a class="flex items-center gap-3 bg-surface-container-high text-primary border-r-4 border-primary px-6 py-4 Active: translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Dashboard</span>
+</a>
+</li>
+<!-- Inactive Items -->
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Athletes</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span>Programs</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>Analytics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="px-6 mt-auto pt-6 border-t border-outline-variant/30">
+<button class="w-full py-3 px-4 bg-primary-container text-on-primary-container font-headline-md rounded-lg flex items-center justify-center gap-2 hover:glow-lime transition-all duration-300">
+<span class="material-symbols-outlined">add</span>
+                New Program
+            </button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 h-full overflow-y-auto bg-background relative">
+<!-- Ambient Background Glows -->
+<div class="absolute top-0 left-1/4 w-96 h-96 bg-primary-container/5 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-tertiary-fixed/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="max-w-container-max mx-auto p-gutter md:p-md lg:p-lg space-y-xl relative z-10">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-surface-container-high pb-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-gradient mb-2">Enterprise Academy Overview</h2>
+<p class="text-on-surface-variant font-body-lg">Real-time performance metrics and staff management.</p>
+</div>
+<button class="flex items-center gap-2 px-6 py-3 border-2 border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-highest hover:border-on-surface transition-all">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-caps">Export Global Report</span>
+</button>
+</header>
+<!-- KPI Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- KPI 1 -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-4xl text-primary-container">groups</span>
+</div>
+<p class="font-label-caps text-on-surface-variant mb-4">Total Network Students</p>
+<div class="flex items-baseline gap-3">
+<span class="font-display-xl text-display-xl text-primary font-data-display">2,485</span>
+<span class="text-primary-container flex items-center font-data-display text-sm">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12%
+                        </span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-4xl text-tertiary-fixed">person_check</span>
+</div>
+<p class="font-label-caps text-on-surface-variant mb-4">Teacher Quota Usage</p>
+<div class="flex items-baseline gap-3 mb-3">
+<span class="font-display-xl text-display-xl text-primary font-data-display">85</span>
+<span class="text-on-surface-variant font-data-display text-xl">/100</span>
+</div>
+<!-- Mini progress bar -->
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed h-full w-[85%] rounded-full glow-blue"></div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-4xl text-primary-container">payments</span>
+</div>
+<p class="font-label-caps text-on-surface-variant mb-4">Total Revenue (MTD)</p>
+<div class="flex items-baseline gap-3">
+<span class="font-headline-lg text-headline-lg text-primary font-data-display">$142.5k</span>
+</div>
+<p class="text-on-surface-variant text-sm mt-2">Target: $150k</p>
+</div>
+<!-- KPI 4 -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group border-error-container/30">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-4xl text-error">warning</span>
+</div>
+<p class="font-label-caps text-on-surface-variant mb-4">Churn Prediction</p>
+<div class="flex items-baseline gap-3">
+<span class="font-display-xl text-display-xl text-error font-data-display">4.2%</span>
+</div>
+<p class="text-error/80 text-sm mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_upward</span> Elevating risk in Tier 3
+                    </p>
+</div>
+</section>
+<!-- Bento Grid: Main Dashboard Area -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Staff Management (Takes up 2 columns) -->
+<div class="lg:col-span-2 glass-panel rounded-xl flex flex-col h-[600px]">
+<div class="p-6 border-b border-surface-container-high flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Active Coaching Staff</h3>
+<button class="text-primary-container hover:text-white transition-colors font-label-caps flex items-center gap-1">
+                            View Directory <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-4">
+<!-- Staff Item 1 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/20 hover:border-primary-container/50 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a tough, athletic female fitness instructor in a dark gym environment, neon rim lighting, high tech modern aesthetic suitable for a dark UI avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBWsEQGmTucYGF-c6pXOSkIaIVouWUc8g7ZAb0RN5p480StfmY3JXlPcvgFkxNzl8vmZ-WvN8f05TeRcWmtuqdLJT4OBy5R0iraP7mKMePIIEZ7LoxoDPcf0-sb4n15QN80lWSHruMkT5N-njV1sNQ3dOiGz-uG6jwPsVEMYg3fvN1GnJW1oyprJgminqPwu4rGtJ02htuS_WADmIo5LxADwo_yqHcPMP9STAlF0suQ4PXpqxZSHMK"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-primary-container rounded-full border-2 border-surface-container-low"></div>
+</div>
+<div>
+<h4 class="font-headline-md text-base text-primary">Sarah Jenkins</h4>
+<p class="text-on-surface-variant text-sm">Senior Strength Coach</p>
+</div>
+</div>
+<div class="flex gap-8 text-right">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Students</p>
+<p class="font-data-display text-primary">145</p>
+</div>
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Avg Session Rating</p>
+<p class="font-data-display text-primary-container flex items-center justify-end gap-1">4.9 <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span></p>
+</div>
+</div>
+</div>
+<!-- Staff Item 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/20 hover:border-primary-container/50 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Portrait of a muscular male fitness coach with a serious expression, dark cinematic lighting with subtle cyan accents, futuristic gym context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBIGXhtk-t95rQDZDyrOZFsI7MU52CyZNU0w9Q9FhsmzQRYnxvbZxJLJEX6K9jX_o7jLL423LsvKB6U16ZN854xftjmTkhGCSzIk08fqOS05oB3KH6Zjd9aOy4bqL_6Ao-3lpePbNe_W-aJrVnum4DgQa0bmFKmmFg5CePeqyuwX6rF3GpU-iDd3N6KQfpJ8hBbfwtufIn76i6GdQ-NkyA4fCMFlOiUzy-t-USXa61yyCZJfriVPh4"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-tertiary-fixed rounded-full border-2 border-surface-container-low"></div>
+</div>
+<div>
+<h4 class="font-headline-md text-base text-primary">Marcus Vance</h4>
+<p class="text-on-surface-variant text-sm">Endurance Lead</p>
+</div>
+</div>
+<div class="flex gap-8 text-right">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Students</p>
+<p class="font-data-display text-primary">92</p>
+</div>
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Avg Session Rating</p>
+<p class="font-data-display text-primary-container flex items-center justify-end gap-1">4.7 <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span></p>
+</div>
+</div>
+</div>
+<!-- Staff Item 3 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/20 hover:border-primary-container/50 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-headline-md">
+                                    DK
+                                </div>
+<div>
+<h4 class="font-headline-md text-base text-primary">David Kim</h4>
+<p class="text-on-surface-variant text-sm">Mobility Specialist</p>
+</div>
+</div>
+<div class="flex gap-8 text-right">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Students</p>
+<p class="font-data-display text-primary">110</p>
+</div>
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">Avg Session Rating</p>
+<p class="font-data-display text-primary-container flex items-center justify-end gap-1">4.8 <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings & Marketplace -->
+<div class="flex flex-col gap-md">
+<!-- Corporate Identity Settings -->
+<div class="glass-panel rounded-xl p-6">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-on-surface-variant">branding_watermark</span>
+<h3 class="font-headline-md text-headline-md text-primary">Identity Settings</h3>
+</div>
+<div class="space-y-6">
+<div>
+<label class="font-label-caps text-on-surface-variant block mb-2">Gym Logo</label>
+<div class="w-full h-24 border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:border-primary-container cursor-pointer transition-colors">
+<span class="material-symbols-outlined mb-1">cloud_upload</span>
+<span class="text-sm">Upload PNG/SVG</span>
+</div>
+</div>
+<div>
+<label class="font-label-caps text-on-surface-variant block mb-2">Primary Brand Color</label>
+<div class="flex gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container border-2 border-white cursor-pointer glow-lime"></div>
+<div class="w-10 h-10 rounded-full bg-[#ff3366] cursor-pointer hover:border-2 hover:border-white opacity-50 hover:opacity-100"></div>
+<div class="w-10 h-10 rounded-full bg-[#33ccff] cursor-pointer hover:border-2 hover:border-white opacity-50 hover:opacity-100"></div>
+<div class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant cursor-pointer hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Marketplace Snapshot -->
+<div class="glass-panel rounded-xl p-6 flex-1 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed">storefront</span>
+<h3 class="font-headline-md text-headline-md text-primary">Marketplace</h3>
+</div>
+<span class="bg-surface-container-high px-2 py-1 rounded text-xs font-data-display text-on-surface-variant">4 Active</span>
+</div>
+<div class="space-y-3 flex-1">
+<!-- Product Item -->
+<div class="flex justify-between items-center p-3 bg-surface-container rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-sm">science</span>
+</div>
+<span class="text-sm font-body-md text-primary">Vollon Whey Protein</span>
+</div>
+<span class="font-data-display text-sm text-on-surface-variant">$45.00</span>
+</div>
+<!-- Product Item -->
+<div class="flex justify-between items-center p-3 bg-surface-container rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined text-sm">checkroom</span>
+</div>
+<span class="text-sm font-body-md text-primary">Pro Training Shirt</span>
+</div>
+<span class="font-data-display text-sm text-on-surface-variant">$25.00</span>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-outline-variant rounded-lg text-sm font-label-caps hover:bg-surface-container-highest transition-colors text-primary">Manage Inventory</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>
