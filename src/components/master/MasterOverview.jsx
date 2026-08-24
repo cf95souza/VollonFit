@@ -101,11 +101,11 @@ export default function MasterOverview({ onNavigate }) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* SaaS KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard 
           title="MRR Estimado" 
           value={`R$ ${stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon="trending_up" color="text-primary-container" bg="bg-primary-container/10"
+          icon="trending_up" color="text-primary" bg="bg-primary/10"
         />
         <KPICard 
           title="LTV (Ciclo de Vida)" 
@@ -117,18 +117,18 @@ export default function MasterOverview({ onNavigate }) {
           value={`${stats.churn.toFixed(1)}%`} 
           icon="monitoring" color={stats.churn > 5 ? "text-error" : "text-[#4ade80]"} bg={stats.churn > 5 ? "bg-error/10" : "bg-[#4ade80]/10"} 
         />
-        <KPICard title="Cobranças Pendentes" value={stats.pending} icon="receipt_long" color="text-warning" bg="bg-warning/10" />
+        <KPICard title="Cobranças Pendentes" value={stats.pending} icon="receipt_long" color="text-on-surface" bg="bg-white/10" />
       </div>
 
       {/* Gráfico de Evolução de MRR (Simulado) */}
-      <div className="glass-panel rounded-[32px] border border-outline-variant/30 p-8 shadow-sm">
+      <div className="bg-[#15171a] rounded-3xl p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="font-display-md text-xl text-on-surface uppercase tracking-tight">Evolução do MRR</h3>
-            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">Crescimento da Receita Recorrente</p>
+            <h3 className="font-display-md text-xl text-on-surface uppercase tracking-tight font-bold">Evolução do MRR</h3>
+            <p className="font-label-caps text-[10px] text-[#64748b] uppercase tracking-widest mt-1">Crescimento da Receita Recorrente</p>
           </div>
-          <div className="flex items-center gap-2 bg-[#4ade80]/10 text-[#4ade80] px-3 py-1.5 rounded-full text-xs font-label-caps tracking-widest">
-            <span className="material-symbols-outlined text-sm">arrow_outward</span> +12.5%
+          <div className="flex items-center gap-1.5 bg-[#4ade80]/10 text-[#4ade80] border border-[#4ade80]/20 px-3 py-1.5 rounded-full text-[10px] font-label-caps tracking-widest uppercase">
+            <span className="material-symbols-outlined text-sm font-bold">arrow_outward</span> +12.5%
           </div>
         </div>
         <div className="h-64 w-full">
@@ -162,14 +162,14 @@ export default function MasterOverview({ onNavigate }) {
       </div>
 
       {/* Preço global */}
-      <div className="glass-panel rounded-3xl border border-outline-variant/30 p-6 flex items-center justify-between shadow-sm">
+      <div className="bg-[#15171a] rounded-3xl p-8 flex items-center justify-between">
         <div>
-          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Preço Global por Aluno</p>
-          <p className="font-display-lg text-2xl text-on-surface mt-1">R$ {pricePerStudent.toFixed(2)}</p>
+          <p className="font-label-caps text-[10px] text-[#64748b] uppercase tracking-widest">Preço Global por Aluno</p>
+          <p className="font-display-lg font-bold text-2xl text-on-surface mt-2">R$ {pricePerStudent.toFixed(2)}</p>
         </div>
         <button
           onClick={() => onNavigate('settings')}
-          className="font-label-caps text-xs text-primary-container hover:brightness-110 flex items-center gap-1 transition-all"
+          className="font-label-caps text-[10px] text-primary hover:brightness-110 flex items-center gap-1 transition-all tracking-widest uppercase"
         >
           Alterar <span className="material-symbols-outlined text-sm">chevron_right</span>
         </button>
@@ -204,29 +204,29 @@ export default function MasterOverview({ onNavigate }) {
       )}
 
       {/* Professores Recentes */}
-      <div className="glass-panel rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-outline-variant/30 flex items-center justify-between">
-          <h3 className="font-headline-sm text-on-surface text-sm">Últimos Professores</h3>
-          <button onClick={() => onNavigate('teachers')} className="font-label-caps text-xs text-secondary-container hover:text-on-surface transition-all tracking-widest uppercase">
-            Ver todos &rarr;
+      <div className="bg-[#15171a] rounded-3xl overflow-hidden">
+        <div className="p-8 pb-4 flex items-center justify-between">
+          <h3 className="font-display-md text-on-surface text-sm uppercase font-bold">Últimos Professores</h3>
+          <button onClick={() => onNavigate('teachers')} className="font-label-caps text-[10px] text-[#64748b] hover:text-on-surface transition-all tracking-widest uppercase flex items-center gap-1">
+            Ver todos <span className="material-symbols-outlined text-sm">arrow_right_alt</span>
           </button>
         </div>
-        <div className="divide-y divide-outline-variant/10">
+        <div className="flex flex-col">
           {recentTeachers.map(t => (
-            <div key={t.id} className="flex items-center justify-between p-6 hover:bg-surface-container transition-colors">
+            <div key={t.id} className="flex items-center justify-between px-8 py-5 hover:bg-white/5 transition-colors border-t border-white/5 first:border-0">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-surface border border-outline-variant/30 flex items-center justify-center text-on-surface-variant font-headline-sm text-xs">
+                <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-headline-sm text-xs">
                   {t.name?.[0] || '?'}
                 </div>
                 <div>
-                  <p className="font-headline-sm text-on-surface text-sm">{t.name}</p>
-                  <p className="font-body-md text-xs text-on-surface-variant mt-0.5">{t.email}</p>
+                  <p className="font-display-md text-on-surface text-sm font-bold">{t.name}</p>
+                  <p className="font-body-md text-xs text-[#64748b] mt-0.5">{t.email}</p>
                 </div>
               </div>
               <span className={`font-label-caps text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border ${
-                t.status === 'active' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
-                t.status === 'blocked' ? 'bg-error/10 text-error border-error/20' :
-                'bg-warning/10 text-warning border-warning/20'
+                t.status === 'active' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/30' :
+                t.status === 'blocked' ? 'bg-error/10 text-error border-error/30' :
+                'bg-warning/10 text-warning border-warning/30'
               }`}>
                 {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
               </span>
@@ -243,14 +243,14 @@ export default function MasterOverview({ onNavigate }) {
 
 function KPICard({ title, value, icon, color, bg }) {
   return (
-    <div className="glass-panel rounded-3xl border border-outline-variant/30 p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <p className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest leading-tight">{title}</p>
-        <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
-          <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+    <div className="bg-[#15171a] rounded-3xl p-6 relative overflow-hidden group">
+      <div className="flex items-start justify-between mb-8 relative z-10">
+        <p className="font-label-caps text-[#64748b] text-[10px] uppercase tracking-widest leading-tight w-2/3">{title}</p>
+        <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+          <span className={`material-symbols-outlined text-lg ${color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
         </div>
       </div>
-      <p className="font-display-lg text-2xl text-on-surface">{value}</p>
+      <p className="font-display-lg text-2xl text-on-surface font-bold relative z-10">{value}</p>
     </div>
   )
 }

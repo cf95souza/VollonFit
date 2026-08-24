@@ -2,22 +2,19 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../../supabaseClient'
 import { getTodayLocally } from '../../utils/dateUtils'
 
-function KPICard({ title, value, change, trend, icon }) {
+function KPICard({ title, value, label, icon }) {
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-outline-variant/30 shadow-sm relative overflow-hidden group">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="material-symbols-outlined text-on-surface-variant text-lg group-hover:text-primary-container transition-colors">{icon}</span>
-        <p className="text-on-surface-variant text-xs font-label-caps uppercase tracking-wider">{title}</p>
+    <div className="glass-card rounded-xl p-6 relative overflow-hidden group">
+      <div className="absolute -right-6 -top-6 text-surface-container-high group-hover:text-surface-container transition-colors duration-500">
+        <span className="material-symbols-outlined text-[100px]" style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
       </div>
-      <div className="flex items-end justify-between">
-        <h3 className="text-3xl font-display-lg text-on-surface tracking-tight">{value}</h3>
-        {change && (
-          <span className={`text-[10px] font-label-caps uppercase ${
-            trend === 'up' ? 'text-primary-container' : trend === 'down' ? 'text-error' : 'text-on-surface-variant'
-          }`}>
-            {change}
-          </span>
-        )}
+      <div className="relative z-10">
+        <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-2">{title}</h3>
+        <div className="text-display-xl font-display-xl text-primary text-glow">{value}</div>
+        <div className="flex items-center gap-1 text-on-surface-variant text-sm mt-2">
+          <span className="material-symbols-outlined text-sm">schedule</span>
+          <span className="font-data-display">{label}</span>
+        </div>
       </div>
     </div>
   )
@@ -108,131 +105,109 @@ export default function OverviewTab({ onViewProfile, onMotivate, searchTerm, tea
   )
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard title="Exercícios" value={stats.exercises} icon="fitness_center" trend="up" change="+3" />
-        <KPICard title="Treinos Ativos" value={stats.workouts} icon="assignment" />
-        <KPICard title="Alunos" value={stats.students} icon="groups" />
-        <KPICard title="Sessões Hoje" value={stats.sessionsToday} icon="insights" trend="up" change="+100%" />
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter md:gap-md animate-in fade-in duration-500">
+      
+      {/* Stats Row */}
+      <div className="md:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-gutter md:gap-md mb-6">
+        <KPICard title="ALUNOS ATIVOS" value={stats.students} label="Alunos ativos" icon="group" />
+        <KPICard title="TREINOS CRIADOS" value={stats.workouts} label="Treinos ativos" icon="fitness_center" />
+        <KPICard title="SESSÕES HOJE" value={stats.sessionsToday} label="Alunos treinaram hoje" icon="insights" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <section className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-primary-container">groups</span>
-            <h3 className="font-headline-lg text-on-surface text-lg">Alunos Recentes</h3>
+      {/* IA Coach 2.0 Feature */}
+      <div className="md:col-span-12 lg:col-span-4 flex flex-col gap-md mb-6 lg:mb-0">
+        <div className="glass-card rounded-xl p-6 border-t-2 border-t-tertiary-fixed h-full flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-tertiary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+            <h3 className="text-headline-md font-headline-md text-primary">IA Coach 2.0</h3>
           </div>
-          <div className="space-y-4">
-            {filteredRecent.map((student) => (
-              <div key={student.id} onClick={() => onViewProfile(student)} className="flex items-center justify-between p-4 bg-surface rounded-2xl border border-outline-variant/30 hover:border-primary-container/30 transition-all cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center font-headline-lg text-on-surface-variant border border-outline-variant/30 group-hover:border-primary-container/30">
+          <p className="text-body-md font-body-md text-on-surface-variant mb-6">Análise preditiva e guias nutricionais para seus atletas.</p>
+          
+          <div className="space-y-4 mt-auto">
+            <div className="bg-surface-container-lowest p-4 rounded-lg border border-surface-container-high hover:border-tertiary-fixed/50 transition-colors cursor-pointer group">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-headline-md text-on-surface text-sm font-bold">Calculadora 1RM</span>
+                <span className="material-symbols-outlined text-on-surface-variant group-hover:text-tertiary-fixed transition-colors">arrow_forward</span>
+              </div>
+              <div className="h-1.5 w-full bg-surface rounded-full overflow-hidden">
+                <div className="h-full bg-tertiary-fixed w-3/4 rounded-full shadow-[0_0_8px_rgba(125,244,255,0.6)]"></div>
+              </div>
+              <p className="text-label-caps font-label-caps text-on-surface-variant mt-2 text-xs">Preparado com último treino de Squads.</p>
+            </div>
+            
+            <div className="bg-surface-container-lowest p-4 rounded-lg border border-surface-container-high hover:border-primary-container/50 transition-colors cursor-pointer group">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-headline-md text-on-surface text-sm font-bold">Calculadora de Macros</span>
+                <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors">restaurant</span>
+              </div>
+              <p className="text-body-md font-body-md text-on-surface-variant text-sm">Gere planos alimentares sob medida.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Student Management / Radar de Evasão (Col span 8) */}
+      <div className="md:col-span-12 lg:col-span-8 flex flex-col gap-6">
+        
+        <div className="glass-card rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6 border-b border-surface-container-high pb-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-error" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+              <h3 className="font-headline-md font-bold text-on-surface uppercase">Radar de Evasão</h3>
+            </div>
+            <span className="bg-error/10 text-error px-3 py-1 rounded-full text-xs font-bold">{atRiskStudents.length} Risco</span>
+          </div>
+          
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
+            {filteredAtRisk.length > 0 ? filteredAtRisk.map(student => (
+              <div key={student.id} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-surface-container-high hover:border-error/30 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center font-bold text-on-surface">
                     {student.name[0]}
                   </div>
                   <div>
-                    <h4 className="font-headline-md text-on-surface text-sm">{student.name}</h4>
-                    <p className="font-body-md text-xs text-on-surface-variant">@{student.username}</p>
+                    <h4 className="font-bold text-sm text-on-surface group-hover:text-error transition-colors">{student.name}</h4>
+                    <p className="text-xs text-[#64748b]">Inativo: {student.daysInactive >= 99 ? 'Nunca' : `${student.daysInactive} dias`}</p>
                   </div>
                 </div>
                 <button 
-                  className="font-label-caps text-[10px] text-primary-container hover:brightness-110"
+                  onClick={() => onMotivate({ open: true, student: student, message: '' })}
+                  className="text-error hover:bg-error/10 px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all"
                 >
-                  Ver Perfil ›
+                  Motivar
                 </button>
               </div>
-            ))}
-            {!loading && recentStudents.length === 0 && (
-              <p className="text-center py-10 font-body-md text-on-surface-variant italic">Nenhum aluno cadastrado.</p>
+            )) : (
+              <p className="text-center text-sm text-on-surface-variant py-8">Todos os alunos estão ativos! 🚀</p>
             )}
           </div>
-        </section>
+        </div>
 
-        <section className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-primary-container">assignment</span>
-            <h3 className="font-headline-lg text-on-surface text-lg">Atividades Recentes</h3>
+        <div className="glass-card rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-6 border-b border-surface-container-high pb-4">
+            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
+            <h3 className="font-headline-md font-bold text-on-surface uppercase">Atividades Recentes</h3>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
             {recentActivities.map(log => (
-              <div key={log.id} className="flex gap-4 relative">
-                <div className="w-2 h-2 bg-primary-container rounded-full mt-1.5 ring-4 ring-primary-container/20 shrink-0 neon-glow" />
-                <div className="flex-1">
-                  <p className="font-body-md text-sm text-on-surface-variant">
-                    <span className="font-headline-md text-on-surface">{log.gym_students?.name}</span> treinou 
-                    <span className="font-headline-md text-on-surface"> {log.gym_exercises?.name}</span>
+              <div key={log.id} className="flex gap-4 items-start p-3 hover:bg-surface-container-highest rounded-lg transition-colors">
+                <div className="w-2 h-2 bg-primary rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_rgba(195,244,0,0.5)]" />
+                <div>
+                  <p className="text-sm text-on-surface-variant">
+                    <strong className="text-on-surface">{log.gym_students?.name}</strong> treinou <strong className="text-on-surface">{log.gym_exercises?.name}</strong>
                   </p>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">
+                  <p className="text-xs text-[#64748b] mt-1 tracking-widest font-mono">
                     {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {log.weight_kg}kg
                   </p>
                 </div>
               </div>
             ))}
             {!loading && recentActivities.length === 0 && (
-              <p className="text-center py-10 font-body-md text-on-surface-variant italic">Nenhuma atividade registrada hoje.</p>
+              <p className="text-center text-sm text-on-surface-variant py-8">Nenhuma atividade hoje.</p>
             )}
           </div>
-        </section>
-      </div>
-
-      {/* Radar de Evasão */}
-      <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-error/10 rounded-2xl flex items-center justify-center text-error shadow-sm">
-              <span className="material-symbols-outlined text-2xl">warning</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-display-xl text-on-surface tracking-tight">Radar de Evasão</h3>
-              <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mt-0.5">Alunos em risco de desistência (+3 dias off)</p>
-            </div>
-          </div>
-          <span className="bg-error/10 text-error px-4 py-2 rounded-full font-label-caps text-[10px] uppercase tracking-widest border border-error/20">
-            {atRiskStudents.length} Alunos
-          </span>
         </div>
-
-        {filteredAtRisk.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAtRisk.map(student => (
-              <div key={student.id} className="p-6 bg-surface rounded-3xl border border-outline-variant/30 hover:border-error/30 transition-all group relative overflow-hidden">
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-14 h-14 bg-surface-container rounded-2xl flex items-center justify-center font-headline-lg text-on-surface-variant text-xl border border-outline-variant/30 shadow-sm group-hover:border-error/30 transition-colors">
-                    {student.name[0]}
-                  </div>
-                  <div>
-                    <h4 className="font-headline-md text-on-surface text-sm group-hover:text-error transition-colors">{student.name}</h4>
-                    <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">@{student.username}</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 flex items-end justify-between relative z-10">
-                  <div>
-                    <p className="font-label-caps text-[8px] text-on-surface-variant uppercase tracking-[0.2em] mb-1">Inatividade</p>
-                    <p className="text-2xl font-display-lg text-error tracking-tight">
-                      {student.daysInactive >= 99 ? 'Nunca' : `${student.daysInactive} dias`}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => onMotivate({ open: true, student: student, message: '' })}
-                    className="bg-surface-container text-error px-4 py-2 rounded-xl font-label-caps text-[10px] uppercase tracking-widest shadow-sm hover:bg-error hover:text-on-error transition-all active:scale-95 border border-error/20"
-                  >
-                    Motivar ›
-                  </button>
-                </div>
-                
-                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-error/10 rounded-full blur-2xl group-hover:bg-error/20 transition-colors" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-surface rounded-3xl border-2 border-dashed border-outline-variant/30">
-            <div className="w-16 h-16 bg-surface-container rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-outline-variant/30">
-              <span className="material-symbols-outlined text-4xl text-primary-container">check_circle</span>
-            </div>
-            <p className="font-label-caps text-sm text-on-surface-variant uppercase tracking-widest">Todos os alunos estão ativos! 🚀</p>
-          </div>
-        )}
-      </section>
+      </div>
     </div>
   )
 }

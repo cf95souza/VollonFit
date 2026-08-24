@@ -134,6 +134,22 @@ export default function StudentDashboard() {
     navigate('/', { replace: true })
   }
 
+  const handleEnableNotifications = () => {
+    if (!("Notification" in window)) {
+      showToast("Seu navegador não suporta notificações.", "error")
+      return
+    }
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        showToast("Notificações ativadas com sucesso!")
+      } else if (permission === "denied") {
+        showToast("Você bloqueou as notificações. Ative nas configurações do navegador.", "error")
+      } else {
+        showToast("Permissão não concedida.", "error")
+      }
+    })
+  }
+
   const fetchWorkouts = async (studentId) => {
     setLoading(true)
     const { data, error } = await supabase
@@ -926,6 +942,9 @@ export default function StudentDashboard() {
                   <div className="space-y-3 pt-4">
                     <button type="submit" disabled={isSavingConfig} className="w-full bg-primary-container text-on-primary-container py-3 rounded-lg font-label-caps text-label-caps uppercase hover:bg-surface-tint neon-glow transition-all disabled:opacity-50">
                       {isSavingConfig ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                    <button type="button" onClick={handleEnableNotifications} className="w-full bg-primary-container/20 text-primary-container border border-primary-container/30 py-3 rounded-lg font-label-caps text-label-caps uppercase transition-all flex items-center justify-center gap-2 hover:bg-primary-container hover:text-on-primary-container">
+                      <span className="material-symbols-outlined text-sm">notifications_active</span> Ativar Notificações do Navegador
                     </button>
                     <button type="button" onClick={() => { setIsConfigModalOpen(false); handleLogout(); }} className="w-full bg-error-container/20 text-error border border-error/30 py-3 rounded-lg font-label-caps text-label-caps uppercase transition-all flex items-center justify-center gap-2 hover:bg-error hover:text-on-error">
                       <span className="material-symbols-outlined text-sm">logout</span> Sair da Conta

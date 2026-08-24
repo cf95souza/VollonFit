@@ -72,8 +72,8 @@ export default function AdminDashboard() {
     if (!motivationModal.message.trim()) return
     
     const { error } = await supabase.from('gym_social_notifications').insert([{
-      student_id: motivationModal.student.id,
-      teacher_id: teacherInfo.id,
+      receiver_id: motivationModal.student.id,
+      sender_id: teacherInfo.id,
       message: motivationModal.message,
       type: 'motivation'
     }])
@@ -99,6 +99,7 @@ export default function AdminDashboard() {
 
   const SidebarLink = ({ id, icon, label }) => {
     const disabled = isBlocked && id !== 'financeiro' && id !== 'settings'
+    const isActive = activeTab === id && !selectedStudentProfile
     
     return (
       <button
@@ -112,75 +113,88 @@ export default function AdminDashboard() {
           setIsSidebarOpen(false)
         }}
         disabled={disabled}
-        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-label-caps text-xs uppercase tracking-widest ${
-          activeTab === id && !selectedStudentProfile
-            ? 'bg-primary-container text-on-primary-container shadow-[0_0_15px_rgba(195,244,0,0.2)] scale-[1.02]'
-            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
+        className={`w-full flex items-center gap-3 px-6 py-4 rounded-lg transition-colors duration-300 ${
+          isActive
+            ? 'bg-surface-container-high text-primary border-r-4 border-primary shadow-[0_0_15px_rgba(195,244,0,0.1)] scale-[1.02]'
+            : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'
         } ${disabled ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
       >
-        <span className="material-symbols-outlined text-[20px]">{icon}</span>
-        <span>{label}</span>
+        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
+        <span className="font-body-md text-sm font-semibold tracking-wide">{label}</span>
       </button>
     )
   }
 
   const SidebarContent = () => (
     <div className="h-full flex flex-col p-6">
-      <div className="mb-10 px-4">
-        <h1 className="text-2xl font-black text-on-surface font-display tracking-tighter uppercase italic">Vollon<span className="text-primary-container">Fit</span></h1>
-        <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest mt-1">Admin Panel</p>
+      <div className="mb-8 flex flex-col gap-2">
+        <h1 className="text-headline-md font-headline-md font-black text-primary flex items-center gap-2">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+          VollonFit
+        </h1>
+        <p className="text-on-surface-variant text-label-caps mt-1 tracking-widest">Painel B2B</p>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container bg-primary-container flex items-center justify-center text-on-primary-container font-headline-lg shrink-0">
+          {teacherInfo.name[0]}
+        </div>
+        <div>
+          <h2 className="text-body-md font-headline-md font-bold text-on-surface line-clamp-1">{teacherInfo.name}</h2>
+          <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest">Painel do Professor</p>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-1">
         <SidebarLink id="overview" icon="dashboard" label="Visão Geral" />
-        <SidebarLink id="exercises" icon="fitness_center" label="Exercícios" />
-        <SidebarLink id="workouts" icon="assignment" label="Treinos" />
-        <SidebarLink id="students" icon="groups" label="Alunos" />
+        <SidebarLink id="students" icon="group" label="Alunos" />
+        <SidebarLink id="workouts" icon="event_note" label="Treinos" />
         <SidebarLink id="financeiro" icon="attach_money" label="Financeiro" />
+        <SidebarLink id="exercises" icon="fitness_center" label="Exercícios" />
         <SidebarLink id="settings" icon="settings" label="Configurações" />
       </nav>
 
-      <div className="pt-6 border-t border-outline-variant/30">
-        <div className="glass-panel border-outline-variant/30 rounded-2xl p-4 mb-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center font-headline-lg text-on-primary-container">
-            {teacherInfo.name[0]}
+      <div className="mt-auto mb-6 p-4 rounded-xl bg-surface-container-highest border border-primary-container/30 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-container via-surface-container-highest to-surface-container-highest"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2 text-primary-container">
+            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+            <span className="font-label-caps text-[10px] text-primary-container uppercase tracking-widest">UPGRADE PARA ELITE</span>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-xs font-headline-md text-on-surface truncate">{teacherInfo.name}</p>
-            <p className="text-[9px] font-body-md text-on-surface-variant uppercase truncate">Professor</p>
-          </div>
+          <p className="text-body-md font-body-md text-on-surface-variant text-xs mb-4">Desbloqueie treinos ilimitados e análises com IA.</p>
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-2 px-4 rounded-lg font-headline-md text-[10px] hover:brightness-110 transition-all uppercase tracking-widest">
+            <span className="material-symbols-outlined text-[14px]">logout</span> Sair da Conta
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-error hover:bg-error/10 transition-all font-label-caps text-xs uppercase tracking-widest"
-        >
-          <span className="material-symbols-outlined text-[20px]">logout</span>
-          <span>Sair</span>
-        </button>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-sans selection:bg-primary-container/30">
+    <div className="w-full h-full flex bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+      <style dangerouslySetInnerHTML={{__html: `
+        .glass-card { background: rgba(43, 46, 51, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .text-glow { text-shadow: 0 0 10px rgba(195, 244, 0, 0.5); }
+      `}} />
+      
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-black text-on-surface font-display uppercase italic">Vollon<span className="text-primary-container">Fit</span></h1>
+      <header className="md:hidden fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-black text-on-surface font-display uppercase italic">Vollon<span className="text-primary font-light">Fit</span></h1>
         <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-primary-container">
           <span className="material-symbols-outlined">menu</span>
         </button>
       </header>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-80 bg-surface-container border-r border-outline-variant/30 z-30">
+      {/* Desktop Sidebar (Flex natural, ocupa altura total pois root é flex e h-full) */}
+      <nav className="hidden md:flex flex-col h-full bg-surface-container-low border-r border-outline-variant w-64 shrink-0 z-40">
         <SidebarContent />
-      </aside>
+      </nav>
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-80 bg-surface-container animate-in slide-in-from-left duration-300">
+          <div className="absolute left-0 top-0 h-full w-64 bg-surface-container-low animate-in slide-in-from-left duration-300">
             <button onClick={() => setIsSidebarOpen(false)} className="absolute top-6 right-6 p-2 text-on-surface-variant hover:text-on-surface">
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -190,36 +204,47 @@ export default function AdminDashboard() {
       )}
 
       {/* Main Content */}
-      <main className={`lg:ml-80 pt-24 lg:pt-0 min-h-screen transition-all duration-500 ${isSidebarOpen ? 'blur-sm scale-95' : ''}`}>
-        <div className="px-6 lg:px-12 py-8 lg:py-12">
+      <main className={`flex-1 h-full overflow-y-auto overflow-x-hidden p-6 lg:p-10 transition-all duration-500 w-full ${isSidebarOpen ? 'blur-sm scale-95' : ''}`}>
+        <div className="pt-16 md:pt-0 max-w-6xl mx-auto w-full">
           
           {/* Dashboard Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <header className="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-3xl lg:text-4xl text-primary-container font-display-xl uppercase tracking-tighter">
+              <h2 className="text-display-xl font-display-xl text-primary leading-tight">
                 {selectedStudentProfile ? `Perfil: ${selectedStudentProfile.name}` : 
                  activeTab === 'overview' ? 'Visão Geral' : 
                  activeTab === 'exercises' ? 'Exercícios' : 
-                 activeTab === 'workouts' ? 'Gestão de Treinos' : 
-                 activeTab === 'students' ? 'Meus Alunos' : 
-                 activeTab === 'financeiro' ? 'Painel Financeiro' :
+                 activeTab === 'workouts' ? 'Treinos' : 
+                 activeTab === 'students' ? 'Alunos' : 
+                 activeTab === 'financeiro' ? 'Financeiro' :
                  'Configurações'}
               </h2>
-              <p className="text-xs text-on-surface-variant font-label-caps uppercase tracking-[0.3em] mt-1">
-                {selectedStudentProfile ? 'Análise detalhada do aluno' : 'Controle total da sua consultoria fitness'}
+              <p className="text-body-lg font-body-lg text-on-surface-variant">
+                {selectedStudentProfile ? 'Análise detalhada do aluno' : 'Métricas de performance em tempo real e gestão de alunos.'}
               </p>
             </div>
+            {!selectedStudentProfile && (
+              <div className="flex gap-3">
+                {/* Invite Link Tool */}
+                <div className="flex items-center bg-surface-container rounded-lg p-1 border border-outline-variant hidden sm:flex">
+                  <div className="px-3 py-2 text-on-surface-variant font-data-display text-[10px] truncate max-w-[150px] sm:max-w-[200px]">vollon.fit/join/{teacherInfo.username || teacherInfo.id.substring(0,8)}</div>
+                  <button onClick={() => showToast('Link copiado!')} className="bg-surface-container-high hover:bg-surface-bright text-primary p-2 rounded-md transition-colors" title="Copiar Link de Convite">
+                    <span className="material-symbols-outlined text-sm">content_copy</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </header>
 
-            <div className="relative group w-full md:w-80">
-              <span className="material-symbols-outlined text-lg absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary-container transition-colors">search</span>
-              <input 
-                type="text" 
-                placeholder="Buscar em todo painel..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-surface-container-high border border-outline-variant/30 rounded-xl font-headline-md text-sm text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/20 transition-all placeholder:text-on-surface-variant/50" 
-              />
-            </div>
+          <div className="relative group w-full md:w-80 mb-8">
+            <span className="material-symbols-outlined text-lg absolute left-4 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-primary transition-colors">search</span>
+            <input 
+              type="text" 
+              placeholder="Buscar em todo painel..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-[#15171a] border border-outline-variant/30 rounded-xl font-display-md text-sm text-on-surface focus:outline-none focus:border-primary-container transition-all placeholder:text-[#64748b]" 
+            />
           </div>
 
           {/* Renderização Condicional de Abas Modulares */}

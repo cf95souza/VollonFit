@@ -45,92 +45,119 @@ export default function MarketplaceTab({ showToast, teacherAcademyId }) {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 py-md space-y-lg pb-32">
-      <div className="text-center space-y-sm">
-        <div className="w-20 h-20 bg-primary-container/10 text-primary-container rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(195,244,0,0.2)] border border-primary-container/20">
-          <span className="material-symbols-outlined text-4xl">shopping_bag</span>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-md pb-32">
+      <style dangerouslySetInnerHTML={{__html: `
+        .glass-panel { background: rgba(44, 48, 54, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon-glow { box-shadow: 0 0 15px rgba(195,244,0,0.3); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
+      
+      {/* Hero Section */}
+      <section className="relative w-full h-[200px] rounded-xl overflow-hidden glass-panel flex flex-col justify-end p-4">
+        <div className="absolute inset-0 z-0">
+          <img className="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzrxwe2173m0MurWFseK20TZulILs_zLRbYc832XRbWJQoM-fKscR_M16n7ZpmRn1hHsaLbF-KcvumhOZAm6YksnS0s9haTuTuxhZ8hsfVPl6FHaXbqjOHZBaQm_S_dRycBvPb6CSTVQ18syIARCbkOpRLj1KKnNtwOlSF4Xn2zWBkVvm8l1LxSHdDaIXv0xSMOsl4THQuZ4o-ZnNOcEadRKYP0kaSAibzYFIUtdKkmhR7EsEBrFhr" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#101417] to-transparent"></div>
         </div>
-        <h2 className="font-display-xl text-3xl text-primary uppercase tracking-tight">Marketplace</h2>
-        <p className="font-body-md text-sm text-on-surface-variant px-4">
-          {teacherAcademyId 
-            ? "Produtos e ofertas exclusivas oferecidas pela sua academia! 🏢🔥"
-            : "Suplementos e acessórios selecionados pelo seu Coach. 🔥"
-          }
-        </p>
-      </div>
-
-      {/* Categorias */}
-      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-2">
-        {categories.map(cat => (
-          <button 
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-5 py-2 rounded-xl font-label-caps text-[10px] uppercase tracking-widest whitespace-nowrap transition-all border ${
-              activeCategory === cat 
-              ? 'bg-primary-container text-on-primary-container border-primary-container shadow-[0_0_10px_rgba(195,244,0,0.2)]' 
-              : 'glass-panel text-on-surface-variant border-outline-variant/30 hover:bg-surface-container-high'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid de Produtos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
-        {filteredProducts.map(product => (
-          <div key={product.id} className="glass-panel rounded-3xl border border-outline-variant/30 overflow-hidden flex flex-col group transition-all hover:border-primary-container/50">
-            <div className="aspect-[16/10] sm:aspect-square relative overflow-hidden bg-surface-container-highest">
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-on-surface-variant">
-                  <span className="material-symbols-outlined text-5xl opacity-30">shopping_bag</span>
-                </div>
-              )}
-              <div className="absolute top-3 left-3">
-                <span className="bg-surface/80 backdrop-blur-md font-label-caps text-[8px] text-primary-container px-3 py-1 rounded-full uppercase tracking-widest border border-primary-container/20">
-                  {product.category}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-5 flex-1 flex flex-col gap-3">
-              <div>
-                <h4 className="font-headline-md text-sm text-on-surface leading-tight line-clamp-2">{product.name}</h4>
-                <p className="font-body-md text-[10px] text-on-surface-variant mt-1 line-clamp-1">{product.description}</p>
-              </div>
-
-              <div className="mt-auto pt-2 flex items-center justify-between">
-                <div>
-                  <p className="font-label-caps text-[8px] text-on-surface-variant uppercase tracking-widest leading-none mb-1">Preço Sugerido</p>
-                  <p className="font-display-lg text-lg text-primary">R$ {parseFloat(product.price).toFixed(2)}</p>
-                </div>
-                <a 
-                  href={product.affiliate_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-on-surface hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-90 border border-outline-variant/30"
-                >
-                  <span className="material-symbols-outlined text-sm">open_in_new</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Banner de Indicação */}
-      <div className="bg-primary-container p-8 rounded-3xl relative overflow-hidden group shadow-[0_0_30px_rgba(195,244,0,0.15)] neon-glow mt-8">
-        <span className="material-symbols-outlined absolute -right-4 -top-4 text-9xl text-on-primary-container/5 rotate-12 transition-transform group-hover:rotate-45 duration-1000">auto_awesome</span>
-        <div className="relative z-10">
-          <h3 className="font-display-lg text-xl text-on-primary-container uppercase leading-tight mb-2">Quer indicar produtos?</h3>
-          <p className="font-body-md text-sm text-on-primary-container/80 mb-6 pr-10">Torne-se um embaixador VollonFit e ganhe comissão por cada venda!</p>
-          <button className="bg-surface text-on-surface px-6 py-3 rounded-xl font-label-caps text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
-            Saber Mais
-          </button>
+        <div className="relative z-10 space-y-1">
+          <span className="inline-block px-2 py-1 bg-primary/20 text-primary font-sans text-[10px] font-bold rounded-sm border border-primary/30 uppercase tracking-widest">
+            {teacherAcademyId ? "Exclusivo Alunos" : "STRENGTH HUB"}
+          </span>
+          <h2 className="font-sans text-2xl text-white font-bold">Impulsione seu Progresso</h2>
+          <p className="font-sans text-sm text-[#c4c9ac] opacity-80">Essenciais para alta performance.</p>
         </div>
-      </div>
+      </section>
+
+      {/* Categorias (Horizontal Scroll) */}
+      <section className="w-full overflow-x-auto no-scrollbar py-2 -mx-2 px-2">
+        <div className="flex space-x-3 w-max">
+          {categories.map(cat => (
+            <button 
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`font-sans text-[10px] px-4 py-2 rounded-full uppercase tracking-wider font-bold transition-colors ${
+                activeCategory === cat 
+                ? 'bg-primary text-[#161e00] neon-glow' 
+                : 'glass-panel text-white hover:border-primary/50'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Product Grid (Bento Style) */}
+      <section className="grid grid-cols-2 gap-3">
+        {filteredProducts.map((product, index) => {
+          // O primeiro produto que renderiza se tiver imagem recebe destaque (col-span-2)
+          const isFeatured = index === 0;
+          
+          return (
+            <article 
+              key={product.id} 
+              className={`${isFeatured ? 'col-span-2' : 'col-span-1'} glass-panel rounded-xl overflow-hidden relative group active:scale-[0.98] transition-transform duration-200 flex flex-col`}
+            >
+              <div className="absolute top-2 right-2 z-10 bg-[#101417]/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center space-x-1 border border-white/5">
+                <span className="material-symbols-outlined text-primary text-[14px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                <span className="font-mono text-white text-xs">5.0</span>
+              </div>
+              <div className={`${isFeatured ? 'h-[180px]' : 'h-[140px]'} w-full bg-[#1c2024] relative`}>
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#c4c9ac]">
+                    <span className="material-symbols-outlined text-4xl opacity-30">shopping_bag</span>
+                  </div>
+                )}
+                {isFeatured && <div className="absolute inset-0 bg-gradient-to-t from-[#272a2e] to-transparent opacity-80"></div>}
+              </div>
+
+              <div className="p-3 flex flex-col flex-grow justify-between bg-[#323539]/50">
+                <div className="mb-2">
+                  <h3 className={`font-sans font-bold text-white leading-tight ${isFeatured ? 'text-xl' : 'text-sm'}`}>{product.name}</h3>
+                  <p className={`font-sans text-[#c4c9ac] opacity-70 mt-1 line-clamp-1 ${isFeatured ? 'text-sm' : 'text-[10px] uppercase tracking-widest'}`}>
+                    {product.description || product.category}
+                  </p>
+                </div>
+                
+                {isFeatured ? (
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="font-mono text-primary text-lg">R$ {parseFloat(product.price).toFixed(2)}</div>
+                    <a 
+                      href={product.affiliate_url} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-[#161e00] font-sans text-[10px] px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#abd600] transition-colors shadow-[0_0_10px_rgba(195,244,0,0.2)]"
+                    >
+                      Comprar
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex flex-col space-y-2 mt-auto">
+                    <div className="font-mono text-primary">R$ {parseFloat(product.price).toFixed(2)}</div>
+                    <a 
+                      href={product.affiliate_url} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-transparent border text-center border-primary text-primary font-sans text-[10px] py-1.5 rounded uppercase hover:bg-primary/10 transition-colors font-bold tracking-widest"
+                    >
+                      Ver
+                    </a>
+                  </div>
+                )}
+              </div>
+            </article>
+          )
+        })}
+      </section>
+      
+      {filteredProducts.length === 0 && (
+         <div className="glass-panel p-10 rounded-xl text-center col-span-2">
+            <span className="material-symbols-outlined text-[#c4c9ac] text-4xl mb-2">production_quantity_limits</span>
+            <p className="text-sm text-[#c4c9ac] font-sans">Nenhum produto encontrado nesta categoria.</p>
+         </div>
+      )}
     </div>
   )
 }

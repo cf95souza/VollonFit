@@ -126,6 +126,29 @@ export default function ProfileTab({ student, totalWorkouts = 0, onOpenConfig, o
           <span className="font-black uppercase tracking-widest font-display text-sm">Atualizar App (Limpar Cache)</span>
         </button>
 
+        {/* NOTIFICATIONS BUTTON */}
+        <button 
+          onClick={() => {
+            if (!("Notification" in window)) {
+              showToast("Seu navegador não suporta notificações.", "error")
+              return
+            }
+            Notification.requestPermission().then((permission) => {
+              if (permission === "granted") {
+                showToast("Notificações ativadas com sucesso!")
+              } else if (permission === "denied") {
+                showToast("Você bloqueou as notificações. Ative nas configurações do navegador.", "error")
+              } else {
+                showToast("Permissão não concedida.", "error")
+              }
+            })
+          }}
+          className="w-full mt-4 p-6 text-center bg-primary/10 rounded-[32px] border border-primary/20 flex items-center justify-center gap-3 hover:bg-primary hover:text-black transition-all text-primary active:scale-95 shadow-xl shadow-primary/5"
+        >
+          <span className="material-symbols-outlined text-xl">notifications_active</span>
+          <span className="font-black uppercase tracking-widest font-display text-sm">Ativar Notificações Push</span>
+        </button>
+
         {/* LOGOUT BUTTON */}
         <button 
           onClick={onLogout}

@@ -13,6 +13,8 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
   const [workoutName, setWorkoutName] = useState('')
   const [workoutDescription, setWorkoutDescription] = useState('')
   const [workoutItems, setWorkoutItems] = useState([]) 
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchData = async () => {
     if (!teacherInfo?.id) return
@@ -124,6 +126,28 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
       fetchStudentWorkouts()
     }
     setIsSaving(false)
+  }
+
+  const handleDeleteWorkout = async () => {
+    if (!editingWorkoutId) return
+    setIsDeleting(true)
+
+    // Precisamos excluir primeiro todos os itens relacionados para não disparar erro de Foreign Key
+    await supabase.from('gym_training_logs').delete().eq('workout_id', editingWorkoutId)
+    await supabase.from('gym_workout_items').delete().eq('workout_id', editingWorkoutId)
+    
+    // Por fim, deleta o treino principal
+    const { error } = await supabase.from('gym_workouts').delete().eq('id', editingWorkoutId)
+    
+    if (error) {
+      showToast('Erro ao excluir treino: ' + error.message, 'error')
+    } else {
+      showToast('Treino excluído com sucesso!')
+      resetForm()
+      fetchStudentWorkouts()
+      setDeleteModalOpen(false)
+    }
+    setIsDeleting(false)
   }
 
   const resetForm = () => {
@@ -287,7 +311,16 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
                 </div>
               </section>
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end pt-4 gap-4">
+                {editingWorkoutId && (
+                  <button 
+                    onClick={() => setDeleteModalOpen(true)}
+                    type="button"
+                    className="border border-error text-error hover:bg-error/10 px-8 py-4 rounded-xl font-label-caps text-[10px] uppercase tracking-widest transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span> Excluir Treino
+                  </button>
+                )}
                 <button 
                   onClick={handleSaveWorkout}
                   disabled={isSaving}
@@ -305,6 +338,42 @@ export default function WorkoutsTab({ showToast, searchTerm, teacherInfo }) {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm" onClick={() => setDeleteModalOpen(false)}></div>
+          <div className="relative bg-surface-container-low border border-error/30 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-error text-2xl">warning</span>
+              </div>
+              <div>
+                <h3 className="font-display-lg text-xl text-on-surface">Excluir Treino</h3>
+                <p className="font-body-md text-sm text-on-surface-variant mt-1">Esta ação não pode ser desfeita.</p>
+              </div>
+            </div>
+            <p className="font-body-md text-on-surface mb-8">
+              Tem certeza que deseja excluir permanentemente o treino <strong className="text-error">{workoutName}</strong>?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-6 py-3 rounded-xl font-label-caps text-xs text-on-surface-variant hover:bg-surface-container-highest transition-all uppercase tracking-widest"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleDeleteWorkout}
+                disabled={isDeleting}
+                className="bg-error hover:brightness-110 text-on-error px-6 py-3 rounded-xl font-label-caps text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(255,0,0,0.2)] transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

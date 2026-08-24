@@ -32,9 +32,9 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
         .select('notes')
         .eq('student_id', studentId)
         .eq('exercise_id', ex.id)
-        .single()
+        .maybeSingle()
       
-      if (data) setExerciseNotes(data.notes)
+      if (data && data.notes) setExerciseNotes(data.notes)
     }
     fetchNotes()
   }, [ex?.id, studentId])
@@ -124,138 +124,158 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
   const lastBestSet = lastPerf.length > 0 ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] : null
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-surface-container-highest z-20">
-        <div 
-          className="h-full bg-primary-container transition-all duration-700 shadow-[0_0_15px_rgba(195,244,0,0.5)]" 
-          style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}
-        />
+    <div className="bg-surface text-on-surface min-h-screen flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
+      <style dangerouslySetInnerHTML={{__html: `
+        .glass-card { background: rgba(44, 48, 52, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glow-accent { box-shadow: 0 0 20px rgba(195, 244, 0, 0.15); }
+        .glow-accent-active:active { box-shadow: 0 0 30px rgba(195, 244, 0, 0.3); }
+        .glow-blue { box-shadow: 0 0 20px rgba(0, 219, 233, 0.2); }
+        .kinetic-input:focus { border-bottom-color: #c3f400 !important; box-shadow: 0 1px 0 0 #c3f400 !important; outline: none; }
+      `}} />
+
+      {/* Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-surface-container-highest">
+        <div className="h-full bg-primary-container transition-all duration-500 ease-out glow-accent" style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}></div>
       </div>
 
-      <header className="px-gutter py-md flex justify-between items-center relative z-10">
-        <button onClick={onBack} className="w-12 h-12 rounded-full glass-panel border border-outline-variant/30 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all active:scale-90">
-          <span className="material-symbols-outlined">chevron_left</span>
-        </button>
-        <div className="text-center">
-          <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Exercício {exerciseIndex + 1} de {exercises.length}</p>
-          <h2 className="text-primary font-headline-md text-headline-md uppercase tracking-tight">{ex?.name}</h2>
+      {/* Top App Bar */}
+      <header className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-white/5 pt-[env(safe-area-inset-top,2.5rem)] pb-2">
+        <div className="flex justify-between items-center px-gutter h-14 w-full max-w-container-max mx-auto">
+          <button onClick={onBack} className="text-on-surface-variant hover:text-primary-fixed transition-colors active:scale-90">
+            <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 0" }}>close</span>
+          </button>
+          <div className="flex flex-col items-center mt-1">
+            <h1 className="font-headline-md text-headline-md text-primary-fixed tracking-tight">{workout?.name || 'VollonFit Workout'}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-[#00dbe9] animate-pulse glow-blue"></span>
+              <span className="font-data-display text-data-display text-tertiary-fixed-dim">
+                {isTimerActive ? `Descanso: ${restRemaining}s` : 'Ativo'}
+              </span>
+            </div>
+          </div>
+          <button className="text-on-surface-variant hover:text-primary-fixed transition-colors">
+            <span className="material-symbols-outlined text-[28px]">more_vert</span>
+          </button>
         </div>
-        <div className="w-12 h-12" />
       </header>
 
-      <div className="flex-1 px-gutter pb-xl flex flex-col animate-in slide-in-from-bottom-12 duration-700 overflow-y-auto space-y-md">
-        <div className="w-full aspect-video rounded-3xl glass-panel overflow-hidden border border-outline-variant/30 shadow-inner flex items-center justify-center group relative">
-          {ex?.gif_url ? (
-            <img src={ex.gif_url} className="w-full h-full object-contain p-4" />
-          ) : (
-            <span className="material-symbols-outlined text-6xl text-on-surface-variant/30">fitness_center</span>
-          )}
+      {/* Main Content Canvas */}
+      <main className="flex-grow pt-[calc(100px+env(safe-area-inset-top,2.5rem))] pb-32 px-gutter max-w-md mx-auto w-full flex flex-col gap-md relative">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary-container/5 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
+        
+        {/* Active Exercise Card */}
+        <section className="glass-card rounded-xl p-md flex flex-col gap-sm relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-surface-container-highest/30 rotate-45 transform origin-center"></div>
           
-          {lastBestSet && (
-            <div className="absolute bottom-3 left-3 right-3 bg-surface/80 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/50 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center text-primary-container">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
-                </div>
-                <div>
-                  <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest leading-none mb-1">Melhor Marca (PR)</p>
-                  <p className="font-headline-md text-sm text-on-surface">{lastBestSet.weight_kg}kg <span className="text-on-surface-variant font-body-md text-xs">× {lastBestSet.reps_done}</span></p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 flex flex-col gap-6 shadow-2xl relative">
-          <div className="flex justify-between items-end mb-2">
+          <div className="flex justify-between items-start z-10">
             <div>
-              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Série Atual</p>
-              <p className="font-display-xl text-5xl text-on-surface">{currentSet}<span className="text-on-surface-variant font-headline-md text-2xl ml-2">/ {item?.target_sets || 1}</span></p>
+              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider block mb-1">Exercício {exerciseIndex + 1} de {exercises.length}</span>
+              <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-primary font-black italic tracking-tighter">{ex?.name}</h2>
             </div>
-            <div className={`px-5 py-2 rounded-xl flex flex-col items-center border transition-all duration-500 ${isTimerActive ? 'bg-primary-container text-on-primary-container border-primary-container shadow-[0_0_10px_rgba(195,244,0,0.3)]' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/30'}`}>
-               <div className="flex items-center gap-2">
-                  <span className={`material-symbols-outlined text-sm ${isTimerActive ? 'animate-pulse' : ''}`}>timer</span>
-                  <p className={`font-headline-md text-[12px]`}>
-                    {isTimerActive ? `${restRemaining}s` : 'DESCANSO'}
-                  </p>
-               </div>
-            </div>
+            <button className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary-fixed border border-white/5 transition-colors">
+              <span className="material-symbols-outlined text-[20px]">info</span>
+            </button>
           </div>
 
-          {item?.iaSuggestion && currentSet === 1 && (
-            <div className="bg-primary-container/10 border border-primary-container/20 p-5 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-4 duration-500 shadow-xl">
-               <div className="bg-primary-container text-on-primary-container p-2 rounded-xl mt-1 shadow-[0_0_10px_rgba(195,244,0,0.3)]">
-                 <span className="material-symbols-outlined text-sm">psychology</span>
-               </div>
-               <div>
-                 <p className="font-label-caps text-[9px] text-primary-container uppercase tracking-widest mb-1">IA Coach 2.0 (Motor de Carga)</p>
-                 <p className="font-body-md text-sm text-on-surface leading-tight mb-3">{item.iaSuggestion.message}</p>
-                 <button 
-                   onClick={() => setWeight(item.iaSuggestion.weight.toString())} 
-                   className="font-label-caps text-[10px] text-on-primary-container bg-primary-container hover:bg-surface-tint px-4 py-2 rounded-lg uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary-container/20 neon-glow"
-                 >
-                   Aplicar {item.iaSuggestion.weight}kg
-                 </button>
-               </div>
+          {/* Set Target & PR */}
+          <div className="mt-base bg-surface-container-lowest/50 rounded-lg p-sm border border-white/5 z-10">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-data-display text-data-display text-on-surface-variant">Meta</span>
+              <span className="font-data-display text-data-display text-primary">{item?.target_sets} Séries</span>
             </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest ml-3">Carga (KG)</label>
-              <input 
-                type="number" 
-                inputMode="decimal"
-                value={weight}
-                onChange={e => setWeight(e.target.value)}
-                placeholder="0"
-                className="w-full bg-surface border-2 border-outline-variant/30 rounded-2xl p-5 font-headline-lg text-3xl text-primary-container text-center outline-none focus:border-primary-container transition-all shadow-inner"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest ml-3">Repetições</label>
-              <input 
-                type="number"
-                inputMode="numeric"
-                value={reps}
-                onChange={e => setReps(e.target.value)}
-                placeholder="0"
-                className="w-full bg-surface border-2 border-outline-variant/30 rounded-2xl p-5 font-headline-lg text-3xl text-primary-container text-center outline-none focus:border-primary-container transition-all shadow-inner"
-              />
-            </div>
-          </div>
-
-          {/* Anotações de Ajuste */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Anotações de Ajuste</span>
+            {lastBestSet && (
+              <div className="flex flex-col gap-xs mt-3 border-t border-white/5 pt-3">
+                <div className="flex justify-between items-center opacity-75">
+                  <span className="font-data-display text-[12px] text-on-surface-variant">Melhor Marca (PR)</span>
+                  <span className="font-data-display text-[12px] text-on-surface">{lastBestSet.weight_kg}kg × {lastBestSet.reps_done} <span className="material-symbols-outlined text-[14px] align-middle text-primary-fixed ml-1">check_circle</span></span>
+                </div>
               </div>
-              <button 
-                onClick={handleSaveNotes}
-                disabled={isSavingNotes}
-                className="font-label-caps text-[10px] text-primary-container uppercase tracking-widest px-4 py-2 bg-primary-container/10 rounded-lg hover:bg-primary-container/20 transition-all"
-              >
-                {isSavingNotes ? '...' : 'Salvar'}
-              </button>
-            </div>
-            <textarea 
-              value={exerciseNotes}
-              onChange={e => setExerciseNotes(e.target.value)}
-              placeholder="Ex: Banco no 4, pegada aberta..."
-              className="w-full bg-surface border border-outline-variant/30 rounded-xl p-4 font-body-md text-sm text-on-surface focus:outline-none focus:border-primary-container/50 placeholder:text-on-surface-variant/50 resize-none min-h-[60px]"
-            />
+            )}
           </div>
-        </div>
 
-        <button 
-          onClick={handleNextSet}
-          disabled={isSaving}
-          className="w-full bg-primary-container hover:bg-surface-tint text-on-primary-container font-headline-md py-5 rounded-2xl shadow-[0_0_20px_rgba(195,244,0,0.2)] flex items-center justify-center gap-3 active:scale-95 transition-all text-lg mt-8 disabled:opacity-50 neon-glow"
-        >
-          {isSaving ? 'Gravando...' : (currentSet < (item?.target_sets || 1) ? 'Concluir Série' : 'Próximo Exercício')} 
-          <span className="material-symbols-outlined text-xl">check_circle</span>
-        </button>
+          {/* Current Set Inputs */}
+          <div className="mt-sm z-10">
+            <div className="flex items-center gap-sm mb-4">
+              <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-headline-md text-[14px] glow-accent">
+                  {currentSet}
+              </div>
+              <span className="font-headline-md text-[16px] text-primary">Série Atual</span>
+            </div>
+            
+            <div className="flex gap-sm">
+              <div className="flex-1 relative">
+                <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">CARGA (KG)</label>
+                <input 
+                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-data-display text-headline-md pt-6 px-3 text-center focus:ring-0 transition-colors" 
+                  inputMode="decimal" 
+                  type="number" 
+                  value={weight}
+                  onChange={e => setWeight(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex-1 relative">
+                <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">REPETIÇÕES</label>
+                <input 
+                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-data-display text-headline-md pt-6 px-3 text-center focus:ring-0 transition-colors" 
+                  inputMode="numeric" 
+                  type="number" 
+                  value={reps}
+                  onChange={e => setReps(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            
+            {/* Notes */}
+            <div className="mt-sm w-full relative">
+               <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">ANOTAÇÕES (OPCIONAL)</label>
+               <input 
+                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-body-md pt-6 px-3 focus:ring-0 transition-colors" 
+                  type="text" 
+                  value={exerciseNotes}
+                  onChange={e => setExerciseNotes(e.target.value)}
+                  onBlur={handleSaveNotes}
+                  placeholder="Adicionar nota..."
+                />
+            </div>
+          </div>
+
+          <button 
+            onClick={handleNextSet}
+            disabled={isSaving}
+            className="w-full h-14 mt-sm bg-primary-container text-[#161e00] font-headline-md text-[16px] rounded-lg glow-accent hover:glow-accent-active active:scale-[0.98] transition-all flex items-center justify-center gap-2 z-10 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check</span>
+            {isSaving ? 'GRAVANDO...' : 'CONCLUIR SÉRIE'}
+          </button>
+        </section>
+
+        {/* Image Placeholder */}
+        {ex?.gif_url && (
+          <div className="h-64 rounded-xl overflow-hidden relative border border-white/5 bg-surface-container-lowest flex items-center justify-center p-2">
+            <img src={ex.gif_url} className="w-full h-full object-contain rounded-lg mix-blend-screen" alt="Exercício" />
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent pointer-events-none"></div>
+            <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10 bg-surface/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+              <span className="material-symbols-outlined text-primary-fixed text-[18px]">play_circle</span>
+              <span className="font-label-caps text-[10px] text-primary tracking-wider">TUTORIAL</span>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 w-full bg-surface-container/90 backdrop-blur-lg border-t border-white/5 px-gutter py-sm pb-6 z-50">
+        <div className="max-w-md mx-auto flex justify-between items-center gap-sm">
+          <button onClick={onBack} className="flex-1 h-12 rounded-lg border-2 border-surface-container-highest text-on-surface-variant font-label-caps flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors active:scale-95">
+            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            VOLTAR
+          </button>
+          <button onClick={onNext} className="flex-[2] h-12 rounded-lg bg-surface-container-highest text-primary font-headline-md text-[14px] flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors active:scale-95 shadow-lg border border-white/10">
+            PRÓXIMO EXERCÍCIO
+            <span className="material-symbols-outlined text-[18px] text-primary-fixed">chevron_right</span>
+          </button>
+        </div>
       </div>
     </div>
   )

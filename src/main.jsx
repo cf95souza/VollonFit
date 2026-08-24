@@ -9,7 +9,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 
-// Registrar Service Worker para PWA
+// Registrar Service Worker para PWA (Desativado temporariamente em dev para não bloquear HMR)
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => {
@@ -25,3 +26,4 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+*/
