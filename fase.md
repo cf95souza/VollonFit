@@ -312,3 +312,33 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 ### Backlog de Correções Futuras 🐛
 - [x] **Módulo White Label**: Correção das variáveis CSS no `index.css` e atualização dos gráficos Recharts (`EvolutionView.jsx`, `SquadLeaderboard.jsx`, `StudentDetailView.jsx`) para que a cor personalizada do professor seja aplicada dinamicamente por completo no PWA do aluno e no painel administrativo.
 - **Status:** ✅ Concluído (Pronto para Homologação)
+
+---
+
+## 🛡️ RESOLUÇÃO DE DÉBITOS DE SEGURANÇA E MATURIDADE (AppSec)
+*Referência: Leia o `relatorio_auditoria_skills.md` (Seções 1 e 11) para as orientações técnicas exatas.*
+
+### Fase 39: Refatoração da Autenticação e Criptografia 🔐
+- [ ] **Migração de Senhas:** Eliminar o armazenamento de senhas em texto plano. Implementar hashing (bcrypt/pgcrypto) ou migrar perfis (`gym_teachers`, `gym_students`, `gym_academy_admins`) para o Supabase Auth nativo.
+- [ ] **Remoção de Colunas Sensiveis:** Desacoplar a coluna `password` das tabelas de leitura pública.
+- **Status:** 🚀 Prioridade Máxima (Blocker)
+
+### Fase 40: Sanitização Client-Side e Prevenção de Vazamentos 🧹
+- [ ] **Desinfecção do LocalStorage:** Remover campos sensíveis (como `password`) do payload gravado no navegador para mitigar roubo por XSS.
+- [ ] **Fim do Over-fetching (DTOs):** Substituir todas as queries `.select('*')` em tabelas de usuários por projeções explícitas (`.select('id, name, username')`), blindando a aba Network.
+- [ ] **Substituição de CSS Inline:** Remover os 7 pontos de `dangerouslySetInnerHTML` usados para estilização no React, movendo para arquivos `.css` ou Tailwind.
+- **Status:** 🚀 Planejado
+
+### Fase 41: Rate Limiting e Prevenção de Abuso 🛑
+- [ ] **Barreira Anti-Bruteforce:** Implementar limitador de taxa (Rate Limit) na rota de Login para evitar ataques de força bruta, possivelmente movendo a lógica pesada para uma Edge Function dedicada.
+- **Status:** 🚀 Planejado
+
+### Fase 42: Validação Estrita e Defesa de Inputs 🛡️
+- [ ] **Bloqueio de Uploads Maliciosos:** Reforçar as Storage Policies no Supabase Bucket de avatares/evolução, rejeitando envios com MIME Type falso ou tamanhos exorbitantes.
+- [ ] **Remoção de Mass Assignment:** Proteger funções de `update()` (Perfil e Configurações) aplicando listas brancas (whitelisting) nos campos recebidos, impedindo a injeção forçada de colunas como `status` ou `plan_type`.
+- **Status:** 🚀 Planejado
+
+### Fase 43: Auditoria Final de RLS e Proteção IDOR 🔒
+- [ ] **Revisão de Isolamento (Multi-Tenant):** Auditar as políticas RLS em todas as tabelas (especialmente treinos e alunos) para garantir que consultas e modificações verifiquem rigorosamente o `auth.uid()` ou a relação de `teacher_id`.
+- [ ] **Bloqueio de Acesso Anônimo:** Assegurar que a Data API pública recuse acessos irrestritos não-autenticados a tabelas sensíveis.
+- **Status:** 🚀 Planejado

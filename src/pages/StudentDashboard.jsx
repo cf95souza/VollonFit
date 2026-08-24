@@ -520,7 +520,7 @@ export default function StudentDashboard() {
   })
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row bg-surface text-on-surface font-body-md text-body-md overflow-hidden">
+    <div className="w-full h-[100dvh] flex flex-col md:flex-row bg-surface text-on-surface font-body-md text-body-md overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Mobile Top Header */}
       <header className="md:hidden flex justify-between items-center px-gutter py-md bg-surface z-40 relative border-b border-outline-variant/30">
         <div className="flex items-center gap-sm">

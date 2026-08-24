@@ -124,7 +124,7 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
   const lastBestSet = lastPerf.length > 0 ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] : null
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
+    <div className="bg-surface text-on-surface h-[100dvh] w-full flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative overflow-y-auto pb-[env(safe-area-inset-bottom)]">
       <style dangerouslySetInnerHTML={{__html: `
         .glass-card { background: rgba(44, 48, 52, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .glow-accent { box-shadow: 0 0 20px rgba(195, 244, 0, 0.15); }
