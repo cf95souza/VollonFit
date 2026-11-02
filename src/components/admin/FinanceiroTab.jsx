@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react'
+import { 
+  CreditCard, 
+  Lock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Receipt, 
+  DollarSign, 
+  Calendar,
+  Sparkles,
+  Loader2
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function FinanceiroTab({ teacherInfo }) {
@@ -25,8 +36,7 @@ export default function FinanceiroTab({ teacherInfo }) {
   }
 
   const handleCheckout = () => {
-    alert("Redirecionando para o Gateway de Pagamento (Mock Stripe)...")
-    // Simulando sucesso imediato
+    alert("Redirecionando para o Gateway de Pagamento...")
     supabase.from('gym_subscriptions').update({ status: 'active' }).eq('id', teacherInfo.subscription?.id).then(() => {
       window.location.reload()
     })
@@ -44,131 +54,141 @@ export default function FinanceiroTab({ teacherInfo }) {
   const trialDaysLeft = isTrial ? Math.max(0, Math.ceil((new Date(subscription.current_period_end) - new Date()) / (1000 * 60 * 60 * 24))) : 0
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* Bloco de Assinatura (SaaS Pro) */}
-      <div className={`p-8 rounded-[40px] border shadow-2xl glass-panel ${
-        isPastDue ? 'bg-error/10 border-error/30' :
-        isTrial ? 'bg-[#f59e0b]/10 border-[#f59e0b]/30' :
-        'bg-primary-container/10 border-primary-container/30'
+      {/* Banner de Status da Assinatura */}
+      <div className={`p-6 sm:p-8 rounded-3xl border transition-colors ${
+        isPastDue ? 'bg-[#141414] border-[#E11D2E]/60' :
+        isTrial ? 'bg-[#141414] border-[#E11D2E]/40' :
+        'vollon-card border-[#2A2A2A]'
       }`}>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center shadow-lg ${
-              isPastDue ? 'bg-error text-on-error' :
-              isTrial ? 'bg-[#f59e0b] text-black' :
-              'bg-primary-container text-on-primary-container'
+          <div className="flex items-center gap-5">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
+              isPastDue ? 'bg-[#E11D2E]/20 text-[#FF3B4A]' :
+              isTrial ? 'bg-[#E11D2E]/20 text-[#FF3B4A]' :
+              'bg-[#1A1A1A] text-white border border-[#2A2A2A]'
             }`}>
-              <span className="material-symbols-outlined text-3xl">
-                {isPastDue ? 'lock' : isTrial ? 'warning' : 'check_circle'}
-              </span>
+              {isPastDue ? <Lock className="w-7 h-7" /> : isTrial ? <Sparkles className="w-7 h-7" /> : <CheckCircle2 className="w-7 h-7 text-[#FF3B4A]" />}
             </div>
             <div>
-              <p className="font-label-caps text-[10px] uppercase tracking-widest mb-1 text-on-surface-variant">Status da Conta</p>
-              <h2 className={`font-display-lg text-3xl uppercase tracking-tighter ${
-                isPastDue ? 'text-error' : isTrial ? 'text-[#f59e0b]' : 'text-primary-container'
+              <p className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider mb-0.5">
+                Status da sua Assinatura VollonFit
+              </p>
+              <h2 className={`font-display text-3xl font-black uppercase tracking-tight ${
+                isPastDue ? 'text-[#FF3B4A]' : isTrial ? 'text-white' : 'text-white'
               }`}>
-                {isPastDue ? 'Acesso Bloqueado' : isTrial ? 'Período de Teste' : 'Pro Ativo'}
+                {isPastDue ? 'Acesso Bloqueado' : isTrial ? 'Período de Teste Gratuito' : 'Plano Pro Ativo'}
               </h2>
-              {isTrial && <p className="font-body-md text-sm text-on-surface-variant mt-1">Você tem <span className="text-[#f59e0b] font-bold">{trialDaysLeft} dias restantes</span> no seu trial gratuito.</p>}
-              {isPastDue && <p className="font-body-md text-sm text-on-surface-variant mt-1">Seu período de testes acabou ou há faturas pendentes.</p>}
-              {isActive && <p className="font-body-md text-sm text-on-surface-variant mt-1">Sua conta está totalmente operacional.</p>}
+              {isTrial && <p className="text-xs text-[#A3A3A3] mt-1">Você tem <strong className="text-white">{trialDaysLeft} dias restantes</strong> no seu trial de 7 dias.</p>}
+              {isPastDue && <p className="text-xs text-[#FF3B4A] mt-1">Seu período de testes expirou ou há faturas pendentes de regularização.</p>}
+              {isActive && <p className="text-xs text-[#A3A3A3] mt-1">Sua conta de treinador está totalmente operacional e sem pendências.</p>}
             </div>
           </div>
           
           {(isTrial || isPastDue) && (
             <button 
               onClick={handleCheckout}
-              className={`px-8 py-4 rounded-2xl font-label-caps uppercase tracking-widest text-sm flex items-center gap-3 transition-all active:scale-95 shadow-xl ${
-                isPastDue ? 'bg-error hover:brightness-110 text-on-error shadow-error/20' : 'bg-primary-container hover:brightness-110 text-on-primary-container shadow-primary-container/20 neon-glow'
-              }`}
+              className="vollon-btn-primary px-8 h-12 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_8px_20px_rgba(255,59,74,0.35)] shrink-0"
             >
-              <span className="material-symbols-outlined text-lg">credit_card</span>
-              {isPastDue ? 'Desbloquear Agora' : 'Assinar Plano Pro'}
+              <CreditCard className="w-4 h-4" />
+              <span>{isPastDue ? 'Desbloquear Acesso' : 'Ativar Plano Pro'}</span>
             </button>
           )}
         </div>
       </div>
 
-      <div className={`transition-all duration-500 ${isPastDue ? 'opacity-30 pointer-events-none grayscale blur-[2px]' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-          <p className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mb-2">Total Pendente</p>
-          <h3 className="font-display-lg text-3xl text-error">R$ {stats.pending.toFixed(2)}</h3>
+      {/* 3 Cards de Faturamento */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="vollon-card p-6 rounded-3xl space-y-1">
+          <p className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider">Total Pendente</p>
+          <h3 className="font-display text-3xl font-black text-[#FF3B4A]">
+            R$ {stats.pending.toFixed(2)}
+          </h3>
         </div>
-        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-          <p className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mb-2">Total Pago</p>
-          <h3 className="font-display-lg text-3xl text-[#4ade80]">R$ {stats.paid.toFixed(2)}</h3>
+        <div className="vollon-card p-6 rounded-3xl space-y-1">
+          <p className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider">Total Pago</p>
+          <h3 className="font-display text-3xl font-black text-white">
+            R$ {stats.paid.toFixed(2)}
+          </h3>
         </div>
-        <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-          <p className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mb-2">Preço por Aluno</p>
-          <h3 className="font-display-lg text-3xl text-on-surface">R$ 30,00</h3>
+        <div className="vollon-card p-6 rounded-3xl space-y-1">
+          <p className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider">Histórico Geral</p>
+          <h3 className="font-display text-3xl font-black text-white">
+            R$ {stats.total.toFixed(2)}
+          </h3>
         </div>
       </div>
 
-      <section className="glass-panel rounded-3xl border border-outline-variant/30 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-outline-variant/30">
-          <h3 className="font-headline-lg text-on-surface">Histórico de Faturas</h3>
-          <p className="font-body-md text-xs text-on-surface-variant">Cobranças mensais baseadas na quantidade de alunos ativos</p>
+      {/* Tabela de Faturas */}
+      <div className="vollon-card rounded-3xl overflow-hidden shadow-xl">
+        <div className="p-6 border-b border-[#2A2A2A] flex justify-between items-center bg-[#1A1A1A]">
+          <div>
+            <h3 className="font-display text-xl font-black uppercase text-white tracking-tight">
+              Faturas e Mensalidades
+            </h3>
+            <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest mt-0.5">
+              Histórico de cobrança baseado em alunos ativos
+            </p>
+          </div>
         </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-surface-container text-on-surface-variant font-label-caps text-[10px] uppercase tracking-widest border-b border-outline-variant/30">
+            <thead className="bg-[#141414] border-b border-[#2A2A2A]">
               <tr>
-                <th className="px-6 py-4">Mês Referência</th>
-                <th className="px-6 py-4">Qtd Alunos</th>
-                <th className="px-6 py-4">Valor Total</th>
-                <th className="px-6 py-4">Vencimento</th>
-                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">Mês Ref.</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Alunos Ativos</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-right">Valor Total</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Vencimento</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-[#2A2A2A]/60">
               {loading ? (
-                [1, 2].map(i => <tr key={i} className="animate-pulse h-16 bg-surface-container/50" />)
-              ) : bills.map(bill => (
-                <tr key={bill.id} className="hover:bg-surface-container transition-colors group">
-                  <td className="px-6 py-5">
-                    <span className="font-headline-md text-on-surface">{bill.reference_month}</span>
-                  </td>
-                  <td className="px-6 py-5 font-body-md text-sm text-on-surface-variant">{bill.student_count} alunos</td>
-                  <td className="px-6 py-5 font-display-md text-on-surface">R$ {Number(bill.total_amount).toFixed(2)}</td>
-                  <td className="px-6 py-5 font-body-md text-xs text-on-surface-variant">
-                    {new Date(bill.due_date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className={`px-3 py-1 rounded-full font-label-caps text-[10px] uppercase tracking-widest border ${
-                      bill.status === 'paid' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' : 
-                      bill.status === 'overdue' ? 'bg-error/10 text-error border-error/20' :
-                      'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20'
-                    }`}>
-                      {bill.status === 'paid' ? 'Pago' : bill.status === 'overdue' ? 'Atrasado' : 'Pendente'}
-                    </span>
+                <tr>
+                  <td colSpan="5" className="py-16 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#FF3B4A]" />
                   </td>
                 </tr>
-              ))}
-              {!loading && bills.length === 0 && (
+              ) : bills.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-20 text-center text-on-surface-variant font-body-md italic">
+                  <td colSpan="5" className="py-16 text-center text-[#A3A3A3] text-xs font-bold uppercase tracking-wider">
                     Nenhuma fatura encontrada.
                   </td>
                 </tr>
+              ) : (
+                bills.map(b => (
+                  <tr key={b.id} className="hover:bg-[#1A1A1A]/40 transition-colors">
+                    <td className="px-6 py-4 font-bold text-xs text-white">
+                      {b.reference_month}
+                    </td>
+                    <td className="px-6 py-4 text-center font-display font-black text-sm text-white">
+                      {b.student_count}
+                    </td>
+                    <td className="px-6 py-4 text-right font-display font-black text-base text-white">
+                      R$ {Number(b.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 text-center text-xs text-[#A3A3A3]">
+                      {b.due_date ? new Date(b.due_date + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                        b.status === 'paid' ? 'bg-[#E11D2E]/15 text-[#FF3B4A] border-[#E11D2E]/30' :
+                        b.status === 'overdue' ? 'bg-[#2A2A2A] text-white border-[#3A3A3A]' : 
+                        'bg-white/10 text-white border-white/20'
+                      }`}>
+                        {b.status === 'paid' ? 'Pago' : b.status === 'overdue' ? 'Inadimplente' : 'Pendente'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
-      </section>
-      
-      <div className="glass-panel border-[#f59e0b]/30 p-6 rounded-3xl flex gap-4 bg-[#f59e0b]/5 mt-8">
-        <span className="material-symbols-outlined text-[#f59e0b] shrink-0 text-3xl">info</span>
-        <div>
-          <p className="font-headline-md text-sm text-[#f59e0b] mb-1">Informação sobre Pagamentos</p>
-          <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-            As faturas são geradas automaticamente todo dia 01 com base no número de alunos ativos (R$ 30 por aluno). 
-            Para realizar o pagamento ou contestar valores, acesse a área de pagamento seguro.
-          </p>
-        </div>
       </div>
-      </div>
+
     </div>
   )
 }

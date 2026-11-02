@@ -1,7 +1,7 @@
 export function hexToRgbString(hex) {
-  if (!hex) return '223 255 94';
+  if (!hex) return '225 29 46';
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return '223 255 94';
+  if (!result) return '225 29 46';
   
   const r = parseInt(result[1], 16);
   const g = parseInt(result[2], 16);

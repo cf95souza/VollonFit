@@ -131,3 +131,28 @@ Para transformar o VollonFit em uma solução líder de mercado, o roadmap estra
 ---
 *Documentação atualizada em 18/05/2026*
 *Status: Fase 36 Concluída (Dupla Visualização do Marketplace e Gestão de Produtos B2B e Global do Master ADM Concluídos)*
+
+
+---
+
+## 🎨 Rebrand VollonFit & CasalGym 2026 (Fase 44)
+
+Em 01/11/2026, iniciou-se o projeto de consolidação visual e técnica documentado em `VOLLONFIT.md`:
+- **Paleta de Cores Oficial**:
+  - Fundo: `#0A0A0A`
+  - Cards: `#141414` (gradiente até `#101010`)
+  - Borda: `#2A2A2A`
+  - Destaque/Primária: `#E11D2E` (Vermelho)
+  - Fim de gradiente: `#9F0012`
+  - Acentos de texto: `#FF3B4A`
+- **Tipografia**: Títulos e métricas em **Barlow Condensed** (peso 800) e corpo em **Inter**.
+- **Resiliência e Correções**:
+  - Fuso horário local protegido contra desvios de UTC após 21h via `dateUtils.js`.
+  - Tratamento estrito de falhas de conexão no Supabase e na gravação de séries/anotações.
+  - Bloqueio contra toque duplo e integridade de registros no fluxo de treino.
+  - Redesign refinado das 6 telas principais: Login, Início, Exercícios do Dia, Execução, Evolução e Squads.
+  - Rebrand da tela de Nutrição: eliminação de cores verdes neon e azuis, padronização nos tokens oficiais VollonFit (Preto, Vermelho e Branco), IA Coach Nutricional 2.0 e hidratação rápida.
+  - Correção de viewport no Login mobile: remoção de restrições globais de scroll/padding no index.html.
+  - Rebrand completo da Landing Page (`LandingPage.jsx`): eliminação de cores verdes e amareladas e ícones legados; interface SaaS de alto impacto com mockup UI interativo, 6 pilares de tecnologia, módulo Casal & Squads, B2B para academias, planos de preços integrados dinamicamente ao Supabase e FAQ responsivo.
+  - Rebrand do Master Dashboard (`/master`): transformação do cockpit executivo para a identidade esportiva e corporativa VollonFit (Preto, Vermelho `#E11D2E` e Branco). Todos os 7 módulos refatorados: Overview com gráfico MRR em degradê vermelho, Gestão de Academias B2B, Gestão de Professores e cotas de alunos, Faturamento com tabela detalhada, Acervo Global de Exercícios, Marketplace de Suplementos e Configurações Globais de Planos.
+  - Rebrand do Painel do Professor (`/admin`) & Construtor de Treinos Turbinado: alinhamento completo ao Design System VollonFit (Preto, Vermelho `#E11D2E` e Branco). Implementação de Templates Rápidos de rotinas (1-Clique para carregar Treino A, B, C, D), controles incrementais de séries e repetições (+/-), reordenação dinâmica de exercícios com setas (▲/▼), estimativa em tempo real de volume de séries e duração, e redesign de todas as abas (Visão Geral, Alunos, Detalhes com Bioimpedância, Exercícios, Financeiro e White Label).

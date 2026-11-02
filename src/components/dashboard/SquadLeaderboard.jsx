@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { supabase } from '../../supabaseClient'
+import { daysAgoLocally } from '../../utils/dateUtils'
 
 export default function SquadLeaderboard({ squadId, studentId }) {
   const [leaderboard, setLeaderboard] = useState([])
@@ -13,12 +14,8 @@ export default function SquadLeaderboard({ squadId, studentId }) {
     const fetchLeaderboard = async () => {
       setIsLoading(true)
       try {
-        // Obter data conforme o filtro
-        const now = new Date()
         const days = timeRange === 'weekly' ? 7 : 30
-        const pastDate = new Date(now)
-        pastDate.setDate(now.getDate() - days)
-        const dateStr = pastDate.toISOString().split('T')[0]
+        const dateStr = daysAgoLocally(days)
 
         // Buscar membros do squad
         const { data: members } = await supabase
@@ -28,7 +25,7 @@ export default function SquadLeaderboard({ squadId, studentId }) {
 
         if (!members) return
 
-        // Buscar logs de pontuação (Ranking dos últimos 7 dias)
+        // Buscar logs de pontuação (Ranking dos últimos 7 ou 30 dias)
         const studentIds = members.map(m => m.student_id)
         const { data: scoreLogs, error: scoreError } = await supabase
           .from('gym_squad_score_logs')
@@ -39,7 +36,6 @@ export default function SquadLeaderboard({ squadId, studentId }) {
         if (scoreError) console.error("Erro na busca de pontos:", scoreError)
         
         const scoresArray = scoreLogs || []
-        console.log(`Pontos encontrados para o Squad (${squadId}):`, scoresArray.length)
 
         // Calcular pontos por aluno
         const scoreMap = {}
@@ -68,54 +64,54 @@ export default function SquadLeaderboard({ squadId, studentId }) {
   }, [squadId, timeRange])
 
   if (isLoading) {
-    return <div className="animate-pulse h-20 bg-surface-container-highest rounded-3xl"></div>
+    return <div className="animate-pulse h-20 bg-surface-container-highest rounded-2xl"></div>
   }
 
   if (leaderboard.length === 0) return null
 
   return (
-    <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 space-y-6">
+    <div className="vollon-card p-5 space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-           <h3 className="font-display-lg text-on-surface text-lg tracking-tight">Ranking</h3>
-           <div className="flex bg-surface-container p-1 rounded-xl border border-outline-variant/30">
+           <h3 className="font-display text-white text-xl uppercase tracking-wider font-extrabold">Ranking</h3>
+           <div className="flex bg-[#1A1A1A] p-0.5 rounded-xl border border-[#2A2A2A]">
              <button 
                onClick={() => setTimeRange('weekly')}
-               className={`px-3 py-1 rounded-lg font-label-caps text-[10px] uppercase transition-all ${timeRange === 'weekly' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface'}`}
+               className={`px-3 py-1 rounded-lg font-bold text-[10px] uppercase transition-all ${timeRange === 'weekly' ? 'bg-[#E11D2E] text-white shadow-[0_2px_10px_rgba(225,29,46,0.4)]' : 'text-[#A3A3A3] hover:text-white'}`}
              >
                7D
              </button>
              <button 
                onClick={() => setTimeRange('monthly')}
-               className={`px-3 py-1 rounded-lg font-label-caps text-[10px] uppercase transition-all ${timeRange === 'monthly' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface'}`}
+               className={`px-3 py-1 rounded-lg font-bold text-[10px] uppercase transition-all ${timeRange === 'monthly' ? 'bg-[#E11D2E] text-white shadow-[0_2px_10px_rgba(225,29,46,0.4)]' : 'text-[#A3A3A3] hover:text-white'}`}
              >
                30D
              </button>
            </div>
         </div>
-        <span className="font-label-caps text-[9px] bg-primary-container/20 text-primary-container px-2 py-0.5 rounded-full uppercase tracking-widest border border-primary-container/20">Pontos Reais</span>
+        <span className="text-[10px] bg-[#E11D2E]/20 text-[#FF3B4A] px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-[#E11D2E]/30 font-bold">Pontos Reais</span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {leaderboard.map((user, index) => (
-          <div key={user.id} className="flex items-center gap-4 bg-surface p-3 rounded-2xl border border-outline-variant/30 relative overflow-hidden group">
-            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-primary-container shadow-[0_0_10px_rgba(195,244,0,0.5)]"></div>}
+          <div key={user.id} className="flex items-center gap-3 bg-[#1A1A1A] p-3 rounded-xl border border-[#2A2A2A] relative overflow-hidden group">
+            {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-[#E11D2E] shadow-[0_0_10px_rgba(225,29,46,0.5)]"></div>}
             
             <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              {index === 0 ? <span className="material-symbols-outlined text-2xl text-primary-container drop-shadow-[0_0_5px_rgba(195,244,0,0.5)]">military_tech</span> : 
+              {index === 0 ? <span className="material-symbols-outlined text-2xl text-[#E11D2E] drop-shadow-[0_0_8px_rgba(225,29,46,0.5)]">military_tech</span> : 
                index === 1 ? <span className="material-symbols-outlined text-2xl text-slate-300">military_tech</span> : 
                index === 2 ? <span className="material-symbols-outlined text-2xl text-amber-600">military_tech</span> : 
-               <span className="font-headline-lg text-on-surface-variant text-sm">{index + 1}º</span>}
+               <span className="font-display text-[#A3A3A3] text-base">{index + 1}º</span>}
             </div>
             
-            <div className="flex-1">
-              <p className={`font-headline-md text-sm ${index === 0 ? 'text-primary-container' : 'text-on-surface'}`}>{user.name}</p>
-              <p className="font-body-md text-[10px] text-on-surface-variant">@{user.username}</p>
+            <div className="flex-1 min-w-0">
+              <p className={`font-bold text-sm truncate ${index === 0 ? 'text-white' : 'text-[#E5E5E5]'}`}>{user.name}</p>
+              <p className="text-[11px] text-[#A3A3A3] truncate">@{user.username}</p>
             </div>
 
-            <div className="text-right">
-              <p className="font-display-lg text-on-surface text-lg tracking-tight">{user.points}</p>
-              <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest -mt-1">pontos ganhos</p>
+            <div className="text-right shrink-0">
+              <p className="font-display text-white text-xl font-extrabold tracking-tight">{user.points}</p>
+              <p className="text-[9px] text-[#A3A3A3] uppercase tracking-wider -mt-1 font-semibold">pts</p>
             </div>
           </div>
         ))}
@@ -128,22 +124,21 @@ export default function SquadLeaderboard({ squadId, studentId }) {
         const othersPoints = others.reduce((acc, u) => acc + u.points, 0);
         const avgOthersPoints = others.length > 0 ? Math.round(othersPoints / others.length) : 0;
 
-        const themeColor = localStorage.getItem('vollonfit_theme_color') || '#C3F400';
         const chartData = [
-          { name: 'Você', points: myPoints, fill: themeColor }, 
-          { name: 'Média', points: avgOthersPoints, fill: '#334155' }
+          { name: 'Você', points: myPoints, fill: '#E11D2E' }, 
+          { name: 'Média', points: avgOthersPoints, fill: '#52525B' }
         ]
 
         return (
-          <div className="pt-6 border-t border-outline-variant/30">
-            <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mb-4 text-center">Sua Pontuação vs Bando ({timeRange === 'weekly' ? '7d' : '30d'})</p>
-            <div className="h-28 w-full" style={{ minWidth: 10, minHeight: 10 }}>
+          <div className="pt-4 border-t border-[#2A2A2A]">
+            <p className="text-[11px] text-[#A3A3A3] uppercase tracking-wider mb-3 text-center font-bold">Sua Pontuação vs Bando ({timeRange === 'weekly' ? '7d' : '30d'})</p>
+            <div className="h-24 w-full" style={{ minWidth: 10, minHeight: 10 }}>
               <ResponsiveContainer width="99%" height="99%" minWidth={10} minHeight={10} debounce={50}>
                 <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#A3A3A3', fontSize: 10, fontWeight: 900 }} width={40} />
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1E1E1E', border: '1px solid #404040', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
-                  <Bar dataKey="points" radius={[0, 8, 8, 0]} barSize={24}>
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#A3A3A3', fontSize: 11, fontWeight: 700 }} width={42} />
+                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#141414', border: '1px solid #2A2A2A', borderRadius: '14px', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
+                  <Bar dataKey="points" radius={[0, 8, 8, 0]} barSize={20}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}

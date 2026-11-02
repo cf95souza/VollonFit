@@ -1,132 +1,123 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Inter:wght@400;600&family=JetBrains+Mono:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: 225 29 46;
+  }
+
   body {
-    /* bg-surface e text-on-surface adicionados direto na tag body no index.html */
-    min-height: max(884px, 100dvh);
+    background-color: #0A0A0A;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    min-height: 100dvh;
   }
 }
 
 @layer components {
-  /* Novas Classes do Designer */
-  .glass-panel {
-    background: rgba(45, 49, 53, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .neon-glow {
-    box-shadow: 0 0 15px rgba(var(--color-primary, 195, 244, 0), 0.5);
-  }
-  
-  .blue-glow {
-    box-shadow: 0 0 15px rgba(125, 244, 255, 0.5);
+  /* Design System VollonFit Rebrand */
+  .vollon-card {
+    background: linear-gradient(180deg, #141414 0%, #101010 100%);
+    border: 1px solid #2A2A2A;
+    border-radius: 18px;
   }
 
-  /* Classes Antigas para Retrocompatibilidade Temporária */
+  .vollon-card-elevated {
+    background: #1A1A1A;
+    border: 1px solid #2A2A2A;
+    border-radius: 18px;
+  }
+
+  .vollon-btn-primary {
+    background: linear-gradient(135deg, #E11D2E 0%, #9F0012 100%);
+    color: #FFFFFF;
+    font-weight: 700;
+    box-shadow: 0 8px 28px rgba(255, 59, 74, 0.35);
+    transition: all 0.2s ease;
+  }
+  .vollon-btn-primary:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 14px rgba(255, 59, 74, 0.25);
+  }
+
+  .vollon-btn-secondary {
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    color: #FFFFFF;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .vollon-btn-secondary:active {
+    transform: scale(0.98);
+    background: #1A1A1A;
+  }
+
+  .vollon-chip {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 9999px;
+  }
+
+  .vollon-nav-bar {
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+    border-radius: 28px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid #2A2A2A;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    z-index: 50;
+  }
+
+  /* Utility font classes */
   .font-display {
-    font-family: 'Montserrat', sans-serif; /* Fallback para Montserrat */
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'Inter', sans-serif;
   }
   
   .glass-card {
-    @apply bg-[#111111]/80 backdrop-blur-2xl border border-white/5;
+    background: linear-gradient(180deg, #141414 0%, #101010 100%);
+    border: 1px solid #2A2A2A;
+    border-radius: 18px;
   }
   
+  .glass-panel {
+    background: rgba(20, 20, 20, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #2A2A2A;
+  }
+
+  .neon-glow {
+    box-shadow: 0 8px 28px rgba(255, 59, 74, 0.35);
+  }
+
   .fitness-gradient {
-    background: linear-gradient(135deg, rgb(var(--color-primary-old, 223 255 94)) 0%, rgba(var(--color-primary-old, 223 255 94) / 0.8) 100%);
-  }
-  
-  .lavender-gradient {
-    background: linear-gradient(135deg, #C6C4FF 0%, #9B98FF 100%);
-  }
-  
-  .neon-shadow {
-    box-shadow: 0 0 25px rgba(var(--color-primary-old, 223 255 94) / 0.3);
-  }
-  
-  .neon-text {
-    text-shadow: 0 0 10px rgba(var(--color-primary-old, 223 255 94) / 0.5);
+    background: linear-gradient(135deg, #E11D2E 0%, #9F0012 100%);
   }
 
   .pill-nav {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl;
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+    border-radius: 28px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid #2A2A2A;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    z-index: 50;
   }
-}
-
-/* Esconder scrollbar para scroll horizontal mas manter funcionalidade */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Custom Scrollbar Global Antiga (mantida para partes ainda não refatoradas) */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
-}
-
-/* Hide scrollbars on mobile */
-@media (max-width: 768px) {
-  ::-webkit-scrollbar {
-    display: none !important;
-  }
-  
-  * {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
-  
-  body {
-    overflow-x: hidden;
-    position: relative;
-    width: 100%;
-  }
-}
-
-/* Animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.tap-effect {
-  @apply active:scale-95 transition-transform duration-100;
-}
-
-/* Layout Specifics */
-.card-shine {
-  position: relative;
-  overflow: hidden;
-}
-
-.card-shine::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(195, 244, 0, 0.05) 0%, transparent 70%);
-  pointer-events: none;
 }

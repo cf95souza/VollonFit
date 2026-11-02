@@ -2,43 +2,22 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Dumbbell, 
-  Activity, 
   TrendingUp, 
   User as UserIcon, 
-  LogOut, 
-  CheckCircle2, 
+  Flame, 
+  Users, 
   ChevronLeft,
-  Timer,
   ChevronRight,
-  ClipboardList,
-  Scale,
-  Flame,
-  Plus,
-  X,
-  AlertCircle,
-  Heart,
-  Camera,
-  ImageIcon,
-  Users,
-  Shield,
-  ShoppingBag
+  Bell,
+  Play,
+  Check,
+  X
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
-import { getTodayLocally } from '../utils/dateUtils'
+import { getTodayLocally, daysAgoLocally, startOfWeekLocally } from '../utils/dateUtils'
 import NutritionTab from '../components/dashboard/NutritionTab'
 import MarketplaceTab from '../components/dashboard/MarketplaceTab'
 import { loadTheme } from '../utils/themeLoader'
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from 'recharts'
 
 import ExecutionView from '../components/dashboard/ExecutionView'
 import WorkoutSummaryView from '../components/dashboard/WorkoutSummaryView'
@@ -69,8 +48,6 @@ export default function StudentDashboard() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false)
   const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(new Set())
-  const [activeFilter, setActiveFilter] = useState('Todos')
-  const [isPinging, setIsPinging] = useState(false)
   const [loading, setLoading] = useState(true)
   const [workoutSummary, setWorkoutSummary] = useState(null) 
   const [completedExercises, setCompletedExercises] = useState([]) 
@@ -88,12 +65,12 @@ export default function StudentDashboard() {
       setEditAge(student.age || '')
       setEditHeight(student.height || '')
       setEditPassword(student.password || '')
+      setIsConfigModalOpen(true)
     }
-    setIsConfigModalOpen(true)
   }
 
   const handleSaveConfig = async (e) => {
-    if (e) e.preventDefault()
+    e.preventDefault()
     setIsSavingConfig(true)
     try {
       const { data, error } = await supabase
@@ -152,180 +129,123 @@ export default function StudentDashboard() {
 
   const fetchWorkouts = async (studentId) => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('gym_workouts')
-      .select('*')
-      .eq('student_id', studentId)
-      .order('sequence_order', { ascending: true })
-      .order('created_at', { ascending: false })
-    
-    if (!error) setStudentWorkouts(data)
-    
-    const { data: bioData } = await supabase
-      .from('gym_biopedance_records')
-      .select('*')
-      .eq('student_id', studentId)
-      .order('record_date', { ascending: true })
-    
-    if (bioData) setBioRecords(bioData)
-
-    const { data: allLogs, error: prError } = await supabase
-      .from('gym_training_logs')
-      .select('exercise_id, weight_kg, reps_done, workout_date, workout_id, created_at, gym_exercises(name)')
-      .eq('student_id', studentId)
+    try {
+      const { data, error } = await supabase
+        .from('gym_workouts')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('sequence_order', { ascending: true })
+        .order('created_at', { ascending: false })
       
-    let currentPrs = []
-    
-    if (!prError && allLogs) {
-      const uniqueDates = Array.from(new Set(allLogs.map(h => h.workout_date)))
-      setWorkoutHistory(uniqueDates)
-
-      const prMap = {}
-      allLogs.forEach(log => {
-        const exName = Array.isArray(log.gym_exercises) ? log.gym_exercises[0]?.name : log.gym_exercises?.name
-        if (!prMap[log.exercise_id] || log.weight_kg > prMap[log.exercise_id].max_weight) {
-          prMap[log.exercise_id] = {
-            exercise_name: exName || 'Exercício',
-            max_weight: log.weight_kg,
-            record_date: log.workout_date
-          }
-        }
-      })
-      currentPrs = Object.values(prMap).sort((a, b) => b.max_weight - a.max_weight)
-      setPersonalRecords(currentPrs)
-
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]
-
-      const weekLogs = allLogs.filter(log => log.workout_date >= sevenDaysAgoStr)
-      const uniqueDaysThisWeek = new Set(weekLogs.map(l => l.workout_date)).size
-      setWeeklyWorkouts(uniqueDaysThisWeek)
-
-      const vol = weekLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
-      const prsCount = currentPrs.filter(pr => pr.record_date >= sevenDaysAgoStr).length
+      if (!error) setStudentWorkouts(data || [])
       
-      setWeeklyStats({ volume: vol, prs: prsCount })
+      const { data: bioData } = await supabase
+        .from('gym_biopedance_records')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('record_date', { ascending: true })
+      
+      if (bioData) setBioRecords(bioData)
 
-      const completedIds = new Set(weekLogs.map(l => l.workout_id).filter(Boolean))
-      setCompletedWorkoutsThisWeek(completedIds)
-
-      const lastPerformedAt = {}
-      allLogs.forEach(log => {
-        if (log.workout_id) {
-          const time = new Date(log.created_at || log.workout_date).getTime()
-          if (!lastPerformedAt[log.workout_id] || time > lastPerformedAt[log.workout_id]) {
-             lastPerformedAt[log.workout_id] = time
-          }
-        }
-      })
-      setWorkoutLastPerformed(lastPerformedAt)
-    }
-
-    const { data: notes } = await supabase
-      .from('gym_social_notifications')
-      .select('*')
-      .eq('receiver_id', studentId)
-      .order('created_at', { ascending: false })
-      .limit(20)
-    
-    if (notes && notes.length > 0) {
-      const senderIds = [...new Set(notes.map(n => n.sender_id).filter(Boolean))]
-      if (senderIds.length > 0) {
-        const { data: senders } = await supabase
-          .from('gym_students')
-          .select('id, name')
-          .in('id', senderIds)
+      const { data: allLogs, error: prError } = await supabase
+        .from('gym_training_logs')
+        .select('exercise_id, weight_kg, reps_done, workout_date, workout_id, created_at, gym_exercises(name)')
+        .eq('student_id', studentId)
         
-        const senderMap = {}
-        if (senders) {
-          senders.forEach(s => {
-            senderMap[s.id] = s.name
-          })
-        }
+      let currentPrs = []
+      
+      if (!prError && allLogs) {
+        const uniqueDates = Array.from(new Set(allLogs.map(h => h.workout_date)))
+        setWorkoutHistory(uniqueDates)
 
-        const notesWithSender = notes.map(n => ({
-          ...n,
-          sender: senderMap[n.sender_id] ? { name: senderMap[n.sender_id] } : { name: 'Sistema/Bando' }
-        }))
-        setSocialNotifications(notesWithSender)
-      } else {
-        setSocialNotifications(notes.map(n => ({ ...n, sender: { name: 'Sistema/Bando' } })))
+        const prMap = {}
+        allLogs.forEach(log => {
+          const exName = Array.isArray(log.gym_exercises) ? log.gym_exercises[0]?.name : log.gym_exercises?.name
+          if (!prMap[log.exercise_id] || log.weight_kg > prMap[log.exercise_id].max_weight) {
+            prMap[log.exercise_id] = {
+              exercise_name: exName || 'Exercício',
+              max_weight: log.weight_kg,
+              record_date: log.workout_date
+            }
+          }
+        })
+        currentPrs = Object.values(prMap).sort((a, b) => b.max_weight - a.max_weight)
+        setPersonalRecords(currentPrs)
+
+        // Usar data local para calcular semana (evita virada UTC após 21h)
+        const sevenDaysAgoStr = daysAgoLocally(7)
+
+        const weekLogs = allLogs.filter(log => log.workout_date >= sevenDaysAgoStr)
+        // Conta dias distintos de treino na semana
+        const uniqueDaysThisWeek = new Set(weekLogs.map(l => l.workout_date)).size
+        setWeeklyWorkouts(uniqueDaysThisWeek)
+
+        const vol = weekLogs.reduce((acc, log) => acc + ((log.weight_kg || 0) * (log.reps_done || 0)), 0)
+        const prsCount = currentPrs.filter(pr => pr.record_date >= sevenDaysAgoStr).length
+        
+        setWeeklyStats({ volume: vol, prs: prsCount })
+
+        const completedIds = new Set(weekLogs.map(l => l.workout_id).filter(Boolean))
+        setCompletedWorkoutsThisWeek(completedIds)
+
+        const lastPerformedAt = {}
+        allLogs.forEach(log => {
+          if (log.workout_id) {
+            const time = new Date(log.created_at || log.workout_date).getTime()
+            if (!lastPerformedAt[log.workout_id] || time > lastPerformedAt[log.workout_id]) {
+               lastPerformedAt[log.workout_id] = time
+            }
+          }
+        })
+        setWorkoutLastPerformed(lastPerformedAt)
       }
-    } else {
-      setSocialNotifications([])
-    }
 
-    const { data: photos } = await supabase
-      .from('gym_evolution_photos')
-      .select('*')
-      .eq('student_id', studentId)
-      .order('created_at', { ascending: false })
-    
-    if (photos) setEvolutionPhotos(photos)
-    
-    setLoading(false)
+      const { data: notes } = await supabase
+        .from('gym_social_notifications')
+        .select('*')
+        .eq('receiver_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      
+      if (notes && notes.length > 0) {
+        setSocialNotifications(notes)
+      }
+
+      const { data: photos } = await supabase
+        .from('gym_evolution_photos')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+      
+      if (photos) setEvolutionPhotos(photos)
+
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
     const user = localStorage.getItem('vollonfit_user')
-    if (user) {
-      const parsedUser = JSON.parse(user)
-      setStudent(parsedUser)
-      fetchWorkouts(parsedUser.id)
-      
-      const channel = supabase
-        .channel('social_updates') 
-        .on(
-          'postgres_changes', 
-          { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'gym_social_notifications',
-            filter: `receiver_id=eq.${parsedUser.id}` 
-          }, 
-          (payload) => {
-            showToast(payload.new.message, 'success')
-            fetchWorkouts(parsedUser.id)
-          }
-        )
-        .subscribe()
-
-      const fetchFreshData = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('gym_students')
-            .select('*')
-            .eq('id', parsedUser.id)
-            .single()
-          if (data && !error) {
-            setStudent(data)
-            localStorage.setItem('vollonfit_user', JSON.stringify(data))
-            fetchTeacherPlan(data.teacher_id)
-            loadTheme(data.teacher_id)
-          }
-        } catch (e) {
-          console.warn("Erro ao carregar dados do aluno:", e)
-        }
-      }
-      fetchFreshData()
-
-      return () => {
-        supabase.removeChannel(channel)
-      }
-    } else {
+    if (!user) {
       navigate('/', { replace: true })
+      return
     }
-  }, [navigate])
+    const parsedUser = JSON.parse(user)
+    setStudent(parsedUser)
+    
+    if (parsedUser.teacher_id) {
+      supabase.from('gym_teachers').select('plan_type, academy_id').eq('id', parsedUser.teacher_id).single()
+        .then(({ data }) => {
+          if (data?.plan_type) setTeacherPlan(data.plan_type)
+          if (data?.academy_id) setTeacherAcademyId(data.academy_id)
+        })
+      loadTheme(parsedUser.teacher_id)
+    }
 
-  const fetchTeacherPlan = async (teacherId) => {
-    if (!teacherId) return
-    const { data } = await supabase.from('gym_teachers').select('plan_type, academy_id').eq('id', teacherId).maybeSingle()
-    if (data) {
-      if (data.plan_type) setTeacherPlan(data.plan_type)
-      setTeacherAcademyId(data.academy_id || null)
-    }
-  }
+    fetchWorkouts(parsedUser.id)
+  }, [navigate])
 
   useEffect(() => {
     localStorage.setItem('vollonfit_student_tab', currentTab)
@@ -335,12 +255,6 @@ export default function StudentDashboard() {
     localStorage.setItem('vollonfit_student_view', currentView)
   }, [currentView])
 
-  useEffect(() => {
-    if (currentView === 'executing' && (!workoutItems || workoutItems.length === 0)) {
-      setCurrentView('home')
-    }
-  }, [currentView, workoutItems])
-
   const startWorkout = async (workout) => {
     setLoading(true)
     try {
@@ -348,84 +262,32 @@ export default function StudentDashboard() {
         .from('gym_workout_items')
         .select('*, gym_exercises(*)')
         .eq('workout_id', workout.id)
-        .order('sequence_order')
+        .order('sequence_order', { ascending: true })
 
       if (itemsError) throw itemsError
 
-      const { data: lastDateData } = await supabase
-        .from('gym_training_logs')
-        .select('workout_date')
-        .eq('student_id', student.id)
-        .eq('workout_id', workout.id)
-        .order('workout_date', { ascending: false })
-        .limit(1)
+      const exerciseIds = (items || []).map(i => {
+        return Array.isArray(i.gym_exercises) ? i.gym_exercises[0]?.id : i.gym_exercises?.id
+      }).filter(Boolean)
 
-      const lastDate = lastDateData?.[0]?.workout_date
-      let lastLogs = []
-
-      if (lastDate) {
-        const { data: logs } = await supabase
+      let historyLogs = []
+      if (exerciseIds.length > 0) {
+        const { data: logsData } = await supabase
           .from('gym_training_logs')
           .select('*')
           .eq('student_id', student.id)
-          .eq('workout_id', workout.id)
-          .eq('workout_date', lastDate)
-        
-        lastLogs = logs || []
+          .in('exercise_id', exerciseIds)
+          .order('created_at', { ascending: false })
+
+        if (logsData) historyLogs = logsData
       }
 
       const itemsWithHistory = (items || []).map(item => {
-        const history = lastLogs.filter(l => l.exercise_id === item.exercise_id)
-        
-        let iaSuggestion = null;
-        if (history.length > 0) {
-          // Calcula 1RM estimado para cada série executada usando a fórmula de Epley: 1RM = W * (1 + R/30)
-          const logsWith1RM = history.map(l => {
-            const w = parseFloat(l.weight_kg) || 0;
-            const r = parseInt(l.reps_done) || 0;
-            const oneRepMax = r > 0 ? w * (1 + r / 30) : w;
-            return { ...l, oneRepMax };
-          });
-
-          const maxEstimated1RM = Math.max(...logsWith1RM.map(l => l.oneRepMax), 0);
-          
-          // Extrai o número máximo de repetições alvo do treino (ex: "8-10" -> 10)
-          let targetRepsNum = 10;
-          if (item.target_reps) {
-            const match = item.target_reps.match(/\d+$/); // Pega o último número da faixa (ex: 10 de "8-10")
-            if (match) targetRepsNum = parseInt(match[0], 10);
-          }
-
-          if (maxEstimated1RM > 0) {
-            // Peso sugerido para bater as repetições alvo com base no 1RM: Peso = 1RM / (1 + RepsAlvo / 30)
-            let suggestedWeight = maxEstimated1RM / (1 + targetRepsNum / 30);
-            
-            // Arredonda para o mais próximo de 0.5kg
-            suggestedWeight = Math.round(suggestedWeight * 2) / 2;
-
-            // Se o peso sugerido for menor ou igual à carga máxima já levantada, mas a média de repetições
-            // no histórico foi muito alta, sugere um pequeno incremento para progressão de carga.
-            const maxHistoricalWeight = Math.max(...history.map(l => parseFloat(l.weight_kg) || 0), 0);
-            const avgReps = history.reduce((acc, l) => acc + (parseInt(l.reps_done) || 0), 0) / history.length;
-            
-            if (suggestedWeight <= maxHistoricalWeight && avgReps >= targetRepsNum) {
-              suggestedWeight = maxHistoricalWeight + (maxHistoricalWeight >= 50 ? 2.5 : 1.0);
-            }
-
-            if (suggestedWeight > 0) {
-              iaSuggestion = {
-                oneRepMax: Math.round(maxEstimated1RM * 10) / 10,
-                weight: suggestedWeight,
-                message: `Com base no seu 1RM preditivo de ${Math.round(maxEstimated1RM)}kg neste exercício, recomendamos ${suggestedWeight}kg para a sua meta de ${targetRepsNum} repetições.`
-              };
-            }
-          }
-        }
-
+        const exId = Array.isArray(item.gym_exercises) ? item.gym_exercises[0]?.id : item.gym_exercises?.id
+        const history = historyLogs.filter(l => l.exercise_id === exId)
         return {
           ...item,
-          lastPerformance: history,
-          iaSuggestion
+          lastPerformance: history
         }
       })
 
@@ -463,8 +325,12 @@ export default function StudentDashboard() {
             setCompletedExercises(prev => [...new Set([...prev, exerciseId])])
           }
 
-          setCurrentView('workout-detail')
-          showToast('Exercício concluído!')
+          if (currentExerciseIndex + 1 < workoutItems.length) {
+            setCurrentExerciseIndex(prev => prev + 1)
+          } else {
+            setCurrentView('workout-detail')
+            showToast('Todos os exercícios concluídos! Finalize seu treino.')
+          }
         }}
         onBack={() => setCurrentView('workout-detail')}
         onLogSet={(setLog) => {
@@ -492,16 +358,26 @@ export default function StudentDashboard() {
     )
   }
 
-  const todayDate = new Date()
+  // Faixa dos 7 dias da semana (conforme 02-inicio.png)
+  const todayStr = getTodayLocally()
+  const now = new Date()
+  const dayOfWeek = now.getDay() // 0 = Domingo
+  const sunday = new Date(now)
+  sunday.setDate(now.getDate() - dayOfWeek)
+  
   const currentWeekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(todayDate)
-    d.setDate(todayDate.getDate() - 6 + i)
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const d = new Date(sunday)
+    d.setDate(sunday.getDate() + i)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    const dayLetters = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
     return {
-      dayStr: d.toLocaleDateString('pt-BR', { weekday: 'short' })[0].toUpperCase(),
+      dayStr: dayLetters[i],
       dayNum: d.getDate(),
       dateStr,
-      isToday: d.toDateString() === todayDate.toDateString(),
+      isToday: dateStr === todayStr,
       hasTrained: (workoutHistory || []).includes(dateStr)
     }
   })
@@ -513,354 +389,124 @@ export default function StudentDashboard() {
   })
   
   const suggestedWorkout = sortedWorkouts[0]
-  const uniqueFilters = ['Todos', ...new Set((studentWorkouts || []).map(w => w.description || 'Foco').filter(Boolean))]
-  const filteredWorkouts = (studentWorkouts || []).filter(w => {
-    if (activeFilter === 'Todos') return true;
-    return (w.description || 'Foco') === activeFilter;
-  })
 
   return (
-    <div className="w-full h-[100dvh] flex flex-col md:flex-row bg-surface text-on-surface font-body-md text-body-md overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      {/* Mobile Top Header */}
-      <header className="md:hidden flex justify-between items-center px-gutter py-md bg-surface z-40 relative border-b border-outline-variant/30">
-        <div className="flex items-center gap-sm">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-container p-[2px]" onClick={() => setCurrentTab('profile')}>
-            <div className="w-full h-full rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-black text-xl">
-              {student?.name?.[0] || 'A'}
-            </div>
-          </div>
-          <div>
-            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-primary">Olá, {student?.name?.split(' ')[0] || 'Aluno'}!</h1>
-            <div className="flex items-center gap-1 text-primary-container font-label-caps text-label-caps">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1", fontSize: "16px" }}>local_fire_department</span>
-              <span>{weeklyWorkouts} TREINOS (SEM)</span>
-            </div>
+    <div className="w-full min-h-dvh flex flex-col bg-[#0A0A0A] text-white font-body overflow-x-hidden selection:bg-[#E11D2E]/30 relative">
+      
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-6 duration-300">
+          <div className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl border backdrop-blur-xl ${
+            toast.type === 'error' ? 'bg-[#E11D2E]/90 border-[#E11D2E] text-white' : 'bg-[#141414]/95 border-[#2A2A2A] text-white'
+          }`}>
+            <span className="font-bold text-xs tracking-tight">{toast.message}</span>
           </div>
         </div>
-        <button className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface hover:text-primary transition-colors relative" onClick={() => setCurrentTab('social')}>
-          <span className="material-symbols-outlined">notifications</span>
-          {socialNotifications.length > 0 && <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-container rounded-full border border-surface"></div>}
-        </button>
-      </header>
+      )}
 
-      {/* Desktop Side Nav */}
-      <nav className="hidden md:flex flex-col h-screen left-0 w-64 bg-surface-container-low border-r border-outline-variant py-md z-50 shrink-0">
-        <div className="px-6 mb-8">
-          <span className="text-headline-md font-headline-md font-black text-primary">VollonFit</span>
-        </div>
-        <div className="px-6 mb-6 flex items-center gap-3 cursor-pointer" onClick={() => setCurrentTab('profile')}>
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container p-[1px]">
-             <div className="w-full h-full rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-black text-lg">
-                {student?.name?.[0] || 'A'}
-             </div>
-          </div>
-          <div>
-            <h2 className="font-body-md text-body-md text-primary font-bold">{student?.name?.split(' ')[0] || 'Aluno'}</h2>
-            <p className="font-label-caps text-label-caps text-on-surface-variant">Aluno {teacherPlan === 'premium' ? 'Premium' : 'Basic'}</p>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col gap-2 overflow-y-auto no-scrollbar">
-          <button onClick={() => { setCurrentTab('train'); setCurrentView('home'); }} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left ${currentTab === 'train' && currentView === 'home' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">fitness_center</span>
-            <span>Treinos</span>
-          </button>
-          <button onClick={() => setCurrentTab('evolution')} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left ${currentTab === 'evolution' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">trending_up</span>
-            <span>Evolução</span>
-          </button>
-          <button onClick={() => setCurrentTab('social')} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left ${currentTab === 'social' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">groups</span>
-            <span>Squads</span>
-          </button>
-          <button onClick={() => setCurrentTab('marketplace')} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left ${currentTab === 'marketplace' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">shopping_bag</span>
-            <span>Marketplace</span>
-          </button>
-          <button onClick={() => setCurrentTab('nutrition')} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left relative ${currentTab === 'nutrition' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">local_fire_department</span>
-            <span>Nutrição</span>
-            {teacherPlan !== 'premium' && (
-              <span className="material-symbols-outlined text-[10px] text-error ml-auto">lock</span>
-            )}
-          </button>
-          <button onClick={() => setCurrentTab('profile')} className={`flex items-center gap-3 px-6 py-4 transition-colors w-full text-left ${currentTab === 'profile' ? 'bg-surface-container-high text-primary border-r-4 border-primary' : 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface'}`}>
-            <span className="material-symbols-outlined">person</span>
-            <span>Perfil</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto px-gutter md:px-lg py-sm md:py-lg relative no-scrollbar bg-surface pb-28 md:pb-8">
-        <div className="max-w-container-max mx-auto space-y-md">
+      {/* VIEW: TREINO DO DIA (05-treino-do-dia.png) */}
+      {currentTab === 'train' && currentView === 'workout-detail' && (
+        <div className="min-h-dvh flex flex-col justify-between max-w-md mx-auto w-full px-5 pt-8 pb-28">
           
-          {toast && (
-            <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-10 duration-500">
-              <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border backdrop-blur-md ${
-                toast.type === 'error' ? 'bg-error-container/90 border-error text-on-error-container' : 'bg-surface-container-highest/90 border-outline-variant text-on-surface'
-              }`}>
-                {toast.type === 'error' ? <span className="material-symbols-outlined text-error">error</span> : <span className="material-symbols-outlined text-primary-container">check_circle</span>}
-                <span className="font-bold text-sm tracking-tight">{toast.message}</span>
-              </div>
-            </div>
-          )}
-
-          {currentTab === 'train' && currentView === 'home' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full space-y-md">
-              <div className="hidden md:flex justify-between items-end mb-8 mt-4">
-                <div>
-                  <h1 className="font-display-xl text-display-xl text-primary mb-2">Olá, {student?.name?.split(' ')[0] || 'Aluno'}!</h1>
-                  <div className="flex items-center gap-2 text-primary-container">
-                    <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                    <span className="font-body-lg text-body-lg font-bold">{weeklyWorkouts} treinos na semana. Mantenha o ritmo.</span>
-                  </div>
-                </div>
-              </div>
-
-              {suggestedWorkout && (
-                <section className="relative rounded-xl overflow-hidden glass-panel group cursor-pointer" onClick={() => startWorkout(suggestedWorkout)}>
-                  <div className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop')" }}></div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/80 to-transparent"></div>
-                  <div className="relative p-gutter md:p-lg flex flex-col justify-end min-h-[300px] md:min-h-[400px]">
-                    <div className="flex justify-between items-start mb-auto">
-                      <span className="bg-primary-container text-on-primary-container font-label-caps text-label-caps px-3 py-1 rounded-full uppercase tracking-widest font-bold">
-                        Treino Sugerido
-                      </span>
-                      <span className="flex items-center gap-1 text-on-surface bg-surface/50 backdrop-blur-md px-3 py-1 rounded-full font-data-display text-data-display">
-                        <span className="material-symbols-outlined text-sm">schedule</span>
-                        ~45 Min
-                      </span>
-                    </div>
-                    <div className="mt-8 relative z-10">
-                      <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">{suggestedWorkout.name}</h2>
-                      <p className="font-body-md text-body-md text-on-surface-variant mb-6 max-w-md">{suggestedWorkout.description || 'Foco e intensidade.'}</p>
-                      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <div className="w-full md:w-1/2">
-                          <div className="flex justify-between font-data-display text-data-display text-on-surface-variant mb-2">
-                            <span>Progresso Semanal</span>
-                            <span className="text-primary-container">{weeklyWorkouts}/5 Treinos</span>
-                          </div>
-                          <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                            <div className="h-full bg-primary-container rounded-full neon-glow" style={{ width: `${Math.min((weeklyWorkouts / 5) * 100, 100)}%` }}></div>
-                          </div>
-                        </div>
-                        <button className="w-full md:w-auto bg-primary-container text-on-primary-container font-headline-md text-headline-md px-8 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-tint transition-all">
-                          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                          Start Workout
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Metrics Grid */}
-              <section className="grid grid-cols-2 md:grid-cols-4 gap-sm">
-                <div className="glass-panel p-4 rounded-xl flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-on-surface-variant mb-2">
-                    <span className="material-symbols-outlined text-sm">monitor_weight</span>
-                    <span className="font-label-caps text-label-caps uppercase">Peso Atual</span>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-headline-lg-mobile text-headline-lg-mobile text-primary">{bioRecords[bioRecords.length - 1]?.weight || '--'}</span>
-                    <span className="font-data-display text-data-display text-on-surface-variant">kg</span>
-                  </div>
-                </div>
-                <div className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden">
-                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-primary-container/20 to-transparent"></div>
-                  <div className="flex items-center gap-2 text-on-surface-variant mb-2 relative z-10">
-                    <span className="material-symbols-outlined text-sm">fitness_center</span>
-                    <span className="font-label-caps text-label-caps uppercase">Vol. Semanal</span>
-                  </div>
-                  <div className="flex items-baseline gap-1 relative z-10">
-                    <span className="font-headline-lg-mobile text-headline-lg-mobile text-primary">{weeklyStats.volume || 0}</span>
-                    <span className="font-data-display text-data-display text-on-surface-variant">kg</span>
-                  </div>
-                </div>
-                <div className="glass-panel p-4 rounded-xl flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-on-surface-variant mb-2">
-                    <span className="material-symbols-outlined text-sm">emoji_events</span>
-                    <span className="font-label-caps text-label-caps uppercase">Recordes</span>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-headline-lg-mobile text-headline-lg-mobile text-primary">{weeklyStats.prs || 0}</span>
-                    <span className="font-data-display text-data-display text-on-surface-variant">novos</span>
-                  </div>
-                </div>
-                <div className="glass-panel p-4 rounded-xl flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-on-surface-variant mb-2">
-                    <span className="material-symbols-outlined text-sm">calendar_month</span>
-                    <span className="font-label-caps text-label-caps uppercase">Total Treinos</span>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-headline-lg-mobile text-headline-lg-mobile text-primary">{workoutHistory.length || 0}</span>
-                    <span className="font-data-display text-data-display text-on-surface-variant">total</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* Seus Treinos */}
-              <section className="space-y-sm mt-8">
-                <div className="flex justify-between items-end">
-                  <h3 className="font-headline-md text-headline-md text-primary">Seus Treinos</h3>
-                </div>
-                
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                  {uniqueFilters.map(filter => (
-                    <button
-                      key={filter}
-                      onClick={() => setActiveFilter(filter)}
-                      className={`px-4 py-1.5 rounded-full font-data-display text-data-display uppercase tracking-widest whitespace-nowrap transition-all ${
-                        activeFilter === filter 
-                        ? 'bg-primary-container text-on-primary-container neon-glow' 
-                        : 'bg-surface-container-highest text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
-                      }`}
-                    >
-                      {filter}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-sm">
-                  {filteredWorkouts.length === 0 ? (
-                    <div className="glass-panel p-10 rounded-xl text-center col-span-1 md:col-span-2">
-                      <p className="text-on-surface-variant font-body-md text-body-md">Nenhum treino encontrado nesta categoria.</p>
-                    </div>
-                  ) : (
-                    filteredWorkouts.map(workout => (
-                      <button 
-                        key={workout.id}
-                        onClick={() => startWorkout(workout)}
-                        className="w-full glass-panel p-4 rounded-xl flex items-center justify-between group hover:bg-surface-container-high transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant group-hover:text-primary-container transition-colors">
-                            <span className="material-symbols-outlined">fitness_center</span>
-                          </div>
-                          <div className="text-left">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-headline-md text-[16px] leading-snug text-primary">{workout.name}</h4>
-                              {completedWorkoutsThisWeek.has(workout.id) && (
-                                <span className="material-symbols-outlined text-primary-container text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                               <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">{workout.description || 'Foco'}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-all">
-                          <span className="material-symbols-outlined text-sm">chevron_right</span>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </section>
-            </div>
-          )}
-
-          {currentTab === 'evolution' && (
-            <EvolutionView 
-              records={bioRecords} 
-              prs={personalRecords}
-              history={workoutHistory}
-              photos={evolutionPhotos}
-              studentId={student?.id}
-              onNewRecord={() => setIsBioModalOpen(true)} 
-              onPhotosUpdate={(newPhotos) => setEvolutionPhotos(newPhotos)}
-              showToast={showToast}
-            />
-          )}
-
-          {currentTab === 'nutrition' && (
-            <NutritionTab studentId={student?.id} student={student} showToast={showToast} />
-          )}
-
-          {currentTab === 'marketplace' && (
-            <MarketplaceTab showToast={showToast} teacherAcademyId={teacherAcademyId} />
-          )}
-
-          {currentTab === 'profile' && (
-            <ProfileTab 
-              student={student} 
-              totalWorkouts={workoutHistory.length}
-              onOpenConfig={openConfigModal} 
-              onOpenGoals={() => setIsGoalsModalOpen(true)}
-              showToast={showToast}
-              onLogout={handleLogout}
-            />
-          )}
-
-          {currentTab === 'social' && (
-            <SquadTab 
-              student={student} 
-              showToast={showToast} 
-            />
-          )}
-
-          {currentTab === 'train' && currentView === 'workout-detail' && (
-            <div className="animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-              <button onClick={() => setCurrentView('home')} className="flex items-center gap-2 text-on-surface-variant mb-6 font-data-display text-data-display hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-sm">arrow_back</span> Voltar
+          <div>
+            {/* Top Back Button */}
+            <div className="mb-6">
+              <button 
+                onClick={() => setCurrentView('home')} 
+                className="w-11 h-11 rounded-full bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-white hover:border-[#E11D2E] transition-colors active:scale-95"
+              >
+                <ChevronLeft className="w-5 h-5" />
               </button>
-              <h2 className="font-display-xl text-4xl text-primary mb-2 tracking-tight">{selectedWorkout?.name}</h2>
-              <div className="flex gap-4 mb-8">
-                <span className="bg-primary-container/10 text-primary-container px-3 py-1 rounded-full font-label-caps text-label-caps border border-primary-container/20">{(workoutItems || []).length} EXERCÍCIOS</span>
-              </div>
+            </div>
 
-              <div className="space-y-4 mb-10">
-                {(workoutItems || []).map((item, idx) => {
-                  const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
-                  if (!item) return null
-                  const isCompleted = completedExercises.includes(ex?.id)
+            {/* Subtítulo: SUPERIOR · DIA X */}
+            <p className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-widest mb-1">
+              SUPERIOR · DIA {selectedWorkout?.sequence_order || 1}
+            </p>
 
-                  return (
+            {/* Título Gigante em Duas Linhas (conforme 05-treino-do-dia.png) */}
+            <h1 className="font-display text-5xl font-black uppercase tracking-tight leading-[0.95] mb-4">
+              <span className="text-white block">{selectedWorkout?.name?.split('+')?.[0]?.trim() || selectedWorkout?.name}</span>
+              {selectedWorkout?.name?.includes('+') && (
+                <span className="bg-gradient-to-r from-white via-[#FFAAB1] to-[#FF4D5D] bg-clip-text text-transparent block">
+                  + {selectedWorkout?.name?.split('+')?.[1]?.trim()}
+                </span>
+              )}
+            </h1>
+
+            {/* 3 Chips de Resumo */}
+            <div className="flex gap-2 mb-8">
+              <span className="px-3 py-1.5 rounded-full bg-[#141414] border border-[#2A2A2A] text-[10px] font-bold text-white uppercase tracking-wider">
+                {workoutItems.length} EXERCÍCIOS
+              </span>
+              <span className="px-3 py-1.5 rounded-full bg-[#141414] border border-[#2A2A2A] text-[10px] font-bold text-white uppercase tracking-wider">
+                {workoutItems.reduce((acc, i) => acc + (i.target_sets || 4), 0)} SÉRIES
+              </span>
+              <span className="px-3 py-1.5 rounded-full bg-[#141414] border border-[#2A2A2A] text-[10px] font-bold text-white uppercase tracking-wider">
+                ~45 MIN
+              </span>
+            </div>
+
+            {/* Linha do Tempo dos Exercícios */}
+            <div className="relative pl-7 space-y-4">
+              
+              {/* Linha Vertical Conectora */}
+              <div className="absolute left-3.5 top-5 bottom-5 w-[2px] bg-[#2A2A2A] -translate-x-1/2" />
+
+              {workoutItems.map((item, idx) => {
+                const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
+                const isFirst = idx === 0
+                const isCompleted = completedExercises.includes(ex?.id)
+
+                return (
+                  <div key={idx} className="relative flex items-center gap-3.5 group">
+                    
+                    {/* Círculo Numerado */}
+                    <div className={`absolute -left-7 w-7 h-7 rounded-full flex items-center justify-center font-display text-xs font-black z-10 transition-all ${
+                      isCompleted 
+                        ? 'bg-[#22C55E] text-white shadow-[0_0_10px_rgba(34,197,94,0.4)]'
+                        : isFirst 
+                        ? 'bg-[#E11D2E] text-white shadow-[0_0_12px_rgba(225,29,46,0.6)]' 
+                        : 'bg-[#141414] border border-[#2A2A2A] text-[#A3A3A3]'
+                    }`}>
+                      {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
+                    </div>
+
+                    {/* Card do Exercício */}
                     <button 
-                      key={idx} 
                       onClick={() => startExecution(idx)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all active:scale-[0.98] ${
-                        isCompleted 
-                        ? 'bg-primary-container/5 border-primary-container/20 opacity-80' 
-                        : 'glass-panel hover:bg-surface-container-high'
-                      }`}
+                      className="vollon-card flex-1 p-4 rounded-2xl flex items-center justify-between hover:border-[#E11D2E]/60 text-left active:scale-[0.98] transition-all"
                     >
-                      <div className="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center overflow-hidden shrink-0 border border-outline-variant/50">
-                        {ex?.gif_url ? <img src={ex.gif_url} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-on-surface-variant">fitness_center</span>}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className={`font-headline-md text-[18px] leading-tight mb-1 ${isCompleted ? 'text-primary-container' : 'text-primary'}`}>
+                      <div className="min-w-0 pr-2">
+                        <p className={`font-bold text-sm truncate ${isCompleted ? 'text-[#22C55E]' : 'text-white'}`}>
                           {ex?.name || 'Exercício'}
                         </p>
-                        <p className="font-label-caps text-label-caps text-on-surface-variant">{item?.target_sets || 3} séries • {item?.target_reps || '10-12'} reps</p>
+                        <p className="text-[11px] text-[#A3A3A3] mt-0.5">
+                          {item?.target_sets || 4} séries · {item?.target_reps || 12} reps
+                        </p>
                       </div>
-                      {isCompleted ? (
-                        <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-[0_0_10px_rgba(195,244,0,0.3)]">
-                          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                        </div>
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
-                          <span className="material-symbols-outlined text-sm">chevron_right</span>
-                        </div>
-                      )}
+                      <ChevronRight className="w-4 h-4 text-[#A3A3A3] shrink-0 group-hover:text-white transition-colors" />
                     </button>
-                  )
-                })}
-              </div>
 
+                  </div>
+                )
+              })}
+
+            </div>
+          </div>
+
+          {/* Botão Fixo na Base: Iniciar Treino (Pílula 58px) */}
+          <div className="fixed bottom-5 left-4 right-4 z-50 max-w-md mx-auto">
+            {completedExercises.length > 0 && completedExercises.length === workoutItems.length ? (
               <button 
                 onClick={async () => {
-                  if (completedExercises.length === 0) {
-                    showToast('Faça pelo menos um exercício!', 'error')
-                    return
-                  }
                   const totalWeight = (workoutSummary?.exerciseLogs || []).reduce((acc, log) => acc + (log.weight * log.reps), 0)
                   setWorkoutSummary(prev => ({ ...prev, totalWeight }))
                   
-                  const { data: squadMember } = await supabase.from('gym_squad_members').select('squad_id').eq('student_id', student.id).maybeSingle()
-
-                   if (squadMember?.squad_id) {
-                    try {
+                  try {
+                    const { data: squadMember } = await supabase.from('gym_squad_members').select('squad_id').eq('student_id', student.id).maybeSingle()
+                    
+                    if (squadMember?.squad_id) {
                       await supabase.from('gym_squad_posts').insert([{
                         squad_id: squadMember.squad_id,
                         student_id: student.id,
@@ -871,17 +517,25 @@ export default function StudentDashboard() {
                       const pointsConstancy = 100
                       const pointsIntensity = Math.min(200, Math.floor(totalWeight / 10))
                       let pointsBonus = 0
-                      const today = new Date()
-                      const startOfWeek = new Date(today)
-                      startOfWeek.setDate(today.getDate() - today.getDay())
-                      const dateStr = startOfWeek.toISOString().split('T')[0]
+                      
+                      // Bônus de constância com base em dias distintos locais na semana
+                      const startOfWeekStr = startOfWeekLocally()
+                      const { data: weekLogs } = await supabase
+                        .from('gym_training_logs')
+                        .select('workout_date')
+                        .eq('student_id', student.id)
+                        .gte('workout_date', startOfWeekStr)
 
-                      const { count } = await supabase.from('gym_training_logs').select('*', { count: 'exact', head: true }).eq('student_id', student.id).gte('workout_date', dateStr)
+                      const distinctDays = new Set((weekLogs || []).map(l => l.workout_date))
+                      distinctDays.add(getTodayLocally())
 
-                      if (count === 4) { pointsBonus = 500 }
+                      if (distinctDays.size === 4) {
+                        pointsBonus = 500
+                      }
+
                       const totalPoints = pointsConstancy + pointsIntensity + pointsBonus
 
-                      const { error: scoreError } = await supabase.from('gym_squad_score_logs').insert([{
+                      await supabase.from('gym_squad_score_logs').insert([{
                         squad_id: squadMember.squad_id,
                         student_id: student.id,
                         points: totalPoints,
@@ -889,114 +543,459 @@ export default function StudentDashboard() {
                         reason: `Concluiu o treino: ${selectedWorkout.name}`
                       }])
 
-                      if (!scoreError) {
-                        showToast(`+${totalPoints} PONTOS! ${pointsBonus > 0 ? '🎁 BÔNUS DE CONSTÂNCIA!' : '🏆🔥'}`)
-                      }
-                    } catch (err) { console.error(err) }
+                      showToast(`+${totalPoints} PONTOS! ${pointsBonus > 0 ? '🎁 BÔNUS DE CONSTÂNCIA!' : '🏆🔥'}`)
+                    }
+                  } catch (err) {
+                    console.error(err)
                   }
                   setCurrentView('summary')
                 }}
-                className="w-full bg-primary-container text-on-primary-container font-headline-md text-[18px] py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-tint neon-glow transition-all"
+                className="vollon-btn-primary w-full h-[58px] rounded-full flex items-center justify-center gap-2 text-white font-bold text-lg shadow-[0_8px_28px_rgba(225,29,46,0.4)] cursor-pointer"
               >
-                Finalizar Treino <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <Check className="w-5 h-5 stroke-[2.5]" />
+                <span>Finalizar treino</span>
+              </button>
+            ) : (
+              <button 
+                onClick={() => startExecution(0)}
+                className="vollon-btn-primary w-full h-[58px] rounded-full flex items-center justify-center gap-2 text-white font-bold text-lg shadow-[0_8px_28px_rgba(225,29,46,0.4)] cursor-pointer"
+              >
+                <Play className="w-5 h-5 fill-current" />
+                <span>Iniciar treino</span>
+              </button>
+            )}
+          </div>
+
+        </div>
+      )}
+
+      {/* VIEW: HOME / INÍCIO (02-inicio.png) */}
+      {currentTab === 'train' && currentView === 'home' && (
+        <div className="flex-1 max-w-md mx-auto w-full px-5 pt-8 pb-32 space-y-6">
+          
+          {/* Cabeçalho Topo (02-inicio.png) */}
+          <header className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Avatar com inicial */}
+              <button 
+                onClick={() => setCurrentTab('profile')}
+                className="w-12 h-12 rounded-full bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-white font-display text-xl font-black active:scale-95 transition-all"
+              >
+                {student?.name?.[0] || 'C'}
+              </button>
+              
+              <div>
+                <h1 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                  OLÁ, {student?.name?.split(' ')[0] || 'CAIO'}!
+                </h1>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <Flame className="w-4 h-4 text-[#FF3B4A]" />
+                  <span className="text-xs text-[#A3A3A3] font-medium">
+                    {weeklyWorkouts} treinos na semana
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sino de Notificações */}
+            <button 
+              onClick={() => setCurrentTab('social')}
+              className="w-11 h-11 rounded-full bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors relative"
+            >
+              <Bell className="w-5 h-5" />
+              {socialNotifications.length > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#E11D2E]" />
+              )}
+            </button>
+          </header>
+
+          {/* Faixa dos 7 Dias da Semana (02-inicio.png) */}
+          <div className="grid grid-cols-7 gap-2">
+            {currentWeekDays.map((d, i) => (
+              <div
+                key={i}
+                className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all ${
+                  d.isToday
+                    ? 'bg-gradient-to-b from-[#E11D2E] to-[#9F0012] text-white shadow-[0_4px_16px_rgba(225,29,46,0.45)] ring-1 ring-[#FF3B4A]/50'
+                    : d.hasTrained
+                    ? 'bg-[#141414] border border-[#E11D2E]/60 text-white'
+                    : 'bg-[#141414] border border-[#2A2A2A] text-[#A3A3A3]'
+                }`}
+              >
+                <span className="text-[11px] font-bold uppercase mb-1 opacity-80">
+                  {d.dayStr}
+                </span>
+                <span className="font-display text-lg font-black text-white">
+                  {d.dayNum}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Card do Treino Sugerido (02-inicio.png) */}
+          {suggestedWorkout && (
+            <div className="vollon-card p-5 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 pr-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E11D2E]/15 border border-[#E11D2E]/30 mb-3">
+                    <span className="text-[10px] font-bold text-[#FF3B4A] tracking-wider uppercase">
+                      HOJE · ~45 MIN
+                    </span>
+                  </div>
+
+                  <h2 className="font-display text-3xl sm:text-4xl font-black uppercase tracking-tight leading-none text-white mb-2">
+                    {suggestedWorkout.name}
+                  </h2>
+                  
+                  <p className="text-xs text-[#A3A3A3]">
+                    Dia {suggestedWorkout.sequence_order || 1} · {suggestedWorkout.description || '5 exercícios'}
+                  </p>
+                </div>
+
+                {/* Anel de Progresso na Semana */}
+                <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#222222" strokeWidth="8" />
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="40" 
+                      fill="none" 
+                      stroke="#E11D2E" 
+                      strokeWidth="8" 
+                      strokeDasharray={`${2 * Math.PI * 40}`} 
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - Math.min(weeklyWorkouts / 5, 1))}`} 
+                      strokeLinecap="round" 
+                    />
+                  </svg>
+                  <div className="absolute text-center leading-none">
+                    <span className="font-display text-2xl font-black text-white block">
+                      {weeklyWorkouts}/5
+                    </span>
+                    <span className="text-[9px] text-[#A3A3A3] uppercase block mt-0.5">
+                      na semana
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão Iniciar Treino */}
+              <button 
+                onClick={() => startWorkout(suggestedWorkout)}
+                className="vollon-btn-primary w-full h-[52px] rounded-2xl flex items-center justify-center gap-2 font-bold text-white text-base mt-4 cursor-pointer active:scale-98 transition-transform"
+              >
+                <Play className="w-5 h-5 fill-current" />
+                <span>Iniciar treino</span>
               </button>
             </div>
           )}
 
-          {/* Modals */}
-          {isBioModalOpen && (
-            <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-              <div className="glass-panel w-full max-w-md rounded-2xl p-8 border border-outline-variant">
-                <h2 className="font-headline-lg text-2xl text-primary mb-4">Novo Registro de Biopedância</h2>
-                <p className="text-on-surface-variant font-body-md mb-6">Em desenvolvimento.</p>
-                <button onClick={() => setIsBioModalOpen(false)} className="w-full bg-primary-container text-on-primary-container py-3 rounded-lg font-label-caps text-label-caps uppercase">Fechar</button>
+          {/* Card Volume Semanal (02-inicio.png) */}
+          <div className="vollon-card p-4.5 px-5 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1">
+                VOLUME SEMANAL
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-3xl font-black text-white">
+                  {weeklyStats.volume || 0}
+                </span>
+                <span className="text-xs text-[#A3A3A3] font-semibold">kg</span>
               </div>
             </div>
-          )}
 
-          {isConfigModalOpen && (
-            <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-              <div className="glass-panel w-full max-w-md rounded-2xl p-8 border border-outline-variant shadow-2xl">
-                <h2 className="font-headline-lg text-2xl text-primary mb-2">Configurações</h2>
-                <p className="font-label-caps text-label-caps text-on-surface-variant mb-6">Mantenha seu perfil atualizado</p>
-                
-                <form onSubmit={handleSaveConfig} className="space-y-4">
-                  <div>
-                    <label className="font-label-caps text-label-caps text-on-surface-variant mb-1 block">Nome Completo</label>
-                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} required className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-3 text-primary font-body-md focus:border-primary-container outline-none transition-all" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="font-label-caps text-label-caps text-on-surface-variant mb-1 block">Idade</label>
-                      <input type="number" value={editAge} onChange={(e) => setEditAge(e.target.value)} className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-3 text-primary font-body-md focus:border-primary-container outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="font-label-caps text-label-caps text-on-surface-variant mb-1 block">Altura (m)</label>
-                      <input type="number" step="0.01" value={editHeight} onChange={(e) => setEditHeight(e.target.value)} className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-3 text-primary font-body-md focus:border-primary-container outline-none transition-all" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="font-label-caps text-label-caps text-on-surface-variant mb-1 block">Senha</label>
-                    <input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} required className="w-full bg-surface-container-highest border border-outline-variant rounded-lg p-3 text-primary font-body-md focus:border-primary-container outline-none transition-all" />
-                  </div>
-                  <div className="space-y-3 pt-4">
-                    <button type="submit" disabled={isSavingConfig} className="w-full bg-primary-container text-on-primary-container py-3 rounded-lg font-label-caps text-label-caps uppercase hover:bg-surface-tint neon-glow transition-all disabled:opacity-50">
-                      {isSavingConfig ? 'Salvando...' : 'Salvar Alterações'}
-                    </button>
-                    <button type="button" onClick={handleEnableNotifications} className="w-full bg-primary-container/20 text-primary-container border border-primary-container/30 py-3 rounded-lg font-label-caps text-label-caps uppercase transition-all flex items-center justify-center gap-2 hover:bg-primary-container hover:text-on-primary-container">
-                      <span className="material-symbols-outlined text-sm">notifications_active</span> Ativar Notificações do Navegador
-                    </button>
-                    <button type="button" onClick={() => { setIsConfigModalOpen(false); handleLogout(); }} className="w-full bg-error-container/20 text-error border border-error/30 py-3 rounded-lg font-label-caps text-label-caps uppercase transition-all flex items-center justify-center gap-2 hover:bg-error hover:text-on-error">
-                      <span className="material-symbols-outlined text-sm">logout</span> Sair da Conta
-                    </button>
-                    <button type="button" onClick={() => setIsConfigModalOpen(false)} className="w-full bg-transparent text-on-surface border border-outline-variant py-3 rounded-lg font-label-caps text-label-caps uppercase hover:bg-surface-container-highest transition-all">
-                      Cancelar
-                    </button>
-                  </div>
-                </form>
-              </div>
+            <div className="h-8 w-28 shrink-0">
+              <svg viewBox="0 0 100 30" className="w-full h-full overflow-visible">
+                <path 
+                  d="M0,25 Q20,23 35,27 T60,18 T75,20 T100,5" 
+                  fill="none" 
+                  stroke="#FF3B4A" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                />
+              </svg>
             </div>
-          )}
+          </div>
 
-          {isGoalsModalOpen && (
-            <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-              <div className="glass-panel w-full max-w-md rounded-2xl p-8 border border-outline-variant">
-                <h2 className="font-headline-lg text-2xl text-primary mb-4">Metas</h2>
-                <p className="font-body-md text-on-surface-variant mb-6">{student?.goals || 'Nenhuma meta definida.'}</p>
-                <button onClick={() => setIsGoalsModalOpen(false)} className="w-full bg-primary-container text-on-primary-container py-3 rounded-lg font-label-caps text-label-caps uppercase">Fechar</button>
+          {/* 3 Cartões de Métricas (02-inicio.png) */}
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="vollon-card p-3 rounded-2xl">
+              <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1">PESO</span>
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-2xl font-black text-white">
+                  {bioRecords[bioRecords.length - 1]?.weight || '--'}
+                </span>
+                <span className="text-[10px] text-[#A3A3A3] font-semibold">kg</span>
               </div>
             </div>
-          )}
+
+            <div className="vollon-card p-3 rounded-2xl">
+              <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1">RECORDES</span>
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-2xl font-black text-white">
+                  {weeklyStats.prs || 0}
+                </span>
+                <span className="text-[10px] text-[#A3A3A3] font-semibold">novos</span>
+              </div>
+            </div>
+
+            <div className="vollon-card p-3 rounded-2xl">
+              <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1">TREINOS</span>
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-2xl font-black text-white">
+                  {workoutHistory.length || 0}
+                </span>
+                <span className="text-[10px] text-[#A3A3A3] font-semibold">total</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Linha Horizontal com Outros Treinos (02-inicio.png) */}
+          <div className="space-y-2.5">
+            <h3 className="font-display text-lg uppercase font-bold text-[#A3A3A3] tracking-wider">
+              Rotina de Treinos
+            </h3>
+
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+              {studentWorkouts.map((w, idx) => (
+                <button
+                  key={w.id}
+                  onClick={() => startWorkout(w)}
+                  className="vollon-card p-3.5 rounded-2xl flex items-center gap-3 shrink-0 min-w-[190px] text-left hover:border-[#E11D2E]/60 transition-colors cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center shrink-0">
+                    <Dumbbell className="w-5 h-5 text-[#FF3B4A]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-white text-xs truncate">
+                      Dia {w.sequence_order || idx + 1} · {w.name}
+                    </p>
+                    <p className="text-[11px] text-[#A3A3A3] truncate mt-0.5">
+                      {w.description || 'Foco'}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
         </div>
-      </main>
+      )}
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface-container-low/80 backdrop-blur-xl border-t border-outline-variant/30 rounded-t-xl">
-        <button onClick={() => { setCurrentTab('train'); setCurrentView('home'); }} className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-all duration-200 w-1/5 ${currentTab === 'train' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-          <span className="material-symbols-outlined" style={currentTab === 'train' ? { fontVariationSettings: "'FILL' 1" } : {}}>fitness_center</span>
-          <span className="font-label-caps text-[10px] mt-1">Treinos</span>
-        </button>
-        <button onClick={() => setCurrentTab('evolution')} className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-all duration-200 w-1/5 ${currentTab === 'evolution' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-          <span className="material-symbols-outlined" style={currentTab === 'evolution' ? { fontVariationSettings: "'FILL' 1" } : {}}>trending_up</span>
-          <span className="font-label-caps text-[10px] mt-1">Evolução</span>
-        </button>
-        <button onClick={() => setCurrentTab('social')} className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-all duration-200 w-1/5 ${currentTab === 'social' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-          <span className="material-symbols-outlined" style={currentTab === 'social' ? { fontVariationSettings: "'FILL' 1" } : {}}>groups</span>
-          <span className="font-label-caps text-[10px] mt-1">Squads</span>
-        </button>
-        <button onClick={() => { if (teacherPlan !== 'premium') { showToast('Funcionalidade disponível apenas para alunos Premium 🔥', 'error'); return; } setCurrentTab('nutrition'); }} className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-all duration-200 relative w-1/5 ${currentTab === 'nutrition' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-          <span className="material-symbols-outlined" style={currentTab === 'nutrition' ? { fontVariationSettings: "'FILL' 1" } : {}}>local_fire_department</span>
-          <span className="font-label-caps text-[10px] mt-1">Nutri</span>
-          {teacherPlan !== 'premium' && (
-            <span className="absolute top-0 right-2 w-2 h-2 rounded-full bg-error"></span>
-          )}
-        </button>
-        <button onClick={() => setCurrentTab('profile')} className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-all duration-200 w-1/5 ${currentTab === 'profile' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-          <span className="material-symbols-outlined" style={currentTab === 'profile' ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
-          <span className="font-label-caps text-[10px] mt-1">Perfil</span>
-        </button>
-      </nav>
+      {/* VIEW: EVOLUÇÃO (03-evolucao.png) */}
+      {currentTab === 'evolution' && (
+        <div className="flex-1 pb-32">
+          <EvolutionView 
+            records={bioRecords} 
+            prs={personalRecords}
+            history={workoutHistory}
+            photos={evolutionPhotos}
+            studentId={student?.id}
+            studentName={student?.name}
+            weeklyWorkouts={weeklyWorkouts}
+            onNewRecord={() => setIsBioModalOpen(true)} 
+            onPhotosUpdate={(newPhotos) => setEvolutionPhotos(newPhotos)}
+            showToast={showToast}
+          />
+        </div>
+      )}
+
+      {/* VIEW: SQUADS (04-squads.png) */}
+      {currentTab === 'social' && (
+        <div className="flex-1 pb-32">
+          <SquadTab 
+            student={student} 
+            showToast={showToast} 
+          />
+        </div>
+      )}
+
+      {/* VIEW: NUTRIÇÃO */}
+      {currentTab === 'nutrition' && (
+        <div className="flex-1 max-w-md mx-auto w-full px-5 pt-8 pb-32">
+          <NutritionTab studentId={student?.id} student={student} showToast={showToast} />
+        </div>
+      )}
+
+      {/* VIEW: PERFIL */}
+      {currentTab === 'profile' && (
+        <div className="flex-1 max-w-md mx-auto w-full px-5 pt-8 pb-32">
+          <ProfileTab 
+            student={student} 
+            totalWorkouts={workoutHistory.length}
+            onOpenConfig={openConfigModal} 
+            onOpenGoals={() => setIsGoalsModalOpen(true)}
+            showToast={showToast}
+            onLogout={handleLogout}
+          />
+        </div>
+      )}
+
+      {/* Barra Inferior Flutuante com 5 Abas (02-inicio.png) */}
+      {currentView !== 'workout-detail' && currentView !== 'executing' && (
+        <nav className="vollon-nav-bar flex justify-around items-center px-3 py-2">
+          <button 
+            onClick={() => { setCurrentTab('train'); setCurrentView('home'); }} 
+            className={`flex flex-col items-center justify-center rounded-2xl px-3 py-1.5 transition-all ${
+              currentTab === 'train' ? 'bg-[#FF3B4A]/15 text-[#FF3B4A]' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            <Dumbbell className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold">Treinos</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentTab('evolution')} 
+            className={`flex flex-col items-center justify-center rounded-2xl px-3 py-1.5 transition-all ${
+              currentTab === 'evolution' ? 'bg-[#FF3B4A]/15 text-[#FF3B4A]' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold">Evolução</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentTab('social')} 
+            className={`flex flex-col items-center justify-center rounded-2xl px-3 py-1.5 transition-all ${
+              currentTab === 'social' ? 'bg-[#FF3B4A]/15 text-[#FF3B4A]' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            <Users className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold">Squads</span>
+          </button>
+
+          <button 
+            onClick={() => {
+              if (teacherPlan !== 'premium') {
+                showToast('Nutrição disponível para alunos Premium 🔥', 'error')
+                return
+              }
+              setCurrentTab('nutrition')
+            }} 
+            className={`flex flex-col items-center justify-center rounded-2xl px-3 py-1.5 transition-all ${
+              currentTab === 'nutrition' ? 'bg-[#FF3B4A]/15 text-[#FF3B4A]' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            <Flame className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold">Nutri</span>
+          </button>
+
+          <button 
+            onClick={() => setCurrentTab('profile')} 
+            className={`flex flex-col items-center justify-center rounded-2xl px-3 py-1.5 transition-all ${
+              currentTab === 'profile' ? 'bg-[#FF3B4A]/15 text-[#FF3B4A]' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            <UserIcon className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold">Perfil</span>
+          </button>
+        </nav>
+      )}
+
+      {/* Modal de Configurações */}
+      {isConfigModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-md p-6 border border-[#2A2A2A] rounded-3xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-display text-2xl font-black uppercase text-white">Configurações</h2>
+              <button onClick={() => setIsConfigModalOpen(false)} className="text-[#A3A3A3] hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSaveConfig} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold text-[#A3A3A3] uppercase block mb-1">Nome Completo</label>
+                <input 
+                  type="text" 
+                  value={editName} 
+                  onChange={(e) => setEditName(e.target.value)} 
+                  required 
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl p-3 text-white text-sm focus:border-[#E11D2E] outline-none" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-[#A3A3A3] uppercase block mb-1">Idade</label>
+                  <input 
+                    type="number" 
+                    value={editAge} 
+                    onChange={(e) => setEditAge(e.target.value)} 
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl p-3 text-white text-sm focus:border-[#E11D2E] outline-none" 
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-[#A3A3A3] uppercase block mb-1">Altura (m)</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={editHeight} 
+                    onChange={(e) => setEditHeight(e.target.value)} 
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl p-3 text-white text-sm focus:border-[#E11D2E] outline-none" 
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-[#A3A3A3] uppercase block mb-1">Senha</label>
+                <input 
+                  type="text" 
+                  value={editPassword} 
+                  onChange={(e) => setEditPassword(e.target.value)} 
+                  required 
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl p-3 text-white text-sm focus:border-[#E11D2E] outline-none" 
+                />
+              </div>
+
+              <div className="space-y-2.5 pt-3">
+                <button 
+                  type="submit" 
+                  disabled={isSavingConfig} 
+                  className="vollon-btn-primary w-full h-12 rounded-xl font-bold text-white text-sm uppercase"
+                >
+                  {isSavingConfig ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+                
+                <button 
+                  type="button" 
+                  onClick={handleEnableNotifications} 
+                  className="w-full h-11 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#222]"
+                >
+                  Ativar Notificações do Navegador
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => { setIsConfigModalOpen(false); handleLogout(); }} 
+                  className="w-full h-11 bg-[#E11D2E]/10 border border-[#E11D2E]/30 text-[#FF3B4A] rounded-xl text-xs font-bold uppercase hover:bg-[#E11D2E]/20"
+                >
+                  Sair da Conta
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Metas */}
+      {isGoalsModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-md p-6 border border-[#2A2A2A] rounded-3xl">
+            <h2 className="font-display text-2xl font-black uppercase text-white mb-3">Minhas Metas</h2>
+            <p className="text-sm text-[#A3A3A3] mb-6 leading-relaxed">
+              {student?.goals || 'Nenhuma meta definida pelo professor ainda.'}
+            </p>
+            <button 
+              onClick={() => setIsGoalsModalOpen(false)} 
+              className="vollon-btn-primary w-full h-12 rounded-xl font-bold text-white uppercase text-sm"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -1,4 +1,23 @@
 import { useState, useEffect } from 'react'
+import { 
+  Users, 
+  Plus, 
+  Search, 
+  Mail, 
+  Phone, 
+  Crown, 
+  Lock, 
+  Unlock, 
+  Edit2, 
+  Trash2, 
+  Eye, 
+  X, 
+  Loader2, 
+  CheckCircle2,
+  Calendar,
+  AlertTriangle,
+  UserCheck
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function MasterTeachers({ showToast }) {
@@ -44,7 +63,11 @@ export default function MasterTeachers({ showToast }) {
 
   const openCreate = () => {
     setEditingId(null)
-    setForm({ name: '', email: '', password: '', phone: '', quota_limit: 10, contract_start_date: new Date().toISOString().split('T')[0], status: 'active', notes: '', plan_type: 'basic' })
+    setForm({ 
+      name: '', email: '', password: '', phone: '', 
+      quota_limit: 10, contract_start_date: new Date().toISOString().split('T')[0], 
+      status: 'active', notes: '', plan_type: 'basic' 
+    })
     setIsModalOpen(true)
   }
 
@@ -74,14 +97,14 @@ export default function MasterTeachers({ showToast }) {
         }
         if (form.password) updateData.password = form.password
         await supabase.from('gym_teachers').update(updateData).eq('id', editingId)
-        showToast('Professor atualizado!')
+        showToast('Professor atualizado com sucesso!')
       } else {
         await supabase.from('gym_teachers').insert([{
           name: form.name, email: form.email, password: form.password, phone: form.phone,
           quota_limit: parseInt(form.quota_limit), contract_start_date: form.contract_start_date, 
           status: form.status, notes: form.notes, plan_type: form.plan_type
         }])
-        showToast('Professor cadastrado!')
+        showToast('Professor cadastrado com sucesso!')
       }
       setIsModalOpen(false)
       fetchTeachers()
@@ -99,257 +122,407 @@ export default function MasterTeachers({ showToast }) {
 
   const togglePlan = async (t) => {
     const newPlan = t.plan_type === 'premium' ? 'basic' : 'premium'
-    try {
-      const { error } = await supabase.from('gym_teachers').update({ plan_type: newPlan }).eq('id', t.id)
-      if (error) throw error
-      showToast(`Plano de ${t.name} alterado para ${newPlan === 'premium' ? 'Premium' : 'Basic'}!`)
-      fetchTeachers()
-    } catch (err) {
-      showToast('Erro ao alterar plano: ' + err.message, 'error')
-    }
+    await supabase.from('gym_teachers').update({ plan_type: newPlan }).eq('id', t.id)
+    showToast(`Plano alterado para ${newPlan === 'premium' ? 'Premium 🔥' : 'Basic'}`)
+    fetchTeachers()
   }
 
-  const handleDelete = async (id) => {
+  const viewStudents = async (t) => {
+    setSelectedTeacherName(t.name)
+    const { data } = await supabase.from('gym_students').select('*').eq('teacher_id', t.id).order('name')
+    setSelectedTeacherStudents(data || [])
+    setIsStudentsModal(true)
+  }
+
+  const deleteTeacher = async (id) => {
     await supabase.from('gym_teachers').delete().eq('id', id)
     showToast('Professor excluído')
     setConfirmDelete(null)
     fetchTeachers()
   }
 
-  const viewStudents = async (t) => {
-    setSelectedTeacherName(t.name)
-    const { data } = await supabase.from('gym_students').select('id, name, username').eq('teacher_id', t.id).order('name')
-    setSelectedTeacherStudents(data || [])
-    setIsStudentsModal(true)
-  }
-
-  const getNextDue = (t) => {
-    if (!t.contract_start_date) return null
-    const cd = new Date(t.contract_start_date + 'T00:00:00')
-    const today = new Date()
-    const days = Math.floor((today - cd) / (1000*60*60*24))
-    const cycle = Math.floor(days / 30)
-    const next = new Date(cd)
-    next.setDate(next.getDate() + ((cycle + 1) * 30))
-    return next
-  }
-
-  const filtered = teachers.filter(t =>
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filtered = teachers.filter(t => 
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     t.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center glass-panel p-6 rounded-[32px] border border-outline-variant/30">
-        <div className="relative flex-1 w-full max-w-md">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-          <input
-            type="text" placeholder="Buscar professor..."
-            value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-surface-container border border-outline-variant/30 rounded-2xl text-sm text-on-surface focus:outline-none focus:border-primary-container font-body-md transition-all"
-          />
+      
+      {/* Top Header Card */}
+      <div className="vollon-card p-6 rounded-3xl flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+        <div>
+          <h2 className="font-display text-3xl font-black uppercase text-white tracking-tight">
+            Professores Cadastrados
+          </h2>
+          <p className="text-xs text-[#A3A3A3] font-medium mt-1">
+            Gestão de licenças, planos e cotas de alunos por personal trainer
+          </p>
         </div>
-        <button onClick={openCreate} className="w-full sm:w-auto bg-primary-container hover:brightness-110 text-on-primary-container px-6 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-container/20 active:scale-95 neon-glow">
-          <span className="material-symbols-outlined text-sm">add</span> Novo Professor
-        </button>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-72">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#A3A3A3]" />
+            <input 
+              type="text" 
+              placeholder="Buscar professor..." 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-xs text-white placeholder-[#52525B] focus:outline-none focus:border-[#E11D2E] transition-colors" 
+            />
+          </div>
+          <button 
+            onClick={openCreate}
+            className="vollon-btn-primary px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap shadow-[0_6px_20px_rgba(255,59,74,0.3)]"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Novo Professor</span>
+          </button>
+        </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {loading ? [1,2,3].map(i => <div key={i} className="h-52 glass-panel rounded-3xl border border-outline-variant/30 animate-pulse" />) :
+      {/* Grid de Professores */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full py-20 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#FF3B4A]" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="col-span-full py-16 text-center vollon-card rounded-3xl">
+            <Users className="w-12 h-12 text-[#A3A3A3] mx-auto mb-3 opacity-40" />
+            <p className="text-xs font-bold uppercase tracking-wider text-[#A3A3A3]">
+              Nenhum professor encontrado.
+            </p>
+          </div>
+        ) : (
           filtered.map(t => {
-            const nextDue = getNextDue(t)
-            const quotaPct = Math.min((t.studentCount / (t.quota_limit || 1)) * 100, 100)
+            const quotaPct = t.quota_limit > 0 ? Math.min((t.studentCount / t.quota_limit) * 100, 100) : 0
+            const isNearLimit = quotaPct >= 80
+
             return (
-              <div key={t.id} className="glass-panel rounded-3xl border border-outline-variant/30 p-6 hover:border-primary-container/30 transition-colors shadow-sm">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center font-headline-sm text-on-surface-variant text-sm">
-                      {t.name?.[0]}
+              <div 
+                key={t.id}
+                className="vollon-card p-6 rounded-3xl flex flex-col justify-between group hover:border-[#E11D2E]/60 transition-colors space-y-5"
+              >
+                <div>
+                  
+                  {/* Top Info */}
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center font-display font-black text-white text-base">
+                        {t.name?.[0] || 'P'}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-sm text-white truncate">{t.name}</h3>
+                        <p className="text-xs text-[#A3A3A3] truncate flex items-center gap-1 mt-0.5">
+                          <Mail className="w-3 h-3 shrink-0" /> {t.email}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-headline-sm text-on-surface text-sm mb-0.5">{t.name}</h4>
-                      <p className="font-body-md text-[10px] text-on-surface-variant flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">mail</span> {t.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1 items-end">
-                    <span className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border ${
-                      t.status === 'active' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
-                      t.status === 'blocked' ? 'bg-error/10 text-error border-error/20' : 'bg-warning/10 text-warning border-warning/20'
-                    }`}>
-                      {t.status === 'active' ? 'Ativo' : t.status === 'blocked' ? 'Bloqueado' : 'Trial'}
-                    </span>
-                    <span 
+
+                    <button
                       onClick={() => togglePlan(t)}
-                      title="Clique para alternar o plano do professor rapidamente"
-                      className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 ${
-                        t.plan_type === 'premium' ? 'bg-primary-container/10 border-primary-container/40 text-primary-container shadow-[0_0_10px_rgba(195,244,0,0.15)] hover:bg-primary-container/20' : 'bg-surface-container-highest border-outline-variant/30 text-on-surface-variant hover:bg-surface hover:text-on-surface'
+                      title="Clique para alternar o plano"
+                      className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border cursor-pointer transition-colors shrink-0 ${
+                        t.plan_type === 'premium'
+                          ? 'bg-[#E11D2E]/15 border-[#E11D2E]/40 text-[#FF3B4A]'
+                          : 'bg-[#1A1A1A] border-[#2A2A2A] text-[#A3A3A3] hover:text-white'
                       }`}
                     >
-                      {t.plan_type === 'premium' ? 'Premium' : 'Basic'}
-                    </span>
+                      {t.plan_type === 'premium' ? '★ Premium' : 'Basic'}
+                    </button>
                   </div>
-                </div>
 
-                {t.phone && <p className="font-body-md text-xs text-on-surface-variant flex items-center gap-1 mb-4"><span className="material-symbols-outlined text-[14px]">phone</span> {t.phone}</p>}
+                  {t.phone && (
+                    <p className="text-xs text-[#A3A3A3] flex items-center gap-1.5 mb-3">
+                      <Phone className="w-3 h-3 text-[#FF3B4A]" /> {t.phone}
+                    </p>
+                  )}
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">Alunos</p>
-                    <p className="font-headline-sm text-sm text-on-surface">{t.studentCount} <span className="text-on-surface-variant font-body-md text-xs">/ {t.quota_limit}</span></p>
-                    <div className="w-full h-1.5 bg-surface-container rounded-full mt-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${quotaPct >= 90 ? 'bg-error' : quotaPct >= 70 ? 'bg-warning' : 'bg-primary-container neon-glow'}`} style={{ width: `${quotaPct}%` }} />
+                  {/* Barra de Cotas de Alunos */}
+                  <div className="bg-[#1A1A1A] p-4 rounded-2xl border border-[#2A2A2A] space-y-2">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                      <span className="text-[#A3A3A3]">Alunos Ativos</span>
+                      <span className={isNearLimit ? 'text-[#FF3B4A]' : 'text-white'}>
+                        {t.studentCount} / {t.quota_limit}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-[#0A0A0A] rounded-full overflow-hidden border border-[#2A2A2A]">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-700 ${
+                          isNearLimit ? 'bg-[#FF3B4A]' : 'bg-[#E11D2E]'
+                        }`}
+                        style={{ width: `${quotaPct}%` }}
+                      />
                     </div>
                   </div>
-                  <div>
-                    <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">Mensalidade</p>
-                    <p className="font-display-sm text-sm text-on-surface">R$ {(t.studentCount * (t.plan_type === 'premium' ? pricePremium : pricePerStudent)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                  </div>
+
                 </div>
 
-                {nextDue && (
-                  <p className="font-body-md text-[10px] text-on-surface-variant mb-4">
-                    Próx. vencimento: <span className="font-headline-sm text-on-surface">{nextDue.toLocaleDateString('pt-BR')}</span>
-                  </p>
-                )}
+                {/* Ações Rápidas no Rodapé do Card */}
+                <div className="pt-2 border-t border-[#2A2A2A] grid grid-cols-4 gap-2">
+                  <button 
+                    onClick={() => openEdit(t)}
+                    title="Editar Informações"
+                    className="p-2.5 bg-[#1A1A1A] hover:border-[#E11D2E] text-white border border-[#2A2A2A] rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-[#A3A3A3]" />
+                  </button>
 
-                <div className="flex gap-2 pt-4 border-t border-outline-variant/30">
-                  <button onClick={() => openEdit(t)} title="Editar" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 font-label-caps text-[10px] tracking-widest text-on-surface-variant bg-surface-container hover:bg-surface-container-highest rounded-xl transition-colors uppercase border border-outline-variant/30">
-                    <span className="material-symbols-outlined text-[14px]">edit</span> Editar
+                  <button 
+                    onClick={() => viewStudents(t)}
+                    title="Ver Alunos Vinculados"
+                    className="p-2.5 bg-[#1A1A1A] hover:border-[#E11D2E] text-white border border-[#2A2A2A] rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-[#FF3B4A]" />
                   </button>
-                  <button onClick={() => viewStudents(t)} title="Ver Alunos" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 font-label-caps text-[10px] tracking-widest text-secondary-container bg-secondary-container/10 hover:bg-secondary-container/20 rounded-xl transition-colors uppercase border border-secondary-container/20">
-                    <span className="material-symbols-outlined text-[14px]">visibility</span> Alunos
+
+                  <button 
+                    onClick={() => toggleBlock(t)}
+                    title={t.status === 'blocked' ? 'Desbloquear Acesso' : 'Bloquear Acesso'}
+                    className={`p-2.5 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
+                      t.status === 'blocked'
+                        ? 'bg-[#E11D2E]/20 text-[#FF3B4A] border-[#E11D2E]/40'
+                        : 'bg-[#1A1A1A] text-[#A3A3A3] border-[#2A2A2A] hover:text-white'
+                    }`}
+                  >
+                    {t.status === 'blocked' ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => toggleBlock(t)} title={t.status === 'blocked' ? 'Desbloquear' : 'Bloquear'} className={`py-2.5 px-3.5 rounded-xl transition-colors border ${t.status === 'blocked' ? 'text-[#4ade80] bg-[#4ade80]/10 hover:bg-[#4ade80]/20 border-[#4ade80]/20' : 'text-warning bg-warning/10 hover:bg-warning/20 border-warning/20'}`}>
-                    <span className="material-symbols-outlined text-[14px]">{t.status === 'blocked' ? 'lock_open' : 'lock'}</span>
-                  </button>
-                  <button onClick={() => setConfirmDelete(t.id)} title="Excluir" className="py-2.5 px-3.5 text-error bg-error/10 hover:bg-error/20 rounded-xl transition-colors border border-error/20">
-                    <span className="material-symbols-outlined text-[14px]">delete</span>
+
+                  <button 
+                    onClick={() => setConfirmDelete(t.id)}
+                    title="Excluir Professor"
+                    className="p-2.5 bg-[#1A1A1A] hover:bg-[#E11D2E]/20 text-[#A3A3A3] hover:text-[#FF3B4A] border border-[#2A2A2A] rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
+
               </div>
             )
           })
-        }
+        )}
       </div>
 
-      {!loading && filtered.length === 0 && (
-        <div className="text-center py-16 font-body-md text-on-surface-variant text-sm">Nenhum professor encontrado.</div>
-      )}
-
-      {/* Modal Cadastro/Edição */}
+      {/* Modal Criar / Editar Professor */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-xl rounded-[40px] border border-outline-variant/30 shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center sticky top-0 bg-surface-container-highest rounded-t-[40px] z-10">
-              <h3 className="font-display-md text-xl text-on-surface uppercase tracking-tight">{editingId ? 'Editar Professor' : 'Novo Professor'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-surface-container rounded-xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"><span className="material-symbols-outlined">close</span></button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <form 
+            onSubmit={handleSave}
+            className="vollon-card w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto border border-[#2A2A2A] shadow-2xl animate-in zoom-in-95 duration-200"
+          >
+            <div className="flex justify-between items-center mb-6 border-b border-[#2A2A2A] pb-4">
+              <div>
+                <h2 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                  {editingId ? 'Editar Professor' : 'Novo Professor'}
+                </h2>
+                <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest mt-0.5">
+                  Credenciamento de Personal Trainer
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-9 h-9 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <form onSubmit={handleSave} className="p-8 space-y-6">
-              <Field label="Nome Completo" required>
-                <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" placeholder="Nome do Professor" />
-              </Field>
-              {!editingId && (
-                <Field label="Email de Acesso" required>
-                  <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" placeholder="email@professor.com" />
-                </Field>
-              )}
-              <Field label={editingId ? "Nova Senha (deixe vazio para manter)" : "Senha de Acesso"} required={!editingId}>
-                <input type="text" required={!editingId} value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="input-field" placeholder="••••••••" />
-              </Field>
-              <Field label="Telefone">
-                <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" placeholder="(11) 99999-9999" />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Limite de Alunos">
-                  <input type="number" value={form.quota_limit} onChange={e => setForm({...form, quota_limit: e.target.value})} className="input-field" />
-                </Field>
-                <Field label="Início Contrato">
-                  <input type="date" value={form.contract_start_date} onChange={e => setForm({...form, contract_start_date: e.target.value})} className="input-field" />
-                </Field>
-              </div>
-              <Field label="Plano do Professor">
-                <select value={form.plan_type} onChange={e => setForm({...form, plan_type: e.target.value})} className="input-field appearance-none">
-                  <option value="basic" className="bg-surface">Professor Basic (R$ {pricePerStudent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
-                  <option value="premium" className="bg-surface">Professor Premium (R$ {pricePremium.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/aluno)</option>
-                </select>
-              </Field>
-              {editingId && (
-                <Field label="Status">
-                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field appearance-none">
-                    <option value="active" className="bg-surface">Ativo</option>
-                    <option value="trial" className="bg-surface">Trial</option>
-                    <option value="blocked" className="bg-surface">Bloqueado</option>
-                  </select>
-                </Field>
-              )}
-              <Field label="Observações">
-                <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field h-24 resize-none" placeholder="Anotações internas..." />
-              </Field>
-              <div className="pt-2">
-                <button type="submit" disabled={isSaving} className="w-full bg-primary-container hover:brightness-110 text-on-primary-container py-4 rounded-2xl font-label-caps text-sm uppercase tracking-widest transition-all disabled:opacity-50 neon-glow shadow-lg shadow-primary-container/10 active:scale-[0.98]">
-                  {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar Professor'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* Modal Ver Alunos */}
-      {isStudentsModal && (
-        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-sm rounded-[40px] border border-outline-variant/30 shadow-2xl animate-in zoom-in duration-300">
-            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest rounded-t-[40px]">
-              <h3 className="font-display-sm text-lg text-on-surface uppercase tracking-tight">Alunos de {selectedTeacherName}</h3>
-              <button onClick={() => setIsStudentsModal(false)} className="p-2 bg-surface-container rounded-xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"><span className="material-symbols-outlined">close</span></button>
-            </div>
-            <div className="p-6 divide-y divide-outline-variant/10 max-h-80 overflow-y-auto custom-scrollbar">
-              {selectedTeacherStudents.map(s => (
-                <div key={s.id} className="py-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center font-headline-sm text-on-surface-variant text-sm">{s.name[0]}</div>
-                  <div>
-                    <p className="font-headline-sm text-on-surface text-sm">{s.name}</p>
-                    <p className="font-body-md text-xs text-on-surface-variant">@{s.username}</p>
-                  </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                  Nome Completo *
+                </label>
+                <input 
+                  required
+                  type="text"
+                  value={form.name}
+                  onChange={e => setForm({...form, name: e.target.value})}
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
+                  placeholder="Nome do treinador"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                  E-mail de Acesso *
+                </label>
+                <input 
+                  required
+                  disabled={!!editingId}
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm({...form, email: e.target.value})}
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white disabled:opacity-50 focus:outline-none focus:border-[#E11D2E] transition-colors"
+                  placeholder="treinador@email.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    {editingId ? 'Nova Senha (Opcional)' : 'Senha Inicial *'}
+                  </label>
+                  <input 
+                    required={!editingId}
+                    type="password"
+                    value={form.password}
+                    onChange={e => setForm({...form, password: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
+                    placeholder="••••••••"
+                  />
                 </div>
-              ))}
-              {selectedTeacherStudents.length === 0 && <p className="text-center py-8 font-body-md text-on-surface-variant text-sm">Nenhum aluno.</p>}
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    Telefone WhatsApp
+                  </label>
+                  <input 
+                    type="text"
+                    value={form.phone}
+                    onChange={e => setForm({...form, phone: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    Cota Limite de Alunos
+                  </label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={form.quota_limit}
+                    onChange={e => setForm({...form, quota_limit: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    Plano de Acesso
+                  </label>
+                  <select
+                    value={form.plan_type}
+                    onChange={e => setForm({...form, plan_type: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors cursor-pointer"
+                  >
+                    <option value="basic" className="bg-[#141414]">Basic (R$ {pricePerStudent}/aluno)</option>
+                    <option value="premium" className="bg-[#141414]">Premium White Label (R$ {pricePremium}/aluno)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                  Anotações Internas
+                </label>
+                <textarea 
+                  value={form.notes}
+                  onChange={e => setForm({...form, notes: e.target.value})}
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors h-20 resize-none"
+                  placeholder="Informações contratuais ou observações..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6 pt-4 border-t border-[#2A2A2A]">
+              <button 
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="vollon-btn-secondary flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-white cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit"
+                disabled={isSaving}
+                className="vollon-btn-primary flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center gap-2 cursor-pointer shadow-[0_8px_20px_rgba(255,59,74,0.35)]"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Salvar Alterações' : 'Cadastrar'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Lista de Alunos do Professor */}
+      {isStudentsModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[80vh] flex flex-col border border-[#2A2A2A] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 border-b border-[#2A2A2A] pb-3">
+              <div>
+                <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                  Alunos Vinculados
+                </h3>
+                <p className="text-xs text-[#FF3B4A] font-bold">
+                  Treinador: {selectedTeacherName}
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsStudentsModal(false)}
+                className="w-9 h-9 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              {selectedTeacherStudents.length === 0 ? (
+                <p className="text-center py-10 text-xs font-bold uppercase tracking-wider text-[#A3A3A3]">
+                  Nenhum aluno cadastrado por este treinador.
+                </p>
+              ) : (
+                selectedTeacherStudents.map(st => (
+                  <div key={st.id} className="p-3.5 bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-xs text-white">{st.name}</p>
+                      <p className="text-[10px] text-[#A3A3A3]">@{st.username}</p>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E11D2E]/15 text-[#FF3B4A]">
+                      Ativo
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Confirm Delete */}
+      {/* Confirmação de Exclusão */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-surface/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-xs rounded-3xl border border-outline-variant/30 shadow-2xl p-8 text-center animate-in zoom-in duration-300">
-            <span className="material-symbols-outlined text-5xl text-error mx-auto mb-4 block">delete</span>
-            <h3 className="font-headline-md text-on-surface mb-2">Excluir Professor?</h3>
-            <p className="font-body-md text-xs text-on-surface-variant mb-6">Todos os alunos e treinos serão removidos permanentemente.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 py-3 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded-xl font-label-caps text-[10px] uppercase tracking-widest border border-outline-variant/30 transition-all">Cancelar</button>
-              <button onClick={() => handleDelete(confirmDelete)} className="flex-1 py-3 bg-error hover:brightness-110 text-on-error rounded-xl font-label-caps text-[10px] uppercase tracking-widest shadow-lg shadow-error/20 transition-all">Excluir</button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-sm rounded-3xl p-6 text-center border border-[#2A2A2A] space-y-4 animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-2xl bg-[#E11D2E]/20 text-[#FF3B4A] flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-display text-2xl font-black uppercase text-white">Excluir Treinador?</h3>
+              <p className="text-xs text-[#A3A3A3] mt-1 leading-relaxed">
+                Esta ação remove o professor e desvincula os alunos associados. Deseja continuar?
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button 
+                onClick={() => setConfirmDelete(null)}
+                className="vollon-btn-secondary h-11 rounded-xl text-xs font-bold uppercase tracking-wider text-white"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => deleteTeacher(confirmDelete)}
+                className="vollon-btn-primary h-11 rounded-xl text-xs font-bold uppercase tracking-wider text-white"
+              >
+                Excluir
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <style dangerouslySetInnerHTML={{ __html: `.input-field { width: 100%; background: var(--surface-container); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1rem 1.25rem; font-size: 0.875rem; outline: none; transition: all 0.15s; color: white; } .input-field:focus { border-color: var(--primary-container); } .input-field::placeholder { color: #64748b; }` }} />
-    </div>
-  )
-}
-
-function Field({ label, children, required }) {
-  return (
-    <div className="space-y-2">
-      <label className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest block ml-1">
-        {label} {required && <span className="text-error">*</span>}
-      </label>
-      {children}
     </div>
   )
 }

@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react'
+import { 
+  Dumbbell, 
+  Plus, 
+  Search, 
+  Edit2, 
+  Eye, 
+  X, 
+  Loader2, 
+  Flame, 
+  Sparkles 
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
@@ -23,7 +34,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
     if (error) {
       console.error('Erro ao buscar exercícios:', error)
     } else {
-      setExercises(data)
+      setExercises(data || [])
     }
     setLoading(false)
   }
@@ -45,7 +56,7 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
       if (error) {
         showToast('Erro ao atualizar: ' + error.message, 'error')
       } else {
-        showToast('Exercício atualizado!')
+        showToast('Exercício atualizado com sucesso!')
       }
     } else {
       const { error } = await supabase
@@ -74,15 +85,40 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-wrap gap-2 pb-2 overflow-x-auto no-scrollbar">
+      
+      {/* Top Header Card */}
+      <div className="vollon-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="font-display text-3xl font-black uppercase text-white tracking-tight">
+            Biblioteca de Exercícios
+          </h2>
+          <p className="text-xs text-[#A3A3A3] font-medium mt-1">
+            Consulte a biblioteca padrão ou cadastre movimentos customizados com GIFs demonstrativos
+          </p>
+        </div>
+        <button 
+          onClick={() => {
+            setEditingId(null)
+            setNewExercise({ name: '', category: 'Peito', description: '', gif_url: '' })
+            setIsModalOpen(true)
+          }}
+          className="vollon-btn-primary px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_6px_20px_rgba(255,59,74,0.3)] whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4 stroke-[3]" />
+          <span>Novo Exercício</span>
+        </button>
+      </div>
+
+      {/* Pills de Categoria */}
+      <div className="flex flex-wrap gap-2 pb-1 overflow-x-auto no-scrollbar">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-6 py-2.5 rounded-full font-label-caps text-[10px] uppercase tracking-widest transition-all border ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
               selectedCategory === cat
-                ? 'bg-primary-container text-on-primary-container border-primary-container shadow-[0_0_15px_rgba(195,244,0,0.3)]'
-                : 'bg-surface text-on-surface-variant border-outline-variant/30 hover:border-outline-variant/50 hover:text-on-surface'
+                ? 'bg-[#E11D2E]/15 text-[#FF3B4A] border border-[#E11D2E]/40'
+                : 'bg-[#141414] text-[#A3A3A3] border border-[#2A2A2A] hover:text-white'
             }`}
           >
             {cat}
@@ -90,208 +126,187 @@ export default function ExercisesTab({ showToast, searchTerm, teacherInfo }) {
         ))}
       </div>
 
-      <div className="glass-panel rounded-3xl border border-outline-variant/30 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest sticky top-0 z-10">
-          <div>
-            <h3 className="font-headline-lg text-lg text-on-surface">Acervo Global de Exercícios</h3>
-            <p className="font-body-md text-xs text-on-surface-variant">Consulte a biblioteca padronizada para montar seus treinos</p>
-          </div>
-        </div>
-
+      {/* Tabela de Exercícios */}
+      <div className="vollon-card rounded-3xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-surface text-on-surface-variant font-label-caps text-xs uppercase tracking-wider border-b border-outline-variant/30">
+            <thead className="bg-[#1A1A1A] border-b border-[#2A2A2A]">
               <tr>
-                <th className="px-6 py-4">Preview</th>
-                <th className="px-6 py-4">Nome</th>
-                <th className="px-6 py-4">Categoria</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">Exercício</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">Grupo Muscular</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">Instruções</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/30">
+            <tbody className="divide-y divide-[#2A2A2A]/60">
               {loading ? (
-                [1, 2, 3].map(i => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan="3" className="px-6 py-4 h-16 bg-surface-container-high"></td>
-                  </tr>
-                ))
-              ) : (
-                filteredExercises.map(ex => (
-                  <tr 
-                    key={ex.id} 
-                    onClick={() => setSelectedGif(ex)}
-                    className="hover:bg-surface-container transition-colors group cursor-pointer"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg bg-surface-container border border-outline-variant/30 flex items-center justify-center overflow-hidden group-hover:border-primary-container transition-colors">
-                        {ex.gif_url ? (
-                          <img src={ex.gif_url} alt={ex.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-xl text-on-surface-variant">fitness_center</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-headline-md text-on-surface">{ex.name}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className="bg-surface-container text-on-surface-variant px-2 py-1 rounded font-label-caps text-[10px] uppercase tracking-wider">
-                        {ex.category}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-              {!loading && filteredExercises.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="px-6 py-20 text-center text-on-surface-variant italic">
+                  <td colSpan="4" className="py-16 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#FF3B4A]" />
+                  </td>
+                </tr>
+              ) : filteredExercises.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-16 text-center text-[#A3A3A3] text-xs font-bold uppercase tracking-widest">
                     Nenhum exercício encontrado.
                   </td>
                 </tr>
+              ) : (
+                filteredExercises.map(ex => (
+                  <tr key={ex.id} className="hover:bg-[#1A1A1A]/40 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3.5">
+                        <button
+                          onClick={() => ex.gif_url && setSelectedGif(ex)}
+                          className="w-12 h-12 bg-[#1A1A1A] rounded-xl overflow-hidden border border-[#2A2A2A] flex items-center justify-center shrink-0 group-hover:border-[#E11D2E]/60 transition-colors cursor-pointer"
+                        >
+                          {ex.gif_url ? (
+                            <img src={ex.gif_url} alt={ex.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Dumbbell className="w-5 h-5 text-[#A3A3A3]" />
+                          )}
+                        </button>
+                        <span className="font-bold text-sm text-white uppercase">{ex.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-[10px] font-bold text-white uppercase tracking-wider">
+                        {ex.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-[#A3A3A3] max-w-[280px] truncate">
+                      {ex.description || '—'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => {
+                          setEditingId(ex.id)
+                          setNewExercise({ 
+                            name: ex.name, 
+                            category: ex.category, 
+                            description: ex.description || '', 
+                            gif_url: ex.gif_url || '' 
+                          })
+                          setIsModalOpen(true)
+                        }}
+                        className="px-3.5 py-1.5 bg-[#1A1A1A] hover:border-[#E11D2E] text-white border border-[#2A2A2A] rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-[#FF3B4A]" />
+                        <span>Editar</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* Modal Criar / Editar Exercício */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="glass-panel border border-outline-variant/30 rounded-3xl max-w-lg w-full shadow-2xl animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest rounded-t-3xl">
-              <h3 className="font-headline-lg text-lg text-on-surface">
-                {editingId ? 'Editar Exercício' : 'Cadastrar Exercício'}
-              </h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-lg rounded-3xl border border-[#2A2A2A] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="p-6 border-b border-[#2A2A2A] flex justify-between items-center bg-[#1A1A1A]">
+              <div>
+                <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                  {editingId ? 'Editar Exercício' : 'Novo Exercício'}
+                </h3>
+                <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest mt-0.5">
+                  Biblioteca do Treinador
+                </p>
+              </div>
               <button 
-                onClick={() => { setIsModalOpen(false); setEditingId(null); }} 
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
+                onClick={() => setIsModalOpen(false)}
+                className="w-9 h-9 bg-[#141414] rounded-xl border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
+            
             <form onSubmit={handleCreateExercise} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Nome</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    Nome do Exercício *
+                  </label>
                   <input 
-                    required
-                    type="text" 
-                    value={newExercise.name}
+                    required 
+                    placeholder="Ex: Supino Inclinado com Halteres" 
+                    value={newExercise.name} 
                     onChange={e => setNewExercise({...newExercise, name: e.target.value})}
-                    className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container outline-none transition-all"
-                    placeholder="Ex: Supino Reto"
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors" 
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Categoria</label>
+                <div>
+                  <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                    Categoria *
+                  </label>
                   <select 
-                    value={newExercise.category}
+                    value={newExercise.category} 
                     onChange={e => setNewExercise({...newExercise, category: e.target.value})}
-                    className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container outline-none transition-all"
+                    className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors cursor-pointer"
                   >
-                    <option>Peito</option>
-                    <option>Costas</option>
-                    <option>Pernas</option>
-                    <option>Bíceps</option>
-                    <option>Tríceps</option>
-                    <option>Ombros</option>
-                    <option>Abdômen</option>
+                    {['Peito','Costas','Pernas','Ombros','Bíceps','Tríceps','Abdômen'].map(c => (
+                      <option key={c} value={c} className="bg-[#141414] text-white">{c}</option>
+                    ))}
                   </select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">GIF URL (Demonstração)</label>
+
+              <div>
+                <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                  URL do GIF de Demonstração
+                </label>
                 <input 
-                  type="url" 
-                  value={newExercise.gif_url}
+                  placeholder="https://exemplo.com/gif-execucao.gif" 
+                  value={newExercise.gif_url} 
                   onChange={e => setNewExercise({...newExercise, gif_url: e.target.value})}
-                  className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container outline-none transition-all"
-                  placeholder="https://exemplo.com/exercicio.gif"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors" 
                 />
               </div>
-              <div className="space-y-2">
-                <label className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider">Descrição / Observações</label>
+
+              <div>
+                <label className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider block mb-1.5">
+                  Instruções de Postura / Observações
+                </label>
                 <textarea 
-                  rows="3"
-                  value={newExercise.description}
+                  placeholder="Dicas de amplitude, cadência e postura..." 
+                  value={newExercise.description} 
                   onChange={e => setNewExercise({...newExercise, description: e.target.value})}
-                  className="w-full bg-surface-container border border-outline-variant/30 text-on-surface rounded-xl p-3 font-body-md focus:border-primary-container outline-none resize-none transition-all"
-                  placeholder="Instruções de execução..."
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors h-28 resize-none" 
                 />
               </div>
-              <div className="pt-4 flex gap-3">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-surface-container text-on-surface-variant rounded-xl font-label-caps text-sm hover:bg-surface-container-high hover:text-on-surface transition-all uppercase tracking-widest"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-[2] px-4 py-3 bg-primary-container text-on-primary-container rounded-xl font-label-caps text-sm hover:brightness-110 transition-all disabled:opacity-50 uppercase tracking-widest neon-glow"
-                >
-                  {isSaving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Salvar Exercício'}
-                </button>
-              </div>
+
+              <button 
+                type="submit" 
+                disabled={isSaving}
+                className="vollon-btn-primary w-full h-12 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 cursor-pointer shadow-[0_8px_20px_rgba(255,59,74,0.35)]"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Salvar Alterações' : 'Cadastrar Exercício'}
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Gif Viewer Modal */}
+      {/* Modal Prévia de GIF */}
       {selectedGif && (
-        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-[60] flex items-center justify-center p-4">
-          <div className="glass-panel border border-outline-variant/30 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl animate-in zoom-in duration-300">
-            <div className="p-8 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest">
-              <div>
-                <span className="bg-primary-container/10 text-primary-container px-3 py-1 rounded-full font-label-caps text-[10px] uppercase tracking-widest border border-primary-container/20 mb-2 inline-block">
-                  {selectedGif.category}
-                </span>
-                <h3 className="font-display-xl text-2xl text-on-surface uppercase tracking-tight">{selectedGif.name}</h3>
-              </div>
-              <button 
-                onClick={() => setSelectedGif(null)}
-                className="p-3 bg-surface-container rounded-2xl text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"
-              >
-                <span className="material-symbols-outlined">close</span>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="vollon-card rounded-3xl p-6 border border-[#2A2A2A] max-w-sm w-full space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-[#2A2A2A]">
+              <h4 className="font-bold text-sm text-white">{selectedGif.name}</h4>
+              <button onClick={() => setSelectedGif(null)} className="text-[#A3A3A3] hover:text-white">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="aspect-video bg-black flex items-center justify-center relative group">
-              {selectedGif.gif_url ? (
-                <img src={selectedGif.gif_url} alt={selectedGif.name} className="max-h-full max-w-full object-contain" />
-              ) : (
-                <div className="flex flex-col items-center gap-4 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-6xl">fitness_center</span>
-                  <p className="font-label-caps text-[10px] uppercase tracking-widest">Sem demonstração visual</p>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-            </div>
-
-            <div className="p-8 bg-surface-container/50 border-t border-outline-variant/30">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm text-primary-container">assignment</span>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Instruções de Execução</p>
-                </div>
-                <div className="bg-surface-container p-6 rounded-2xl border border-outline-variant/30">
-                  <p className="font-body-md text-sm text-on-surface leading-relaxed">
-                    {selectedGif.description || 'Nenhuma instrução específica cadastrada para este exercício.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-8 pt-0 bg-surface-container/50">
-              <button 
-                onClick={() => setSelectedGif(null)}
-                className="w-full py-4 bg-primary-container text-on-primary-container font-label-caps rounded-xl hover:brightness-110 transition-all shadow-[0_0_20px_rgba(195,244,0,0.15)] uppercase text-xs tracking-widest neon-glow"
-              >
-                Entendido, fechar
-              </button>
+            <div className="rounded-2xl overflow-hidden aspect-square bg-[#0A0A0A] border border-[#2A2A2A]">
+              <img src={selectedGif.gif_url} alt={selectedGif.name} className="w-full h-full object-cover" />
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }

@@ -1,4 +1,21 @@
 import React, { useState, useEffect } from 'react'
+import { 
+  ChevronLeft, 
+  Save, 
+  Dumbbell, 
+  Activity, 
+  Flame, 
+  Trophy, 
+  Target, 
+  ChevronUp, 
+  ChevronDown, 
+  Eye, 
+  X, 
+  Loader2,
+  Calendar,
+  Layers,
+  Sparkles
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import { 
   AreaChart, 
@@ -11,7 +28,6 @@ import {
 } from 'recharts'
 
 export default function StudentDetailView({ student, onBack, showToast }) {
-  const themeColor = localStorage.getItem('vollonfit_theme_color') || '#DFFF5E';
   const [workouts, setWorkouts] = useState([])
   const [bioRecords, setBioRecords] = useState([])
   const [goals, setGoals] = useState(student?.goals || '')
@@ -27,10 +43,18 @@ export default function StudentDetailView({ student, onBack, showToast }) {
     const fetchData = async () => {
       if (!student?.id) return
       setLoading(true)
-      const { data: woData } = await supabase.from('gym_workouts').select('*').eq('student_id', student.id).order('sequence_order', { ascending: true })
+      const { data: woData } = await supabase
+        .from('gym_workouts')
+        .select('*')
+        .eq('student_id', student.id)
+        .order('sequence_order', { ascending: true })
       if (woData) setWorkouts(woData)
       
-      const { data: bioData } = await supabase.from('gym_biopedance_records').select('*').eq('student_id', student.id).order('record_date', { ascending: true })
+      const { data: bioData } = await supabase
+        .from('gym_biopedance_records')
+        .select('*')
+        .eq('student_id', student.id)
+        .order('record_date', { ascending: true })
       if (bioData) setBioRecords(bioData)
 
       try {
@@ -47,8 +71,8 @@ export default function StudentDetailView({ student, onBack, showToast }) {
 
   const handleSaveGoals = async () => {
     if (!student?.id) {
-      showToast('Erro: ID do aluno não encontrado.', 'error');
-      return;
+      showToast('Erro: ID do aluno não encontrado.', 'error')
+      return
     }
 
     setIsSavingGoals(true)
@@ -61,10 +85,10 @@ export default function StudentDetailView({ student, onBack, showToast }) {
       if (error) {
         showToast('Erro ao salvar metas: ' + error.message, 'error')
       } else {
-        showToast('Metas atualizadas com sucesso!')
+        showToast('Metas do aluno atualizadas com sucesso! 🔥')
       }
     } catch (err) {
-      showToast('Ocorreu um erro inesperado ao salvar.', 'error')
+      showToast('Ocorreu um erro ao salvar.', 'error')
     } finally {
       setIsSavingGoals(false)
     }
@@ -99,268 +123,288 @@ export default function StudentDetailView({ student, onBack, showToast }) {
 
     const updates = newWorkouts.map((w, idx) => ({
       id: w.id,
-      sequence_order: idx
+      sequence_order: idx + 1
     }))
 
-    for (const update of updates) {
-      await supabase.from('gym_workouts').update({ sequence_order: update.sequence_order }).eq('id', update.id)
+    for (const item of updates) {
+      await supabase.from('gym_workouts').update({ sequence_order: item.sequence_order }).eq('id', item.id)
     }
-    
-    showToast('Ordem atualizada!')
+    showToast('Ordem das rotinas atualizada!')
   }
 
-  const chartData = (bioRecords || []).map(r => ({
-    date: r.record_date ? new Date(r.record_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '?',
-    weight: r.weight || 0,
-    fat: r.body_fat_pct || 0,
-    muscle: r.muscle_mass_kg || 0
-  }))
-
   return (
-    <div className="space-y-8 animate-in slide-in-from-right duration-300">
-      <button onClick={onBack} className="flex items-center gap-2 text-on-surface-variant hover:text-primary-container transition-colors font-label-caps text-[10px] uppercase tracking-widest">
-        <span className="material-symbols-outlined text-lg">chevron_left</span> Voltar para Alunos
-      </button>
-
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between glass-panel p-6 sm:p-8 rounded-3xl border border-outline-variant/30 shadow-sm gap-6">
-        <div className="flex items-center gap-4 sm:gap-6">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-container/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-display-lg text-primary-container">
-            {student?.name?.[0] || 'A'}
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+      
+      {/* Top Header com Botão Voltar */}
+      <div className="vollon-card p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onBack}
+            className="w-11 h-11 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white hover:border-[#E11D2E] transition-colors cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
           <div>
-            <h2 className="text-xl sm:text-3xl font-display-xl text-on-surface truncate max-w-[200px] sm:max-w-none">{student?.name || 'Aluno'}</h2>
-            <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mt-1">@{student?.username || 'usuario'}</p>
+            <div className="flex items-center gap-2.5">
+              <h2 className="font-display text-3xl font-black uppercase text-white tracking-tight">
+                {student.name}
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#E11D2E]/15 border border-[#E11D2E]/30 text-[9px] font-bold text-[#FF3B4A] uppercase">
+                Ativo
+              </span>
+            </div>
+            <p className="text-xs text-[#A3A3A3] mt-0.5">
+              @{student.username} · {workouts.length} rotinas cadastradas
+            </p>
           </div>
         </div>
-        
-        <div className="flex w-full sm:w-auto bg-surface-container p-1 rounded-2xl border border-outline-variant/30 overflow-x-auto custom-scrollbar">
-          {['overview', 'workouts', 'evolution'].map(tab => (
-            <button 
-              key={tab}
-              onClick={() => setCurrentSubTab(tab)}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-label-caps text-[10px] sm:text-xs transition-all whitespace-nowrap uppercase tracking-widest ${currentSubTab === tab ? 'bg-primary-container text-on-primary-container shadow-sm neon-glow' : 'text-on-surface-variant hover:text-on-surface'}`}
-            >
-              {tab === 'overview' ? 'Visão Geral' : tab === 'workouts' ? 'Treinos' : 'Evolução'}
-            </button>
-          ))}
+
+        {/* Alternador de Sub-Abas */}
+        <div className="flex gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] p-1.5 rounded-2xl">
+          <button
+            onClick={() => setCurrentSubTab('overview')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              currentSubTab === 'overview' ? 'bg-[#E11D2E] text-white shadow-sm' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            Visão Geral
+          </button>
+          <button
+            onClick={() => setCurrentSubTab('workouts')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              currentSubTab === 'workouts' ? 'bg-[#E11D2E] text-white shadow-sm' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            Rotinas
+          </button>
+          <button
+            onClick={() => setCurrentSubTab('biopedance')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              currentSubTab === 'biopedance' ? 'bg-[#E11D2E] text-white shadow-sm' : 'text-[#A3A3A3] hover:text-white'
+            }`}
+          >
+            Bioimpedância
+          </button>
         </div>
       </div>
 
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {currentSubTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm">
-                <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary-container">trending_up</span> Evolução Recente
+      {/* SUB-ABA 1: VISÃO GERAL & METAS */}
+      {currentSubTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Metas e Foco do Treinador */}
+          <div className="lg:col-span-7 vollon-card p-6 sm:p-8 rounded-3xl space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-[#2A2A2A]">
+              <Target className="w-5 h-5 text-[#FF3B4A]" />
+              <div>
+                <h3 className="font-display text-xl font-black uppercase text-white tracking-tight">
+                  Metas & Prescrição Nutricional
                 </h3>
-                {bioRecords.length > 0 ? (
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
-                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
-                        <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
-                        <Tooltip contentStyle={{borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', backgroundColor: '#111', color: '#fff'}} />
-                        <Area type="monotone" dataKey="weight" stroke={themeColor} fill={themeColor} fillOpacity={0.1} strokeWidth={3} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <p className="text-center py-20 font-body-md text-on-surface-variant italic">Nenhum dado de biopedância registrado.</p>
-                )}
-              </section>
+                <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">
+                  Visível no topo do app do aluno
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="glass-panel bg-surface-container-highest border border-outline-variant/30 p-8 rounded-3xl shadow-xl relative overflow-hidden group">
-                <span className="material-symbols-outlined absolute -right-4 -top-4 text-9xl text-on-surface-variant/10 rotate-12 group-hover:scale-110 transition-transform duration-700">monitor_heart</span>
-                <h4 className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-[0.2em] mb-8">Status Atual</h4>
-                {bioRecords.length > 0 ? (
-                  <div className="space-y-6 relative z-10">
-                    <div className="flex justify-between items-end">
-                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">Peso Total</span>
-                      <span className="font-display-lg text-3xl text-on-surface">{bioRecords[bioRecords.length-1]?.weight || 0}kg</span>
-                    </div>
-                    <div className="flex justify-between items-end">
-                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">% Gordura</span>
-                      <span className="font-display-lg text-3xl text-error">{bioRecords[bioRecords.length-1]?.body_fat_pct || 0}%</span>
-                    </div>
-                    <div className="flex justify-between items-end">
-                      <span className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-wider">Massa Magra</span>
-                      <span className="font-display-lg text-3xl text-primary-container">{bioRecords[bioRecords.length-1]?.muscle_mass_kg || 0}kg</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-10 text-center relative z-10">
-                    <span className="material-symbols-outlined text-5xl text-on-surface-variant/30 mx-auto mb-4 block">monitor_weight</span>
-                    <p className="font-body-md text-on-surface-variant italic">Aguardando biopedância.</p>
-                  </div>
-                )}
-              </div>
+            <textarea 
+              value={goals}
+              onChange={e => setGoals(e.target.value)}
+              placeholder="Ex: Foco em hipertrofia dos membros superiores, manter déficit calórico moderado de 300 kcal..."
+              className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-[#E11D2E] transition-colors h-36 resize-none leading-relaxed"
+            />
 
-              <div className="glass-panel p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
-                <h4 className="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mb-4">Metas do Professor</h4>
-                <div className="space-y-4">
-                  <textarea 
-                    value={goals}
-                    onChange={(e) => setGoals(e.target.value)}
-                    placeholder="Defina metas para o aluno..."
-                    className="w-full bg-surface-container border border-outline-variant/30 rounded-2xl p-4 font-body-md text-sm text-on-surface outline-none focus:border-primary-container transition-all min-h-[120px] resize-none"
-                  />
-                  <button 
-                    onClick={handleSaveGoals}
-                    disabled={isSavingGoals}
-                    className="w-full bg-primary-container/10 text-primary-container font-label-caps py-3 rounded-xl text-xs hover:bg-primary-container hover:text-on-primary-container transition-all disabled:opacity-50 uppercase tracking-widest"
-                  >
-                    {isSavingGoals ? 'Salvando...' : 'Atualizar Metas'}
-                  </button>
-                </div>
+            <button 
+              onClick={handleSaveGoals}
+              disabled={isSavingGoals}
+              className="vollon-btn-primary px-6 h-12 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_6px_20px_rgba(255,59,74,0.35)]"
+            >
+              {isSavingGoals ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              <span>Salvar Metas do Aluno</span>
+            </button>
+          </div>
+
+          {/* Dados Biométricos Rápidos */}
+          <div className="lg:col-span-5 vollon-card p-6 sm:p-8 rounded-3xl space-y-4">
+            <h3 className="font-display text-xl font-black uppercase text-white tracking-tight pb-3 border-b border-[#2A2A2A]">
+              Perfil Biométrico
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3.5 bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A]">
+                <span className="text-xs text-[#A3A3A3] font-bold uppercase">Idade</span>
+                <span className="font-display text-xl font-black text-white">{student.age || '—'} anos</span>
+              </div>
+              <div className="flex justify-between items-center p-3.5 bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A]">
+                <span className="text-xs text-[#A3A3A3] font-bold uppercase">Altura</span>
+                <span className="font-display text-xl font-black text-white">{student.height ? `${student.height} m` : '—'}</span>
+              </div>
+              <div className="flex justify-between items-center p-3.5 bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A]">
+                <span className="text-xs text-[#A3A3A3] font-bold uppercase">Peso Inicial</span>
+                <span className="font-display text-xl font-black text-[#FF3B4A]">{student.initial_weight ? `${student.initial_weight} kg` : '—'}</span>
               </div>
             </div>
           </div>
-        )}
 
-        {currentSubTab === 'workouts' && (
-          <section className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">assignment</span> Treinos do Aluno
+        </div>
+      )}
+
+      {/* SUB-ABA 2: ROTINAS CADASTRADAS */}
+      {currentSubTab === 'workouts' && (
+        <div className="vollon-card p-6 sm:p-8 rounded-3xl space-y-4">
+          <div className="flex justify-between items-center pb-3 border-b border-[#2A2A2A]">
+            <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+              Ordem das Rotinas de Treino
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {workouts.map((w, idx) => (
-                <div key={w.id} className="relative group">
+            <span className="text-xs text-[#A3A3A3] font-bold uppercase">
+              Use as setas para definir a ordem no app do aluno
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {workouts.map((w, idx) => (
+              <div 
+                key={w.id} 
+                className="p-4 bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A] flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-xl bg-[#141414] border border-[#2A2A2A] flex items-center justify-center font-display font-black text-sm text-white">
+                    {idx + 1}
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-sm text-white">{w.name}</h4>
+                    <p className="text-xs text-[#A3A3A3]">{w.description || 'Rotina sem descrição'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button 
                     onClick={() => handleViewWorkoutDetail(w)}
-                    className="w-full p-6 bg-surface rounded-3xl border border-outline-variant/30 flex flex-col justify-between hover:border-primary-container/30 transition-all shadow-sm text-left active:scale-95 relative overflow-hidden"
+                    className="vollon-btn-secondary px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white hover:border-[#E11D2E] flex items-center gap-1.5 cursor-pointer"
                   >
-                    <div className="mb-6 pr-24">
-                      <p className="font-headline-md text-on-surface text-xl mb-1 group-hover:text-primary-container transition-colors line-clamp-2">{w.name}</p>
-                      <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
-                        Criado em {new Date(w.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-label-caps text-[10px] text-primary-container bg-primary-container/10 px-3 py-1.5 rounded-full uppercase">Ver Exercícios</span>
-                      <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors">fitness_center</span>
-                    </div>
+                    <Eye className="w-3.5 h-3.5 text-[#FF3B4A]" />
+                    <span>Exercícios</span>
                   </button>
 
-                  <div className="absolute top-6 right-6 flex gap-1 z-20">
+                  <div className="flex flex-col gap-1">
                     <button 
+                      onClick={() => handleMoveWorkout(idx, 'up')}
                       disabled={idx === 0}
-                      onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'up'); }}
-                      className="p-2 bg-surface-container/80 rounded-xl text-primary-container hover:bg-primary-container hover:text-on-primary-container disabled:opacity-20 border border-outline-variant/30 shadow-lg transition-all backdrop-blur-sm"
+                      className="w-6 h-5 rounded bg-[#141414] hover:bg-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white disabled:opacity-20 cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-lg">expand_less</span>
+                      <ChevronUp className="w-3.5 h-3.5" />
                     </button>
                     <button 
+                      onClick={() => handleMoveWorkout(idx, 'down')}
                       disabled={idx === workouts.length - 1}
-                      onClick={(e) => { e.stopPropagation(); handleMoveWorkout(idx, 'down'); }}
-                      className="p-2 bg-surface-container/80 rounded-xl text-primary-container hover:bg-primary-container hover:text-on-primary-container disabled:opacity-20 border border-outline-variant/30 shadow-lg transition-all backdrop-blur-sm"
+                      className="w-6 h-5 rounded bg-[#141414] hover:bg-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white disabled:opacity-20 cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-lg">expand_more</span>
+                      <ChevronDown className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-              ))}
-              {workouts.length === 0 && (
-                <div className="col-span-full py-20 text-center glass-panel rounded-3xl border-2 border-dashed border-outline-variant/30">
-                  <p className="font-body-md text-on-surface-variant italic">Nenhum treino criado ainda.</p>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
+              </div>
+            ))}
 
-        {currentSubTab === 'evolution' && (
-          <div className="glass-panel p-8 rounded-3xl border border-outline-variant/30 shadow-sm animate-in slide-in-from-right-4 duration-300">
-            <h3 className="font-headline-lg text-lg text-on-surface mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">history</span> Histórico de Evolução
-            </h3>
-            <div className="space-y-4">
-              {bioRecords.slice().reverse().map((r, i) => (
-                <div key={i} className="flex items-center justify-between p-6 bg-surface rounded-3xl border border-outline-variant/30 group hover:bg-surface-container hover:border-outline-variant/50 hover:shadow-md transition-all">
-                  <div className="flex items-center gap-6">
-                    <div className="bg-surface-container w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-sm border border-outline-variant/30">
-                      <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">{new Date(r.record_date).toLocaleDateString('pt-BR', { month: 'short' })}</p>
-                      <p className="font-display-lg text-lg text-on-surface">{new Date(r.record_date).getDate()}</p>
-                    </div>
-                    <div>
-                      <p className="font-display-lg text-primary-container text-lg">{r.weight}kg</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                        <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Gordura: <b className="text-on-surface">{r.body_fat_pct}%</b></span>
-                        <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Músculo: <b className="text-on-surface">{r.muscle_mass_kg}kg</b></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {bioRecords.length === 0 && (
-                <p className="text-center py-20 font-body-md text-on-surface-variant italic">Nenhum registro encontrado.</p>
-              )}
-            </div>
+            {workouts.length === 0 && (
+              <p className="text-center py-10 text-xs font-bold uppercase tracking-wider text-[#A3A3A3]">
+                Nenhuma rotina cadastrada para este aluno.
+              </p>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* SUB-ABA 3: GRÁFICO DE BIOIMPEDÂNCIA */}
+      {currentSubTab === 'biopedance' && (
+        <div className="vollon-card p-6 sm:p-8 rounded-3xl space-y-6">
+          <div className="flex justify-between items-center pb-3 border-b border-[#2A2A2A]">
+            <div>
+              <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                Evolução de Peso Corporal (kg)
+              </h3>
+              <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest mt-0.5">
+                Histórico de medições
+              </p>
+            </div>
+            <span className="text-xs font-display font-black text-[#FF3B4A]">
+              {bioRecords.length} medições
+            </span>
+          </div>
+
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={bioRecords} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E11D2E" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#E11D2E" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
+                <XAxis dataKey="record_date" axisLine={false} tickLine={false} tick={{ fill: '#A3A3A3', fontSize: 11 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A3A3A3', fontSize: 11 }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#141414', border: '1px solid #2A2A2A', borderRadius: '16px' }}
+                  itemStyle={{ color: '#FF3B4A', fontWeight: 900 }}
+                  formatter={(val) => [`${val} kg`, 'Peso']}
+                />
+                <Area type="monotone" dataKey="weight" stroke="#FF3B4A" strokeWidth={3} fillOpacity={1} fill="url(#colorWeight)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Detalhes dos Exercícios do Treino */}
       {isWorkoutModalOpen && (
-        <div className="fixed inset-0 bg-surface/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="glass-panel border border-outline-variant/30 w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-8 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-highest">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="vollon-card w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[85vh] flex flex-col border border-[#2A2A2A] shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 border-b border-[#2A2A2A] pb-3">
               <div>
-                <h3 className="font-display-xl text-2xl text-on-surface">{selectedWorkoutDetail?.name}</h3>
-                <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">Lista de Exercícios</p>
+                <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+                  {selectedWorkoutDetail?.name}
+                </h3>
+                <p className="text-xs text-[#A3A3A3]">
+                  {workoutItems.length} exercícios na rotina
+                </p>
               </div>
               <button 
                 onClick={() => setIsWorkoutModalOpen(false)}
-                className="p-3 bg-surface-container rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all border border-outline-variant/30"
+                className="w-9 h-9 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined text-lg">close</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               {loadingItems ? (
-                <div className="py-20 text-center">
-                  <span className="material-symbols-outlined text-4xl text-primary-container animate-spin mx-auto mb-4 block">sync</span>
-                  <p className="font-label-caps text-on-surface-variant text-xs uppercase tracking-widest">Carregando Itens...</p>
+                <div className="py-12 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#FF3B4A]" />
                 </div>
               ) : (
-                workoutItems.map((item, idx) => {
-                  const ex = Array.isArray(item.gym_exercises) ? item.gym_exercises[0] : item.gym_exercises
-                  return (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-surface rounded-3xl border border-outline-variant/30 group hover:border-primary-container/30 transition-colors">
-                      <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant/30">
-                        {ex?.gif_url ? (
-                          <img src={ex.gif_url} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-on-surface-variant">fitness_center</span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-headline-md text-sm text-on-surface">{ex?.name || 'Exercício'}</p>
-                        <div className="flex gap-3 mt-1">
-                          <span className="font-label-caps text-[10px] text-primary-container bg-primary-container/10 px-2 py-0.5 rounded-md uppercase tracking-wider">{item.target_sets} Sets</span>
-                          <span className="font-label-caps text-[10px] text-[#C6C4FF] bg-[#C6C4FF]/10 px-2 py-0.5 rounded-md uppercase tracking-wider">{item.target_reps} Reps</span>
-                        </div>
+                workoutItems.map((item, idx) => (
+                  <div key={item.id} className="p-3.5 bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 rounded-lg bg-[#141414] border border-[#2A2A2A] flex items-center justify-center font-display font-black text-xs text-white">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <h5 className="font-bold text-xs text-white">
+                          {item.gym_exercises?.name || 'Exercício'}
+                        </h5>
+                        <p className="text-[10px] text-[#A3A3A3]">
+                          {item.target_sets || 4} séries · {item.target_reps || '12'} reps · {item.rest_time || '60s'} descanso
+                        </p>
                       </div>
                     </div>
-                  )
-                })
+                  </div>
+                ))
               )}
-            </div>
-            
-            <div className="p-8 bg-surface-container-highest border-t border-outline-variant/30">
-              <button 
-                onClick={() => setIsWorkoutModalOpen(false)}
-                className="w-full bg-primary-container text-on-primary-container font-label-caps py-4 rounded-2xl hover:brightness-110 transition-all uppercase tracking-widest neon-glow"
-              >
-                Fechar Detalhes
-              </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }

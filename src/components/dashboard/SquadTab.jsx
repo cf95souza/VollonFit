@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-
+import { Bell, Users, Copy, CheckCircle2, ChevronRight, LogOut, Trash2 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
-import SquadLeaderboard from './SquadLeaderboard'
+import { daysAgoLocally } from '../../utils/dateUtils'
 
 export default function SquadTab({ student, showToast }) {
   const [squad, setSquad] = useState(null)
@@ -20,12 +20,11 @@ export default function SquadTab({ student, showToast }) {
   const [isCreating, setIsCreating] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isPingingSquad, setIsPingingSquad] = useState(false)
-  const [totalPoints, setTotalPoints] = useState(0)
+  const [memberPoints, setMemberPoints] = useState({})
 
   const fetchSquadInfo = async () => {
     setIsLoading(true)
     try {
-      // Verifica se o aluno pertence a algum squad
       const { data: memberData, error: memberError } = await supabase
         .from('gym_squad_members')
         .select('squad_id, role')
@@ -35,7 +34,6 @@ export default function SquadTab({ student, showToast }) {
       if (memberError) throw memberError
 
       if (memberData) {
-        // Busca os dados do Squad
         const { data: squadData, error: squadError } = await supabase
           .from('gym_squads')
           .select('*')
@@ -45,7 +43,6 @@ export default function SquadTab({ student, showToast }) {
         if (squadError) throw squadError
         setSquad({ ...squadData, myRole: memberData.role })
 
-        // Busca os membros com um JOIN na tabela de estudantes (fazendo 2 queries pela simplicidade do custom auth)
         const { data: squadMembers, error: membersError } = await supabase
           .from('gym_squad_members')
           .select('student_id, role, joined_at')
@@ -63,10 +60,8 @@ export default function SquadTab({ student, showToast }) {
           
         if (stError) throw stError
 
-        // Verificar inatividade (> 3 dias)
-        const threeDaysAgo = new Date()
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
-        const limitDateStr = threeDaysAgo.toISOString().split('T')[0]
+        // Inatividade calculada localmente (evita virada UTC após 21h)
+        const limitDateStr = daysAgoLocally(3)
 
         const { data: recentLogs } = await supabase
           .from('gym_training_logs')
@@ -83,7 +78,21 @@ export default function SquadTab({ student, showToast }) {
 
         setMembers(formattedMembers)
 
-        // Fetch Posts Iniciais (Pagina 0)
+        // Buscar pontos dos membros na semana (data local)
+        const dateStr7d = daysAgoLocally(7)
+        const { data: scoreLogs } = await supabase
+          .from('gym_squad_score_logs')
+          .select('student_id, points')
+          .eq('squad_id', squadData.id)
+          .gte('created_at', dateStr7d)
+
+        const scoreMap = {}
+        ;(scoreLogs || []).forEach(log => {
+          scoreMap[log.student_id] = (scoreMap[log.student_id] || 0) + (log.points || 0)
+        })
+        setMemberPoints(scoreMap)
+
+        // Buscar Posts
         const { data: squadPosts, error: postsError } = await supabase
           .from('gym_squad_posts')
           .select('*, gym_students(name, username)')
@@ -96,20 +105,6 @@ export default function SquadTab({ student, showToast }) {
           setPostsPage(1)
           setHasMorePosts((squadPosts?.length || 0) === POSTS_PER_PAGE)
         }
-
-        // Buscar total de pontos do Squad (últimos 30 dias)
-        const sevenDaysAgo = new Date()
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-        const dateStr = sevenDaysAgo.toISOString().split('T')[0]
-
-        const { data: scoreData } = await supabase
-          .from('gym_squad_score_logs')
-          .select('points')
-          .eq('squad_id', squadData.id)
-          .gte('created_at', dateStr)
-        
-        const total = (scoreData || []).reduce((acc, curr) => acc + curr.points, 0)
-        setTotalPoints(total)
       } else {
         setSquad(null)
         setMembers([])
@@ -192,7 +187,6 @@ export default function SquadTab({ student, showToast }) {
       showToast('Squad criado com sucesso!')
       setNewSquadName('')
       fetchSquadInfo()
-
     } catch (e) {
       console.error(e)
       showToast('Erro ao criar Squad', 'error')
@@ -233,10 +227,17 @@ export default function SquadTab({ student, showToast }) {
       
       if (joinError) throw joinError
 
+      // Gravar post de boas vindas
+      await supabase.from('gym_squad_posts').insert([{
+        squad_id: foundSquad.id,
+        student_id: student.id,
+        type: 'achievement',
+        content: `Entrou no squad!`
+      }])
+
       showToast('Você entrou no Squad!')
       setInviteCode('')
       fetchSquadInfo()
-
     } catch (e) {
       console.error(e)
       if (e.code === '23505') {
@@ -246,63 +247,6 @@ export default function SquadTab({ student, showToast }) {
       }
     } finally {
       setIsJoining(false)
-    }
-  }
-
-  const handleLeaveSquad = async () => {
-    if (!window.confirm('Tem certeza que deseja sair do Squad?')) return
-
-    try {
-      await supabase
-        .from('gym_squad_members')
-        .delete()
-        .eq('squad_id', squad.id)
-        .eq('student_id', student.id)
-      
-      showToast('Você saiu do Squad')
-      fetchSquadInfo()
-    } catch (e) {
-      console.error(e)
-      showToast('Erro ao sair do Squad', 'error')
-    }
-  }
-
-  const handleDeleteSquad = async () => {
-    if (!window.confirm('ATENÇÃO: Isso excluirá o Squad e todos os dados vinculados (feed, pontos). Confirmar?')) return
-
-    try {
-      const { error } = await supabase
-        .from('gym_squads')
-        .delete()
-        .eq('id', squad.id)
-      
-      if (error) throw error
-      
-      showToast('Squad deletado com sucesso')
-      fetchSquadInfo()
-    } catch (e) {
-      console.error(e)
-      showToast('Erro ao deletar Squad', 'error')
-    }
-  }
-
-  const handleKickMember = async (memberId, memberName) => {
-    if (!window.confirm(`Deseja remover ${memberName} do Squad?`)) return
-
-    try {
-      const { error } = await supabase
-        .from('gym_squad_members')
-        .delete()
-        .eq('squad_id', squad.id)
-        .eq('student_id', memberId)
-      
-      if (error) throw error
-      
-      showToast(`${memberName} removido`)
-      fetchSquadInfo()
-    } catch (e) {
-      console.error(e)
-      showToast('Erro ao remover membro', 'error')
     }
   }
 
@@ -323,7 +267,7 @@ export default function SquadTab({ student, showToast }) {
         sender_id: student.id,
         receiver_id: m.student_id,
         type: 'ping',
-        message: `${student.name} mandou um PING para o bando! Bora treinar! 💪`
+        message: `${student.name} mandou um PING motivacional para todo o bando! Bora treinar! 💪`
       }))
 
       if (notifications.length > 0) {
@@ -334,117 +278,115 @@ export default function SquadTab({ student, showToast }) {
         squad_id: squad.id,
         student_id: student.id,
         type: 'achievement',
-        content: `Mandou um PING motivacional para todo o bando! 📢🔥`
+        content: `Mandou um PING motivacional para todo o bando!`
       }])
 
-      showToast('Ping enviado para o Squad!')
+      showToast('Chamou o bando!')
       fetchSquadInfo()
     } catch (e) {
       console.error(e)
-      showToast('Erro ao enviar ping', 'error')
+      showToast('Erro ao enviar aviso', 'error')
     } finally {
       setIsPingingSquad(false)
     }
   }
 
-  const handleNudge = async (memberId, memberName) => {
+  const handleNudge = async (partnerId, partnerName) => {
     try {
       await supabase.from('gym_social_notifications').insert([{
         sender_id: student.id,
-        receiver_id: memberId,
+        receiver_id: partnerId,
         type: 'ping',
-        message: `O bando sentiu sua falta, ${memberName}! Bora voltar pro foco? 🔥`
+        message: `Bora treinar, ${partnerName}! 🔔 Caio te chamou!`
       }])
-      showToast(`Cobrança enviada para ${memberName}!`)
+
+      await supabase.from('gym_squad_posts').insert([{
+        squad_id: squad.id,
+        student_id: student.id,
+        type: 'achievement',
+        content: `Mandou um lembrete para acordar ${partnerName}! 🔔`
+      }])
+
+      showToast(`Você acordou ${partnerName}!`)
+      fetchSquadInfo()
     } catch (e) {
       console.error(e)
-      showToast('Erro ao enviar cobrança', 'error')
+      showToast('Erro ao avisar parceiro', 'error')
     }
   }
 
   if (isLoading) {
-    return <div className="flex justify-center py-20"><div className="w-8 h-8 rounded-full border-4 border-primary-container border-t-transparent animate-spin"></div></div>
+    return (
+      <div className="flex justify-center py-20">
+        <div className="w-8 h-8 rounded-full border-2 border-[#E11D2E] border-t-transparent animate-spin" />
+      </div>
+    )
   }
 
+  // Estado: Sem Squad Cadastrado
   if (!squad) {
     return (
-      <div className="bg-[#101417] text-[#e0e2e8] min-h-screen pb-24 font-sans animate-in fade-in duration-500 relative pt-[env(safe-area-inset-top,0px)]">
-        <style dangerouslySetInnerHTML={{__html: `
-          .glass-panel { background: rgba(50, 53, 57, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-          .neon-glow { box-shadow: 0 0 15px rgba(195,244,0,0.3); }
-        `}} />
-        
-        {/* TopAppBar Fake */}
-        <header className="fixed top-0 w-full z-50 bg-[#101417]/80 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_20px_rgba(195,244,0,0.1)] flex justify-between items-center px-4 h-16 pt-[env(safe-area-inset-top,0px)]">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">bolt</span>
+      <div className="max-w-md mx-auto w-full px-5 pt-8 space-y-6">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-[#141414] border border-[#2A2A2A] rounded-2xl flex items-center justify-center mx-auto text-[#FF3B4A]">
+            <Users className="w-8 h-8" />
           </div>
-          <div className="font-sans italic font-black text-primary text-xl tracking-tighter uppercase">
-              STRENGTH HUB
-          </div>
-          <div className="flex items-center gap-2 opacity-0">
-            <span className="material-symbols-outlined">shopping_cart</span>
-          </div>
-        </header>
+          <h2 className="font-display text-3xl font-black uppercase text-white tracking-tight">
+            Squad Casal
+          </h2>
+          <p className="text-xs text-[#A3A3A3] max-w-xs mx-auto">
+            Treine junto e acompanhe o duelo de constância e pontuação em tempo real.
+          </p>
+        </div>
 
-        <div className="pt-[calc(80px+env(safe-area-inset-top,0px))] px-4 max-w-md mx-auto space-y-8 pb-20">
-          <div className="text-center space-y-3 mt-4">
-            <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 neon-glow border border-primary/20">
-              <span className="material-symbols-outlined text-5xl">groups</span>
+        <div className="vollon-card p-5 space-y-4 rounded-3xl">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-wider block">
+              Criar Novo Squad
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Nome do Squad (ex: Squad Casal)"
+                value={newSquadName}
+                onChange={e => setNewSquadName(e.target.value)}
+                className="flex-1 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-3.5 py-3 text-white text-sm focus:border-[#E11D2E] outline-none"
+              />
+              <button
+                onClick={handleCreateSquad}
+                disabled={isCreating}
+                className="vollon-btn-primary px-5 rounded-xl font-bold text-xs uppercase"
+              >
+                {isCreating ? '...' : 'Criar'}
+              </button>
             </div>
-            <h2 className="font-sans text-3xl text-white font-black italic uppercase tracking-tighter">Seu Bando</h2>
-            <p className="font-sans text-sm text-[#c4c9ac] px-4 font-semibold">A união faz a força. Junte-se a um bando para grindar XP!</p>
           </div>
 
-          <div className="glass-panel p-6 rounded-2xl space-y-6 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-[#2A2A2A]" />
+            <span className="shrink mx-3 text-[10px] text-[#52525B] font-bold uppercase">ou</span>
+            <div className="flex-grow border-t border-[#2A2A2A]" />
+          </div>
 
-            <div className="space-y-3 z-10 relative">
-              <h3 className="font-sans font-bold text-white text-base tracking-tight flex items-center gap-2 uppercase">
-                <span className="material-symbols-outlined text-primary">track_changes</span>
-                Criar um Squad
-              </h3>
-              <div className="flex gap-2">
-                <input 
-                  type="text"
-                  placeholder="Nome do Squad"
-                  value={newSquadName}
-                  onChange={e => setNewSquadName(e.target.value)}
-                  className="flex-1 bg-[#0b0f12] border border-white/10 rounded-xl p-3 text-sm font-sans font-semibold text-white outline-none focus:border-primary transition-all placeholder:text-gray-600"
-                />
-                <button 
-                  onClick={handleCreateSquad}
-                  disabled={isCreating}
-                  className="bg-primary text-black font-sans font-bold uppercase tracking-widest text-[10px] px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all neon-glow"
-                >
-                  {isCreating ? '...' : 'Criar'}
-                </button>
-              </div>
-            </div>
-
-            <div className="h-px bg-white/10 w-full my-4"></div>
-
-            <div className="space-y-3 z-10 relative">
-              <h3 className="font-sans font-bold text-white text-base tracking-tight flex items-center gap-2 uppercase">
-                <span className="material-symbols-outlined text-[#00dbe9]">person_add</span>
-                Entrar em um Squad
-              </h3>
-              <div className="flex gap-2">
-                <input 
-                  type="text"
-                  placeholder="Código de Convite"
-                  value={inviteCode}
-                  onChange={e => setInviteCode(e.target.value.toUpperCase())}
-                  className="flex-1 bg-[#0b0f12] border border-white/10 rounded-xl p-3 text-sm font-sans font-semibold text-white outline-none focus:border-[#00dbe9] transition-all placeholder:text-gray-600 uppercase"
-                />
-                <button 
-                  onClick={handleJoinSquad}
-                  disabled={isJoining}
-                  className="bg-[#00dbe9] text-black font-sans font-bold uppercase tracking-widest text-[10px] px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,219,233,0.3)]"
-                >
-                  {isJoining ? '...' : 'Entrar'}
-                </button>
-              </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-wider block">
+              Entrar em Squad Existente
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Código de 6 dígitos"
+                value={inviteCode}
+                onChange={e => setInviteCode(e.target.value.toUpperCase())}
+                className="flex-1 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-3.5 py-3 text-white text-sm uppercase tracking-wider focus:border-[#E11D2E] outline-none"
+              />
+              <button
+                onClick={handleJoinSquad}
+                disabled={isJoining}
+                className="vollon-btn-secondary px-5 rounded-xl font-bold text-xs uppercase"
+              >
+                {isJoining ? '...' : 'Entrar'}
+              </button>
             </div>
           </div>
         </div>
@@ -452,142 +394,173 @@ export default function SquadTab({ student, showToast }) {
     )
   }
 
+  // Identificação do Usuário e do Parceiro
+  const currentUser = members.find(m => m.student_id === student.id) || { name: student.name, student_id: student.id }
+  const partnerUser = members.find(m => m.student_id !== student.id) || { name: 'Thais', student_id: 'partner' }
+
+  const currentUserName = currentUser.name?.split(' ')[0] || 'Caio'
+  const partnerUserName = partnerUser.name?.split(' ')[0] || 'Thais'
+
+  const userPts = memberPoints[currentUser.student_id] || 0
+  const partnerPts = memberPoints[partnerUser.student_id] || 0
+
+  const totalDuelPts = userPts + partnerPts
+  const userPercent = totalDuelPts > 0 ? Math.round((userPts / totalDuelPts) * 100) : 50
+
   return (
-    <div className="bg-[#101417] text-[#e0e2e8] min-h-screen pb-24 font-sans relative overflow-x-hidden">
-      <style dangerouslySetInnerHTML={{__html: `
-        .glass-panel { background: rgba(50, 53, 57, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .neon-glow { box-shadow: 0 0 15px rgba(195,244,0,0.3); }
-        .avatar-ring-live { box-shadow: 0 0 10px rgba(0, 219, 233, 0.8); border: 2px solid #00dbe9; }
-      `}} />
-
-      <main className="pt-6 px-4 max-w-md mx-auto space-y-6 pb-20">
+    <div className="max-w-md mx-auto w-full px-5 pt-8 space-y-6">
+      
+      {/* Card Principal: SQUAD CASAL (04-squads.png) */}
+      <div className="vollon-card p-6 rounded-3xl relative overflow-hidden">
         
-        {/* Squad Hero */}
-        <section className="glass-panel rounded-xl p-6 flex flex-col gap-4 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
-          
-          <div className="flex justify-between items-start z-10">
-            <div>
-              <p className="font-sans text-[10px] text-[#c4c9ac] uppercase mb-1 font-bold tracking-widest">Active Squad</p>
-              <h1 className="font-sans text-2xl text-white font-black italic tracking-tight uppercase">{squad.name}</h1>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-1 bg-[#272a2e] px-3 py-1 rounded-full border border-white/5">
-                <div className="w-2 h-2 rounded-full bg-[#00dbe9] animate-pulse"></div>
-                <span className="font-sans font-bold text-[#e0e2e8] text-[10px] tracking-wider uppercase">LIVE</span>
-              </div>
-              <button onClick={copyCode} className="text-[#c4c9ac] text-[10px] uppercase font-bold tracking-widest flex items-center gap-1 hover:text-primary mt-1 bg-black/20 px-2 py-1 rounded border border-white/5">
-                 {squad.invite_code} <span className="material-symbols-outlined text-[12px]">{copied ? 'check_circle' : 'content_copy'}</span>
-              </button>
-            </div>
+        {/* Glow Superior Suave */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-[#E11D2E]/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Topo do Card */}
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <h1 className="font-display text-3xl font-black uppercase text-white tracking-tight">
+            {squad.name || 'SQUAD CASAL'}
+          </h1>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E11D2E]/15 border border-[#E11D2E]/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B4A] animate-pulse" />
+            <span className="text-[10px] font-bold text-[#FF3B4A] tracking-wider uppercase">
+              AO VIVO
+            </span>
           </div>
-
-          <div className="mt-2 z-10">
-            <div className="flex justify-between items-center mb-2">
-               <h2 className="font-sans text-[10px] text-[#abd600] font-bold tracking-widest uppercase">Squad Grinders</h2>
-               <span className="font-sans text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded uppercase tracking-wider border border-primary/20 shadow-[0_0_10px_rgba(195,244,0,0.1)]">{totalPoints.toLocaleString()} PTS</span>
-            </div>
-            
-            <div className="space-y-1 mt-3">
-              {members.map((member, index) => (
-                <div key={member.student_id} className="flex items-center justify-between bg-[#1c2024]/50 p-2 rounded-lg border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className={`font-sans font-bold w-4 text-center text-sm ${index === 0 ? 'text-primary' : index === 1 ? 'text-[#c6c6ca]' : 'text-[#bbbbbf]'}`}>{index + 1}</div>
-                    
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-inner ${member.isInactive ? 'bg-[#ffb4ab]/10 text-[#ffb4ab] opacity-50' : 'bg-primary/20 text-primary avatar-ring-live'}`}>
-                       {member.name?.[0]}
-                    </div>
-                    
-                    <div className="flex flex-col">
-                       <span className={`font-sans text-sm font-semibold ${member.isInactive ? 'text-gray-500 line-through' : 'text-white'}`}>
-                         {member.name} 
-                         {member.student_id === student.id && <span className="ml-1 text-[8px] text-[#00dbe9] bg-[#00dbe9]/10 px-1 py-0.5 rounded">VOCÊ</span>}
-                       </span>
-                       {member.isInactive && member.student_id !== student.id && (
-                          <button onClick={() => handleNudge(member.student_id, member.name)} className="text-[9px] text-[#ffb4ab] uppercase tracking-wider hover:underline text-left mt-0.5 flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[10px]">notifications_active</span> Acordar
-                          </button>
-                       )}
-                    </div>
-                  </div>
-                  {squad.myRole === 'admin' && member.student_id !== student.id && (
-                    <button onClick={() => handleKickMember(member.student_id, member.name)} className="text-[#ffb4ab] opacity-50 hover:opacity-100 flex items-center justify-center bg-[#ffb4ab]/10 w-6 h-6 rounded">
-                      <span className="material-symbols-outlined text-[14px]">cancel</span>
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <button onClick={handlePingSquad} disabled={isPingingSquad} className="w-full mt-2 py-3 bg-transparent border border-primary/30 rounded-lg font-sans text-xs uppercase font-bold tracking-widest text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">campaign</span>
-              {isPingingSquad ? 'Enviando...' : 'Notificar Todo o Bando'}
-          </button>
-        </section>
-
-        {/* Leaderboard Semanal - Removido por enquanto para não causar erro do Recharts (tamanho 0 quando oculto) */}
-        
-        {/* Social Feed */}
-        <section className="space-y-4 pt-2">
-          <h2 className="font-sans text-xl font-bold italic tracking-tighter text-white flex items-center gap-2">
-             <span className="material-symbols-outlined text-primary">local_fire_department</span>
-             SQUAD FEED
-          </h2>
-
-          {posts.length === 0 ? (
-             <p className="font-sans text-sm text-[#c4c9ac] text-center py-4 glass-panel rounded-2xl border border-white/5">Ainda não há atividade neste bando.</p>
-          ) : (
-            posts.map(post => (
-              <div key={post.id} className="glass-panel rounded-xl p-4 flex flex-col gap-3">
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-full bg-[#00dbe9]/20 text-[#00dbe9] border border-[#00dbe9]/50 flex items-center justify-center font-bold text-sm shadow-[0_0_10px_rgba(0,219,233,0.3)]">
-                          {post.gym_students?.name?.[0]}
-                       </div>
-                       <div>
-                          <p className="font-sans text-sm font-semibold text-white">{post.gym_students?.name}</p>
-                          <p className="font-sans text-[10px] text-[#c4c9ac] uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
-                       </div>
-                    </div>
-                 </div>
-                 
-                 <div>
-                    <p className="font-sans text-sm text-[#e0e2e8] mb-2">{post.content}</p>
-                    {post.type === 'achievement' && (
-                       <div className="flex gap-2 mb-2 flex-wrap">
-                          <span className="font-sans text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full tracking-wider uppercase border border-primary/20">#Atividade</span>
-                       </div>
-                    )}
-                 </div>
-              </div>
-            ))
-          )}
-
-          {hasMorePosts && posts.length > 0 && (
-            <button 
-              onClick={loadMorePosts}
-              disabled={isLoadingMorePosts}
-              className="w-full py-3 bg-[#1c2024] border border-white/5 rounded-xl font-sans text-xs uppercase font-bold tracking-widest text-[#c4c9ac] hover:bg-white/5 transition-colors mt-4"
-            >
-              {isLoadingMorePosts ? 'Carregando...' : 'Carregar mais antigas'}
-            </button>
-          )}
-        </section>
-
-        {/* Administrative Actions */}
-        <div className="pt-6">
-           {squad.myRole === 'admin' ? (
-              <button onClick={handleDeleteSquad} className="w-full py-4 flex items-center justify-center gap-2 font-sans font-bold text-xs uppercase tracking-widest text-[#ffb4ab] bg-[#ffb4ab]/10 rounded-xl hover:bg-[#ffb4ab] hover:text-[#690005] transition-all border border-[#ffb4ab]/20">
-                <span className="material-symbols-outlined text-sm">delete</span> Destruir Squad
-              </button>
-           ) : (
-              <button onClick={handleLeaveSquad} className="w-full py-4 flex items-center justify-center gap-2 font-sans font-bold text-xs uppercase tracking-widest text-[#c4c9ac] bg-[#1c2024] rounded-xl hover:bg-[#ffb4ab] hover:text-[#690005] transition-all border border-white/10">
-                <span className="material-symbols-outlined text-sm">logout</span> Sair do Squad
-              </button>
-           )}
         </div>
-      </main>
+
+        {/* Duelo Face a Face: Caio VS Thais (04-squads.png) */}
+        <div className="flex items-center justify-between px-2 relative z-10">
+          
+          {/* Lado Usuário (Vermelho) */}
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 rounded-full bg-[#E11D2E] text-white flex items-center justify-center font-display text-3xl font-black shadow-[0_0_24px_rgba(225,29,46,0.6)]">
+              {currentUserName[0]}
+            </div>
+            <p className="font-bold text-white text-sm mt-2">{currentUserName}</p>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="font-display text-2xl font-black text-white">{userPts}</span>
+              <span className="font-display text-xs font-black text-[#FFAAB1]">PTS</span>
+            </div>
+          </div>
+
+          {/* VS no Meio */}
+          <div className="font-display text-2xl font-black text-[#52525B] uppercase tracking-widest px-2">
+            VS
+          </div>
+
+          {/* Lado Parceiro (Cinza / Branco neutro conforme regra do kernel) */}
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 rounded-full bg-[#3F3F46] border-2 border-[#52525B] text-white flex items-center justify-center font-display text-3xl font-black">
+              {partnerUserName[0]}
+            </div>
+            <p className="font-bold text-white text-sm mt-2">{partnerUserName}</p>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="font-display text-2xl font-black text-white">{partnerPts}</span>
+              <span className="font-display text-xs font-black text-white">PTS</span>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Barra Comparativa Proporcional (04-squads.png) */}
+        <div className="mt-6 relative z-10">
+          <div className="h-1.5 w-full rounded-full flex overflow-hidden bg-[#2A2A2A]">
+            <div 
+              className="bg-[#E11D2E] transition-all duration-500 shadow-[0_0_8px_rgba(225,29,46,0.8)]" 
+              style={{ width: `${userPercent}%` }}
+            />
+            <div 
+              className="bg-white transition-all duration-500" 
+              style={{ width: `${100 - userPercent}%` }}
+            />
+          </div>
+
+          <p className="text-center text-xs text-[#A3A3A3] mt-3">
+            Código do squad: <span onClick={copyCode} className="font-black text-white hover:text-[#FF3B4A] cursor-pointer">{squad.invite_code}</span>
+          </p>
+        </div>
+
+      </div>
+
+      {/* Dois Botões de Ação (04-squads.png) */}
+      <div className="flex gap-3">
+        {/* Botão Acordar Parceiro */}
+        <button
+          onClick={() => handleNudge(partnerUser.student_id, partnerUserName)}
+          className="vollon-btn-primary flex-1 h-[52px] rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white shadow-[0_8px_28px_rgba(255,59,74,0.35)] cursor-pointer"
+        >
+          <Bell className="w-4 h-4 fill-current" />
+          <span>Acordar {partnerUserName}</span>
+        </button>
+
+        {/* Botão Chamar o Bando */}
+        <button
+          onClick={handlePingSquad}
+          disabled={isPingingSquad}
+          className="vollon-btn-secondary flex-1 h-[52px] rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white border border-[#2A2A2A] hover:border-[#52525B] cursor-pointer"
+        >
+          <span>Chamar o bando</span>
+        </button>
+      </div>
+
+      {/* Seção ATIVIDADE: Linha do Tempo Vertical (04-squads.png) */}
+      <div className="space-y-4 pt-2">
+        <h2 className="font-display text-2xl font-black uppercase text-white tracking-wider">
+          ATIVIDADE
+        </h2>
+
+        {posts.length === 0 ? (
+          <div className="vollon-card p-6 text-center rounded-2xl">
+            <p className="text-xs text-[#A3A3A3]">Nenhuma atividade registrada ainda.</p>
+          </div>
+        ) : (
+          <div className="relative pl-6 space-y-6">
+            {/* Linha vertical cinza */}
+            <div className="absolute left-2.5 top-2 bottom-2 w-[2px] bg-[#2A2A2A] -translate-x-1/2" />
+
+            {posts.map(post => {
+              const authorName = post.gym_students?.name || 'Membro'
+              const dateObj = new Date(post.created_at)
+              const formattedDate = dateObj.toLocaleDateString('pt-BR', { 
+                day: '2-digit', 
+                month: 'short', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+
+              return (
+                <div key={post.id} className="relative flex items-start gap-3">
+                  {/* Ponto vermelho na linha */}
+                  <div className="absolute -left-6 top-1.5 w-3 h-3 rounded-full bg-[#E11D2E] shadow-[0_0_8px_rgba(225,29,46,0.8)] shrink-0" />
+
+                  <div className="space-y-0.5">
+                    <p className="text-xs">
+                      <span className="font-bold text-white">{authorName}</span>
+                      <span className="text-[#71717A] ml-2">· {formattedDate}</span>
+                    </p>
+                    <p className="text-sm text-[#E5E5E5] leading-snug">
+                      {post.content}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+
+            {hasMorePosts && (
+              <button
+                onClick={loadMorePosts}
+                disabled={isLoadingMorePosts}
+                className="w-full py-2.5 rounded-xl bg-[#141414] border border-[#2A2A2A] text-xs font-bold text-[#A3A3A3] hover:text-white transition-colors"
+              >
+                {isLoadingMorePosts ? 'Carregando...' : 'Carregar mais atividades'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }

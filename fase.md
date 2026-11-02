@@ -342,3 +342,29 @@ Este arquivo acompanha o progresso do projeto VollonFit, dividido por fases de i
 - [ ] **Revisão de Isolamento (Multi-Tenant):** Auditar as políticas RLS em todas as tabelas (especialmente treinos e alunos) para garantir que consultas e modificações verifiquem rigorosamente o `auth.uid()` ou a relação de `teacher_id`.
 - [ ] **Bloqueio de Acesso Anônimo:** Assegurar que a Data API pública recuse acessos irrestritos não-autenticados a tabelas sensíveis.
 - **Status:** 🚀 Planejado
+
+
+---
+
+## ⚡ MISSÃO VOLLONFIT: REBRAND & CORREÇÕES (VOLLONFIT.md)
+
+### Fase 44: Correções Estruturais, Rebrand Visual & 6 Telas Mobile 🏆🔥
+- [x] **Setup de Controle:** Criação e espelhamento de `database.md`
+- [x] **Correção do `.gitignore`:** Remoção de corrupção binária
+- [x] **Supabase Client Resiliente (`supabaseClient.js`):** Validação estrita de variáveis de ambiente com erro explícito
+- [x] **Tratamento de Fuso Horário Local (`dateUtils.js`):** Implementação de `daysAgoLocally` e `startOfWeekLocally` para evitar virada de dia após as 21h
+- [x] **Service Worker PWA (`main.jsx`):** Ativação somente em produção
+- [x] **Design Tokens & Paleta Preto/Vermelho/Branco:** Configuração em `tailwind.config.js`, `index.css`, `themeLoader.js`, `colorUtils.js`
+- [x] **Correção de Bônus de Constância & Rankings:** Cálculo com dias distintos locais em `StudentDashboard.jsx` e `SquadLeaderboard.jsx`
+- [x] **Tela 1 - Redesign do Login (`01-login.png`):** Novo layout esportivo, Barlow Condensed, bottom-sheet elegante
+- [x] **Tela 2 - Redesign do Início / Treinos (`02-inicio.png`):** Faixa de 7 dias com hoje destacado, anel de progresso, métricas e dock flutuante
+- [x] **Tela 3 - Redesign de Exercícios do Dia (`05-treino-do-dia.png`):** Linha do tempo vertical numerada e CTA fixo inferior
+- [x] **Tela 4 - Redesign da Execução (`06-exercicio.png`):** Controles de carga/reps com botões −/+, bloqueio contra duplo toque, salvamento resiliente e timer de descanso
+- [x] **Tela 5 - Redesign da Evolução (`03-evolucao.png`):** Alternador Calendário/Recordes, calendário mensal com dias treinados e estante de PRs
+- [x] **Tela 6 - Redesign do Squads (`04-squads.png`):** Duelo Caio vs Thais, placar em tempo real, barra comparativa, ações de acordar/chamar bando e feed cronológico
+- [x] **Rebrand da Aba Nutrição (`NutritionTab.jsx`):** Eliminação das cores verdes neon, azuis e amarelas descalibradas; alinhamento total à paleta Preto, Vermelho (`#E11D2E` / `#FF3B4A`) e Branco; IA Coach Nutricional 2.0 e hidratação rápida com identidade visual esportiva VollonFit
+- [x] **Ajuste de Viewport no Login:** Remoção do `pb-24` e `overflow-hidden` globais em `index.html` que ocultavam o botão "Entrar" no celular
+- [x] **Rebrand da Landing Page (`LandingPage.jsx`):** Eliminação das classes legadas do Material Design e cores amareladas/verdes neon; Hero cinemático com mockup UI nativo VollonFit, grade de 6 pilares de alta conversão, destaque para o Duelo do Casal, cockpit B2B, tabela de preços dinâmica conectada ao Supabase e FAQ interativo.
+- [x] **Rebrand do Master Dashboard (`/master`):** Redesign completo do cockpit do usuário Master (`MasterShell`, `MasterOverview`, `MasterAcademies`, `MasterTeachers`, `MasterBilling`, `MasterSettings`, `MasterProducts` e `ExercisesManagement`). Substituição de cores verde/amarelo neon por Preto, Vermelho (`#E11D2E`) e Branco, com gráficos Recharts estilizados, ícones Lucide React e tipografia Barlow Condensed.
+- [x] **Rebrand do Painel do Professor (`/admin`) & Melhorias no Construtor de Treinos:** Reformulação completa de `AdminDashboard.jsx`, `WorkoutsTab.jsx`, `OverviewTab.jsx`, `StudentsTab.jsx`, `StudentDetailView.jsx`, `ExercisesTab.jsx`, `FinanceiroTab.jsx` e `SettingsTab.jsx`. No módulo de Treinos, introdução de Templates Rápidos (1-clique para preencher A/B/C/D), botões de reordenação dinâmica (▲/▼), controles incrementais de séries e repetições (+/-), e estimativa em tempo real de duração e volume total de séries.
+- **Status:** ✅ Concluído (Pronto para Homologação)

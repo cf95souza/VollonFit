@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import { hexToRgbString } from './colorUtils';
 
 export const applyTheme = (colorHex) => {
-  const defaultColor = '#DFFF5E'; // Verde Neon oficial
+  const defaultColor = '#E11D2E'; // Vermelho VollonFit oficial
   const colorToApply = colorHex || defaultColor;
   
   const rgb = hexToRgbString(colorToApply);
@@ -11,12 +11,17 @@ export const applyTheme = (colorHex) => {
 };
 
 export const loadTheme = async (teacherId) => {
-  if (!teacherId) return;
+  if (!teacherId) {
+    applyTheme('#E11D2E');
+    return;
+  }
   
   // 1. Tentar carregar do cache para ser instantâneo
   const cachedColor = localStorage.getItem('vollonfit_theme_color');
   if (cachedColor) {
     applyTheme(cachedColor);
+  } else {
+    applyTheme('#E11D2E');
   }
 
   // 2. Buscar do banco para garantir que está atualizado

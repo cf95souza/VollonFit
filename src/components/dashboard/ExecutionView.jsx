@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react'
 import { 
-  ChevronLeft, 
+  X, 
+  Minus, 
+  Plus, 
+  Check, 
+  ChevronRight, 
   Dumbbell, 
-  TrendingUp, 
-  Timer, 
-  CheckCircle2 
+  Clock 
 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import { getTodayLocally } from '../../utils/dateUtils'
 
-export default function ExecutionView({ workout, exercises = [], exerciseIndex, studentId, onNext, onBack, onLogSet, showToast }) {
+export default function ExecutionView({ 
+  workout, 
+  exercises = [], 
+  exerciseIndex, 
+  studentId, 
+  onNext, 
+  onBack, 
+  onLogSet, 
+  showToast 
+}) {
   const item = (exercises || [])[exerciseIndex]
   const ex = Array.isArray(item?.gym_exercises) ? item.gym_exercises[0] : item?.gym_exercises
 
+  const targetSets = item?.target_sets || 4
+  const targetReps = item?.target_reps || 12
+
   const [currentSet, setCurrentSet] = useState(1)
   const [weight, setWeight] = useState('')
-  const [reps, setReps] = useState('')
+  const [reps, setReps] = useState(String(targetReps))
   const [isSaving, setIsSaving] = useState(false)
   const [restRemaining, setRestRemaining] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
@@ -23,23 +37,33 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
   const [exerciseNotes, setExerciseNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
 
-  // Carregar notas do exercício
+  // Histórico de PR
+  const lastPerf = item?.lastPerformance || []
+  const lastBestSet = lastPerf.length > 0 
+    ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] 
+    : null
+
+  // Carregar notas prévias do exercício
   useEffect(() => {
     const fetchNotes = async () => {
       if (!ex?.id || !studentId) return
-      const { data } = await supabase
-        .from('gym_student_exercise_notes')
-        .select('notes')
-        .eq('student_id', studentId)
-        .eq('exercise_id', ex.id)
-        .maybeSingle()
-      
-      if (data && data.notes) setExerciseNotes(data.notes)
+      try {
+        const { data } = await supabase
+          .from('gym_student_exercise_notes')
+          .select('notes')
+          .eq('student_id', studentId)
+          .eq('exercise_id', ex.id)
+          .maybeSingle()
+        
+        if (data?.notes) setExerciseNotes(data.notes)
+      } catch (err) {
+        console.error("Erro ao carregar anotações:", err)
+      }
     }
     fetchNotes()
   }, [ex?.id, studentId])
 
-  // Lógica do Timer Persistente
+  // Timer de descanso persistente com vibração ao finalizar
   useEffect(() => {
     let interval = null
     if (isTimerActive && finishTime) {
@@ -53,26 +77,33 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
           setFinishTime(null)
           if (navigator.vibrate) navigator.vibrate([200, 100, 200])
         }
-      }, 1000)
+      }, 500)
     }
     return () => clearInterval(interval)
   }, [isTimerActive, finishTime])
 
-  if (!ex) return null;
+  if (!ex) return null
 
   const handleSaveNotes = async () => {
+    if (isSavingNotes || !exerciseNotes.trim()) return
     setIsSavingNotes(true)
-    const { error } = await supabase
-      .from('gym_student_exercise_notes')
-      .upsert({
-        student_id: studentId,
-        exercise_id: ex.id,
-        notes: exerciseNotes,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'student_id,exercise_id' })
-    
-    setIsSavingNotes(false)
-    showToast('Anotação salva!')
+    try {
+      const { error } = await supabase
+        .from('gym_student_exercise_notes')
+        .upsert({
+          student_id: studentId,
+          exercise_id: ex.id,
+          notes: exerciseNotes,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'student_id,exercise_id' })
+      
+      if (error) throw error
+      showToast('Anotação salva com sucesso!')
+    } catch (err) {
+      showToast('Erro ao salvar anotação.', 'error')
+    } finally {
+      setIsSavingNotes(false)
+    }
   }
 
   const startRestTimer = () => {
@@ -85,198 +116,354 @@ export default function ExecutionView({ workout, exercises = [], exerciseIndex, 
   }
 
   const handleNextSet = async () => {
-    if (!weight || !reps) {
-      showToast('Insira carga e reps!', 'error')
+    // Bloqueio contra toque duplo (Bug #2)
+    if (isSaving) return
+
+    const parsedWeight = parseFloat(weight)
+    const parsedReps = parseInt(reps)
+
+    if (isNaN(parsedWeight) || isNaN(parsedReps) || parsedReps <= 0) {
+      showToast('Insira carga e repetições válidas!', 'error')
       return
     }
 
     setIsSaving(true)
     
-    // Salvar log da série no Supabase
-    const { error } = await supabase
-      .from('gym_training_logs')
-      .insert([{
-        student_id: studentId,
-        workout_id: workout.id,
-        exercise_id: ex.id,
-        set_number: currentSet,
-        reps_done: parseInt(reps),
-        weight_kg: parseFloat(weight),
-        workout_date: getTodayLocally()
-      }])
+    try {
+      // Salvar log no banco com data local
+      const { error } = await supabase
+        .from('gym_training_logs')
+        .insert([{
+          student_id: studentId,
+          workout_id: workout.id,
+          exercise_id: ex.id,
+          set_number: currentSet,
+          reps_done: parsedReps,
+          weight_kg: parsedWeight,
+          workout_date: getTodayLocally()
+        }])
 
-    if (!error) {
-      if (onLogSet) onLogSet({ weight: parseFloat(weight), reps: parseInt(reps) })
-      showToast(`Série ${currentSet} salva!`)
-    }
+      // Só avança se salvou com sucesso no banco (Bug #1)
+      if (error) {
+        showToast('Erro ao gravar a série. Tente novamente.', 'error')
+        setIsSaving(false)
+        return
+      }
 
-    if (currentSet < (item?.target_sets || 1)) {
-      setCurrentSet(prev => prev + 1)
-      setReps('')
-      startRestTimer()
-    } else {
-      onNext()
+      if (onLogSet) onLogSet({ weight: parsedWeight, reps: parsedReps })
+      showToast(`Série ${currentSet} concluída!`)
+
+      if (currentSet < targetSets) {
+        setCurrentSet(prev => prev + 1)
+        startRestTimer()
+      } else {
+        // Todas as séries concluídas deste exercício
+        onNext()
+      }
+    } catch (err) {
+      showToast('Falha na conexão ao salvar série.', 'error')
+    } finally {
+      setIsSaving(false)
     }
-    setIsSaving(false)
   }
 
-  const lastPerf = item?.lastPerformance || []
-  const lastBestSet = lastPerf.length > 0 ? [...lastPerf].sort((a, b) => b.weight_kg - a.weight_kg)[0] : null
+  const adjustWeight = (delta) => {
+    const curr = parseFloat(weight) || 0
+    const nextVal = Math.max(0, curr + delta)
+    setWeight(String(nextVal))
+  }
+
+  const adjustReps = (delta) => {
+    const curr = parseInt(reps) || 0
+    const nextVal = Math.max(0, curr + delta)
+    setReps(String(nextVal))
+  }
+
+  // Divisão do nome do exercício para visual arrojado em 2 linhas
+  const nameParts = (ex.name || '').split(' ')
+  const titleLine1 = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(' ')
+  const titleLine2 = nameParts.slice(Math.ceil(nameParts.length / 2)).join(' ')
+
+  const totalExercises = exercises.length || 1
+  const exerciseProgress = (exerciseIndex + 1) / totalExercises
 
   return (
-    <div className="bg-surface text-on-surface h-[100dvh] w-full flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative overflow-y-auto pb-[env(safe-area-inset-bottom)]">
-      <style dangerouslySetInnerHTML={{__html: `
-        .glass-card { background: rgba(44, 48, 52, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .glow-accent { box-shadow: 0 0 20px rgba(195, 244, 0, 0.15); }
-        .glow-accent-active:active { box-shadow: 0 0 30px rgba(195, 244, 0, 0.3); }
-        .glow-blue { box-shadow: 0 0 20px rgba(0, 219, 233, 0.2); }
-        .kinetic-input:focus { border-bottom-color: #c3f400 !important; box-shadow: 0 1px 0 0 #c3f400 !important; outline: none; }
-      `}} />
-
-      {/* Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-surface-container-highest">
-        <div className="h-full bg-primary-container transition-all duration-500 ease-out glow-accent" style={{ width: `${((exerciseIndex) / exercises.length) * 100}%` }}></div>
-      </div>
-
-      {/* Top App Bar */}
-      <header className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-white/5 pt-[env(safe-area-inset-top,2.5rem)] pb-2">
-        <div className="flex justify-between items-center px-gutter h-14 w-full max-w-container-max mx-auto">
-          <button onClick={onBack} className="text-on-surface-variant hover:text-primary-fixed transition-colors active:scale-90">
-            <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 0" }}>close</span>
+    <div className="bg-[#0A0A0A] text-white min-h-dvh w-full flex flex-col font-body selection:bg-[#E11D2E]/30 relative overflow-y-auto pb-28">
+      
+      {/* Top Header (06-exercicio.png) */}
+      <header className="sticky top-0 w-full z-40 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-[#2A2A2A] px-4 pt-4 pb-3">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          
+          {/* Botão Fechar Redondo */}
+          <button 
+            onClick={onBack} 
+            className="w-10 h-10 rounded-full bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors active:scale-95"
+          >
+            <X className="w-5 h-5" />
           </button>
-          <div className="flex flex-col items-center mt-1">
-            <h1 className="font-headline-md text-headline-md text-primary-fixed tracking-tight">{workout?.name || 'VollonFit Workout'}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-[#00dbe9] animate-pulse glow-blue"></span>
-              <span className="font-data-display text-data-display text-tertiary-fixed-dim">
-                {isTimerActive ? `Descanso: ${restRemaining}s` : 'Ativo'}
-              </span>
+
+          {/* Nome do treino e status */}
+          <div className="text-center">
+            <p className="text-xs text-[#A3A3A3] font-medium">
+              Dia {workout?.sequence_order || 1} · {workout?.name || 'Treino'}
+            </p>
+            <div className="flex items-center justify-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
+              <span className="text-[11px] font-bold text-white tracking-wide">Treino ativo</span>
             </div>
           </div>
-          <button className="text-on-surface-variant hover:text-primary-fixed transition-colors">
-            <span className="material-symbols-outlined text-[28px]">more_vert</span>
-          </button>
+
+          {/* Mini Anel de Progresso */}
+          <div className="relative w-10 h-10 flex items-center justify-center">
+            <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+              <circle
+                cx="18"
+                cy="18"
+                r="15"
+                fill="none"
+                stroke="#2A2A2A"
+                strokeWidth="3"
+              />
+              <circle
+                cx="18"
+                cy="18"
+                r="15"
+                fill="none"
+                stroke="#E11D2E"
+                strokeWidth="3"
+                strokeDasharray={`${2 * Math.PI * 15}`}
+                strokeDashoffset={`${2 * Math.PI * 15 * (1 - exerciseProgress)}`}
+                strokeLinecap="round"
+                className="transition-all duration-300"
+              />
+            </svg>
+            <span className="absolute font-display text-xs font-bold text-white">
+              {exerciseIndex + 1}/{totalExercises}
+            </span>
+          </div>
+
         </div>
       </header>
 
-      {/* Main Content Canvas */}
-      <main className="flex-grow pt-[calc(100px+env(safe-area-inset-top,2.5rem))] pb-32 px-gutter max-w-md mx-auto w-full flex flex-col gap-md relative">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary-container/5 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
+      {/* Conteúdo Principal */}
+      <main className="flex-1 max-w-md mx-auto w-full px-5 pt-6 space-y-6">
         
-        {/* Active Exercise Card */}
-        <section className="glass-card rounded-xl p-md flex flex-col gap-sm relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-surface-container-highest/30 rotate-45 transform origin-center"></div>
-          
-          <div className="flex justify-between items-start z-10">
-            <div>
-              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider block mb-1">Exercício {exerciseIndex + 1} de {exercises.length}</span>
-              <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-primary font-black italic tracking-tighter">{ex?.name}</h2>
-            </div>
-            <button className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary-fixed border border-white/5 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">info</span>
-            </button>
+        {/* Título do Exercício + Thumbnail Imagem */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="font-display text-4xl sm:text-5xl font-black uppercase tracking-tight leading-[0.95] bg-gradient-to-b from-white via-[#FFAAB1] to-[#FF4D5D] bg-clip-text text-transparent">
+              {titleLine1}<br />{titleLine2}
+            </h1>
           </div>
 
-          {/* Set Target & PR */}
-          <div className="mt-base bg-surface-container-lowest/50 rounded-lg p-sm border border-white/5 z-10">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-data-display text-data-display text-on-surface-variant">Meta</span>
-              <span className="font-data-display text-data-display text-primary">{item?.target_sets} Séries</span>
-            </div>
-            {lastBestSet && (
-              <div className="flex flex-col gap-xs mt-3 border-t border-white/5 pt-3">
-                <div className="flex justify-between items-center opacity-75">
-                  <span className="font-data-display text-[12px] text-on-surface-variant">Melhor Marca (PR)</span>
-                  <span className="font-data-display text-[12px] text-on-surface">{lastBestSet.weight_kg}kg × {lastBestSet.reps_done} <span className="material-symbols-outlined text-[14px] align-middle text-primary-fixed ml-1">check_circle</span></span>
-                </div>
+          {/* Miniatura Cápsula / Retângulo arredondado */}
+          <div className="w-16 h-24 rounded-2xl bg-[#141414] border border-[#2A2A2A] overflow-hidden flex items-center justify-center shrink-0 shadow-lg">
+            {ex?.gif_url ? (
+              <img src={ex.gif_url} alt={ex.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-[#52525B]">
+                <Dumbbell className="w-6 h-6 mb-1 text-[#FF3B4A]" />
+                <span className="font-display text-[9px] uppercase font-bold text-[#A3A3A3]">IMG</span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Current Set Inputs */}
-          <div className="mt-sm z-10">
-            <div className="flex items-center gap-sm mb-4">
-              <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-headline-md text-[14px] glow-accent">
-                  {currentSet}
-              </div>
-              <span className="font-headline-md text-[16px] text-primary">Série Atual</span>
-            </div>
+        {/* Barras de Progresso das Séries */}
+        <div>
+          <div className="flex gap-2">
+            {Array.from({ length: targetSets }).map((_, idx) => {
+              const isPastOrCurrent = idx < currentSet
+              return (
+                <div 
+                  key={idx} 
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                    isPastOrCurrent ? 'bg-[#E11D2E] shadow-[0_0_8px_rgba(225,29,46,0.6)]' : 'bg-[#2A2A2A]'
+                  }`}
+                />
+              )
+            })}
+          </div>
+          
+          <div className="flex justify-between items-center text-xs mt-3">
+            <span className="font-bold text-white">
+              Série {currentSet} de {targetSets}
+            </span>
+            <span className="text-[#A3A3A3] text-[11px]">
+              Meta {targetReps} reps · Recorde {lastBestSet ? `${lastBestSet.weight_kg} kg × ${lastBestSet.reps_done}` : '--'}
+            </span>
+          </div>
+        </div>
+
+        {/* Controles de Carga e Repetições com Botões - e + Grandes */}
+        <div className="grid grid-cols-2 gap-3.5">
+          
+          {/* Card Carga */}
+          <div className="vollon-card p-4 flex flex-col items-center justify-between">
+            <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider mb-2">
+              CARGA (KG)
+            </span>
             
-            <div className="flex gap-sm">
-              <div className="flex-1 relative">
-                <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">CARGA (KG)</label>
+            <div className="flex items-center justify-between w-full px-1 my-1">
+              <button 
+                type="button"
+                onClick={() => adjustWeight(-2)}
+                className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white hover:border-[#E11D2E] active:scale-90 transition-all"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+
+              <div className="flex-1 text-center px-1">
                 <input 
-                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-data-display text-headline-md pt-6 px-3 text-center focus:ring-0 transition-colors" 
-                  inputMode="decimal" 
                   type="number" 
-                  value={weight}
-                  onChange={e => setWeight(e.target.value)}
+                  inputMode="decimal"
+                  value={weight} 
+                  onChange={(e) => setWeight(e.target.value)}
                   placeholder="0"
+                  className="font-display text-4xl sm:text-5xl font-black text-white bg-transparent text-center w-full focus:outline-none focus:text-[#FF3B4A]"
                 />
               </div>
-              <div className="flex-1 relative">
-                <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">REPETIÇÕES</label>
+
+              <button 
+                type="button"
+                onClick={() => adjustWeight(2)}
+                className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#FF3B4A] hover:border-[#E11D2E] active:scale-90 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card Repetições */}
+          <div className="vollon-card p-4 flex flex-col items-center justify-between">
+            <span className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider mb-2">
+              REPETIÇÕES
+            </span>
+            
+            <div className="flex items-center justify-between w-full px-1 my-1">
+              <button 
+                type="button"
+                onClick={() => adjustReps(-1)}
+                className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-white hover:border-[#E11D2E] active:scale-90 transition-all"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+
+              <div className="flex-1 text-center px-1">
                 <input 
-                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-data-display text-headline-md pt-6 px-3 text-center focus:ring-0 transition-colors" 
-                  inputMode="numeric" 
                   type="number" 
-                  value={reps}
-                  onChange={e => setReps(e.target.value)}
+                  inputMode="numeric"
+                  value={reps} 
+                  onChange={(e) => setReps(e.target.value)}
                   placeholder="0"
+                  className="font-display text-4xl sm:text-5xl font-black text-white bg-transparent text-center w-full focus:outline-none focus:text-[#FF3B4A]"
                 />
+              </div>
+
+              <button 
+                type="button"
+                onClick={() => adjustReps(1)}
+                className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#FF3B4A] hover:border-[#E11D2E] active:scale-90 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Campo Anotação Opcional */}
+        <div>
+          <input 
+            type="text" 
+            value={exerciseNotes}
+            onChange={(e) => setExerciseNotes(e.target.value)}
+            onBlur={handleSaveNotes}
+            placeholder="Anotação (opcional)"
+            className="w-full h-12 bg-[#141414] border border-[#2A2A2A] rounded-xl px-4 text-sm text-white placeholder-[#52525B] focus:outline-none focus:border-[#E11D2E] transition-colors"
+          />
+        </div>
+
+        {/* Botão Concluir Série (Pílula 60px) */}
+        <button 
+          onClick={handleNextSet}
+          disabled={isSaving}
+          className="vollon-btn-primary w-full h-[60px] rounded-full text-white font-bold text-base flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+        >
+          <Check className="w-5 h-5 stroke-[2.5]" />
+          <span>{isSaving ? 'Salvando série...' : 'Concluir série'}</span>
+        </button>
+
+        {/* Card de Descanso */}
+        <div className="vollon-card p-4 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            {/* Anel de descanso */}
+            <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#2A2A2A" strokeWidth="3" />
+                <circle 
+                  cx="18" 
+                  cy="18" 
+                  r="15" 
+                  fill="none" 
+                  stroke="#E11D2E" 
+                  strokeWidth="3" 
+                  strokeDasharray={`${2 * Math.PI * 15}`}
+                  strokeDashoffset={isTimerActive && finishTime ? `${(1 - (restRemaining / 60)) * 2 * Math.PI * 15}` : 0}
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+              </svg>
+              <div className="absolute text-center leading-none">
+                <span className="font-display text-sm font-bold text-white block">
+                  {restRemaining > 0 ? restRemaining : '45'}
+                </span>
+                <span className="text-[8px] text-[#A3A3A3] uppercase block -mt-0.5">seg</span>
               </div>
             </div>
-            
-            {/* Notes */}
-            <div className="mt-sm w-full relative">
-               <label className="absolute top-2 left-3 font-label-caps text-[10px] text-on-surface-variant z-10">ANOTAÇÕES (OPCIONAL)</label>
-               <input 
-                  className="kinetic-input w-full h-16 bg-surface-container-lowest border-0 border-b-2 border-surface-container-highest rounded-t-lg text-primary font-body-md pt-6 px-3 focus:ring-0 transition-colors" 
-                  type="text" 
-                  value={exerciseNotes}
-                  onChange={e => setExerciseNotes(e.target.value)}
-                  onBlur={handleSaveNotes}
-                  placeholder="Adicionar nota..."
-                />
+
+            <div>
+              <p className="font-bold text-sm text-white">Descanso</p>
+              <p className="text-xs text-[#A3A3A3]">
+                {isTimerActive ? 'Descansando...' : 'Próxima série em instantes'}
+              </p>
             </div>
           </div>
 
           <button 
-            onClick={handleNextSet}
-            disabled={isSaving}
-            className="w-full h-14 mt-sm bg-primary-container text-[#161e00] font-headline-md text-[16px] rounded-lg glow-accent hover:glow-accent-active active:scale-[0.98] transition-all flex items-center justify-center gap-2 z-10 disabled:opacity-50"
+            onClick={() => {
+              setIsTimerActive(false)
+              setFinishTime(null)
+              setRestRemaining(0)
+            }}
+            className="px-3.5 py-1.5 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-xs font-bold text-[#A3A3A3] hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>check</span>
-            {isSaving ? 'GRAVANDO...' : 'CONCLUIR SÉRIE'}
-          </button>
-        </section>
-
-        {/* Image Placeholder */}
-        {ex?.gif_url && (
-          <div className="h-64 rounded-xl overflow-hidden relative border border-white/5 bg-surface-container-lowest flex items-center justify-center p-2">
-            <img src={ex.gif_url} className="w-full h-full object-contain rounded-lg mix-blend-screen" alt="Exercício" />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent pointer-events-none"></div>
-            <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10 bg-surface/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-              <span className="material-symbols-outlined text-primary-fixed text-[18px]">play_circle</span>
-              <span className="font-label-caps text-[10px] text-primary tracking-wider">TUTORIAL</span>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 w-full bg-surface-container/90 backdrop-blur-lg border-t border-white/5 px-gutter py-sm pb-6 z-50">
-        <div className="max-w-md mx-auto flex justify-between items-center gap-sm">
-          <button onClick={onBack} className="flex-1 h-12 rounded-lg border-2 border-surface-container-highest text-on-surface-variant font-label-caps flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors active:scale-95">
-            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            VOLTAR
-          </button>
-          <button onClick={onNext} className="flex-[2] h-12 rounded-lg bg-surface-container-highest text-primary font-headline-md text-[14px] flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors active:scale-95 shadow-lg border border-white/10">
-            PRÓXIMO EXERCÍCIO
-            <span className="material-symbols-outlined text-[18px] text-primary-fixed">chevron_right</span>
+            PULAR
           </button>
         </div>
-      </div>
+
+      </main>
+
+      {/* Rodapé Fixo (Voltar e Próximo) */}
+      <footer className="fixed bottom-0 left-0 w-full bg-[#0A0A0A]/95 backdrop-blur-xl border-t border-[#2A2A2A] px-5 py-3 z-40">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+          <button 
+            onClick={onBack}
+            className="flex-1 h-12 rounded-xl bg-[#141414] border border-[#2A2A2A] text-white font-bold text-sm hover:bg-[#1A1A1A] transition-colors"
+          >
+            Voltar
+          </button>
+
+          <button 
+            onClick={onNext}
+            className="flex-1 h-12 rounded-xl bg-[#141414] border border-[#2A2A2A] text-[#FF3B4A] font-bold text-sm flex items-center justify-center gap-1 hover:bg-[#1A1A1A] transition-colors"
+          >
+            <span>Próximo</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </footer>
+
     </div>
   )
 }

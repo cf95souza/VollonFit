@@ -1,4 +1,14 @@
 import { useState, useEffect } from 'react'
+import { 
+  Settings, 
+  ShieldCheck, 
+  Crown, 
+  Building2, 
+  AlertTriangle, 
+  Save, 
+  Sparkles,
+  Loader2
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function MasterSettings({ showToast }) {
@@ -70,7 +80,7 @@ export default function MasterSettings({ showToast }) {
       setOriginalBasic(priceBasic)
       setOriginalPremium(pricePremium)
       setOriginalEnterprise(priceEnterprise)
-      showToast('Planos atualizados com sucesso!')
+      showToast('Planos e preços atualizados com sucesso!')
     } catch (err) {
       showToast('Erro ao salvar: ' + err.message, 'error')
     } finally {
@@ -84,111 +94,123 @@ export default function MasterSettings({ showToast }) {
     priceEnterprise !== originalEnterprise
 
   if (loading) {
-    return <div className="glass-panel border border-outline-variant/30 rounded-3xl p-8 animate-pulse h-96" />
+    return <div className="vollon-card rounded-3xl p-8 animate-pulse h-96" />
   }
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in duration-500">
-      <div className="glass-panel border border-outline-variant/30 rounded-[32px] p-8 shadow-2xl">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary-container">settings</span>
+      
+      {/* Container Principal */}
+      <div className="vollon-card rounded-3xl p-6 sm:p-8 space-y-6">
+        
+        <div className="flex items-center gap-3.5 pb-6 border-b border-[#2A2A2A]">
+          <div className="w-11 h-11 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center text-[#FF3B4A]">
+            <Settings className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xl font-display-md text-on-surface uppercase tracking-tight">Gestão Global de Planos</h3>
-            <p className="text-[10px] text-on-surface-variant font-label-caps uppercase tracking-widest mt-0.5">Defina os valores das licenças e cobranças recorrentes</p>
+            <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight">
+              Gestão Global de Planos
+            </h3>
+            <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest mt-0.5">
+              Defina os valores das licenças e mensalidades recorrentes
+            </p>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Plano Basic */}
-          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0 border border-outline-variant/30">
-                <span className="material-symbols-outlined w-5 h-5 text-on-surface-variant flex items-center justify-center text-[20px]">shield</span>
+        <div className="space-y-4">
+          
+          {/* Plano 1: Basic */}
+          <div className="p-5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-white shrink-0">
+                <ShieldCheck className="w-5 h-5 text-[#A3A3A3]" />
               </div>
               <div>
-                <h4 className="font-headline-sm text-on-surface text-sm uppercase tracking-wider">Professor Basic</h4>
-                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor cobrado mensalmente por aluno ativo do Personal Trainer.</p>
+                <h4 className="font-bold text-sm text-white uppercase">Professor Basic</h4>
+                <p className="text-xs text-[#A3A3A3] mt-0.5">Cobrado mensalmente por aluno ativo.</p>
               </div>
             </div>
-            <div className="w-full md:w-44 space-y-1">
-              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Valor por Aluno</label>
+            <div className="w-full md:w-40 space-y-1">
+              <label className="text-[9px] font-bold text-[#A3A3A3] uppercase tracking-wider block">
+                Valor por Aluno
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] text-xs font-bold">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={priceBasic}
                   onChange={e => setPriceBasic(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
+                  className="w-full pl-9 pr-3 py-2 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl text-sm font-bold text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
                 />
               </div>
             </div>
           </div>
 
-          {/* Plano Premium */}
-          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined w-5 h-5 text-primary-container flex items-center justify-center text-[20px]">workspace_premium</span>
+          {/* Plano 2: Premium */}
+          <div className="p-5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#E11D2E]/15 border border-[#E11D2E]/30 flex items-center justify-center text-[#FF3B4A] shrink-0">
+                <Crown className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-headline-sm text-primary-container text-sm uppercase tracking-wider">Professor Premium</h4>
-                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor por aluno que inclui customização White Label e IA Coach.</p>
+                <h4 className="font-bold text-sm text-[#FF3B4A] uppercase">Professor Premium</h4>
+                <p className="text-xs text-[#A3A3A3] mt-0.5">Inclui IA Coach, Squads e White Label.</p>
               </div>
             </div>
-            <div className="w-full md:w-44 space-y-1">
-              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Valor por Aluno</label>
+            <div className="w-full md:w-40 space-y-1">
+              <label className="text-[9px] font-bold text-[#A3A3A3] uppercase tracking-wider block">
+                Valor por Aluno
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] text-xs font-bold">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={pricePremium}
                   onChange={e => setPricePremium(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
+                  className="w-full pl-9 pr-3 py-2 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl text-sm font-bold text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
                 />
               </div>
             </div>
           </div>
 
-          {/* Plano Enterprise */}
-          <div className="p-6 bg-surface-container/40 border border-outline-variant/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant/50 transition-colors">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-secondary-container/10 border border-secondary-container/20 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined w-5 h-5 text-secondary-container flex items-center justify-center text-[20px]">domain</span>
+          {/* Plano 3: Enterprise */}
+          <div className="p-5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#141414] border border-[#2A2A2A] flex items-center justify-center text-white shrink-0">
+                <Building2 className="w-5 h-5 text-[#FF3B4A]" />
               </div>
               <div>
-                <h4 className="font-headline-sm text-secondary-container text-sm uppercase tracking-wider">Academia Enterprise</h4>
-                <p className="font-body-md text-xs text-on-surface-variant mt-1 max-w-sm">Valor mensal fixo para academias e redes de grande porte.</p>
+                <h4 className="font-bold text-sm text-white uppercase">Academia Enterprise</h4>
+                <p className="text-xs text-[#A3A3A3] mt-0.5">Mensalidade base para redes corporativas.</p>
               </div>
             </div>
-            <div className="w-full md:w-44 space-y-1">
-              <label className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest ml-1">Mensalidade Fixa</label>
+            <div className="w-full md:w-40 space-y-1">
+              <label className="text-[9px] font-bold text-[#A3A3A3] uppercase tracking-wider block">
+                Mensalidade Base
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-xs">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] text-xs font-bold">R$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={priceEnterprise}
                   onChange={e => setPriceEnterprise(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-body-md text-on-surface focus:outline-none focus:border-primary-container transition-colors"
+                  className="w-full pl-9 pr-3 py-2 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl text-sm font-bold text-white focus:outline-none focus:border-[#E11D2E] transition-colors"
                 />
               </div>
             </div>
           </div>
 
           {hasChanged && (
-            <div className="bg-warning/10 border border-warning/20 rounded-2xl p-4 flex items-start gap-3">
-              <span className="material-symbols-outlined text-warning mt-0.5 shrink-0 text-[20px]">warning</span>
-              <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-                Você fez alterações nas tabelas de preços dos planos. 
-                Os novos valores serão aplicados em <strong className="text-warning">todas as próximas cobranças mensais</strong> geradas. 
-                Mensalidades e faturas históricas não serão recalculadas.
+            <div className="bg-[#141414] border border-[#E11D2E]/40 rounded-2xl p-4 flex items-start gap-3 animate-in fade-in">
+              <AlertTriangle className="w-4 h-4 text-[#FF3B4A] mt-0.5 shrink-0" />
+              <p className="text-xs text-[#A3A3A3] leading-relaxed">
+                Você alterou valores dos planos. Os novos preços serão aplicados em todas as <strong className="text-white">próximas cobranças geradas</strong>. Faturas já emitidas não sofrem alteração retroativa.
               </p>
             </div>
           )}
@@ -196,24 +218,25 @@ export default function MasterSettings({ showToast }) {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanged}
-            className="w-full bg-primary-container hover:brightness-110 text-on-primary-container py-4 rounded-2xl font-label-caps text-[10px] uppercase tracking-widest disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 active:scale-95 neon-glow"
+            className="vollon-btn-primary w-full h-12 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 shadow-[0_8px_20px_rgba(255,59,74,0.35)]"
           >
-            <span className="material-symbols-outlined text-[18px]">save</span>
-            {saving ? 'Salvando...' : 'Salvar Alterações de Preço'}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{saving ? 'Gravando...' : 'Salvar Alterações de Preço'}</span>
           </button>
+
         </div>
       </div>
 
-      <div className="bg-surface-container border border-outline-variant/30 rounded-2xl p-6">
-        <h4 className="font-label-caps text-[10px] text-on-surface uppercase tracking-widest mb-2 flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px] text-primary-container">lightbulb</span> 
-          Gestão Macro e White Label
+      {/* Nota Explicativa */}
+      <div className="vollon-card rounded-2xl p-5 space-y-2">
+        <h4 className="text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#FF3B4A]" /> Regras de Planos e Permissões
         </h4>
-        <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-          O plano do professor define diretamente as permissões e funcionalidades disponíveis em seu painel:
-          professores no plano <span className="text-primary-container font-headline-sm">Premium</span> ganham acesso imediato à customização de cores, logotipos próprios e à integração do IA Coach para seus alunos, enquanto o plano <span className="text-on-surface font-headline-sm">Basic</span> mantém a marca neutra da VollonFit.
+        <p className="text-xs text-[#A3A3A3] leading-relaxed">
+          Professores vinculados ao plano <span className="text-[#FF3B4A] font-bold">Premium</span> têm acesso liberado à personalização White Label, upload de logotipo próprio, tema customizado e ativação de metas automáticas da IA para seus alunos.
         </p>
       </div>
+
     </div>
   )
 }

@@ -1,4 +1,16 @@
 import { useState, useEffect } from 'react'
+import { 
+  Receipt, 
+  Calendar, 
+  DollarSign, 
+  CheckCircle2, 
+  AlertCircle, 
+  Loader2, 
+  Building2, 
+  Users,
+  Check,
+  X
+} from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 export default function MasterBilling({ showToast }) {
@@ -59,7 +71,7 @@ export default function MasterBilling({ showToast }) {
 
       const price = t.plan_type === 'premium' ? pricePremium : pricePerStudent
 
-      const cd = new Date((t.contract_start_date || new Date().toISOString().split('T00:00:00')) + 'T00:00:00')
+      const cd = new Date((t.contract_start_date || new Date().toISOString().split('T')[0]) + 'T00:00:00')
       const today = new Date()
       const days = Math.floor((today - cd) / (1000*60*60*24))
       const cycle = Math.floor(days / 30)
@@ -84,12 +96,12 @@ export default function MasterBilling({ showToast }) {
       if (existing) continue
 
       const dueDate = new Date()
-      dueDate.setDate(10) // Vencimento padrão dia 10 para academias
+      dueDate.setDate(10)
 
       await supabase.from('gym_billing_records').insert([{
         academy_id: acc.id,
         reference_month: selectedMonth,
-        student_count: 0, // Ignorado para academias
+        student_count: 0,
         price_per_student: 0,
         total_amount: acc.monthly_fee || priceEnterprise,
         status: 'pending',
@@ -134,89 +146,132 @@ export default function MasterBilling({ showToast }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Filtro de Mês */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center glass-panel p-6 rounded-[32px] border border-outline-variant/30">
+      
+      {/* Filtro de Mês e Ações */}
+      <div className="vollon-card p-6 rounded-3xl flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="flex gap-2 flex-wrap">
           {months.map(m => (
-            <button key={m} onClick={() => setSelectedMonth(m)}
-              className={`px-4 py-2 rounded-xl font-label-caps text-[10px] uppercase tracking-widest transition-all ${selectedMonth === m ? 'bg-primary-container text-on-primary-container neon-glow shadow-lg shadow-primary-container/20' : 'bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest'}`}
-            >{formatMonth(m)}</button>
+            <button 
+              key={m} 
+              onClick={() => setSelectedMonth(m)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                selectedMonth === m 
+                  ? 'bg-[#E11D2E]/15 text-[#FF3B4A] border border-[#E11D2E]/40' 
+                  : 'bg-[#1A1A1A] border border-[#2A2A2A] text-[#A3A3A3] hover:text-white'
+              }`}
+            >
+              {formatMonth(m)}
+            </button>
           ))}
         </div>
-        <button onClick={generateAll} disabled={generating}
-          className="w-full sm:w-auto bg-primary-container hover:brightness-110 text-on-primary-container px-6 py-3.5 rounded-2xl font-label-caps text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary-container/20 active:scale-95 neon-glow disabled:opacity-50 whitespace-nowrap">
-          {generating ? 'Gerando...' : 'Gerar Cobranças do Mês'}
+        <button 
+          onClick={generateAll} 
+          disabled={generating}
+          className="vollon-btn-primary w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_6px_20px_rgba(255,59,74,0.3)] disabled:opacity-50 whitespace-nowrap"
+        >
+          {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
+          <span>{generating ? 'Processando...' : 'Gerar Cobranças do Mês'}</span>
         </button>
       </div>
 
-      {/* Resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
-          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Total do Mês</p>
-          <p className="font-display-md text-2xl text-on-surface mt-1">R$ {summary.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+      {/* 4 Cards de Resumo */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <div className="vollon-card rounded-3xl p-5 sm:p-6 space-y-1">
+          <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-wider">Total do Mês</p>
+          <p className="font-display text-2xl sm:text-3xl font-black text-white">
+            R$ {summary.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
         </div>
-        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
-          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Recebido</p>
-          <p className="font-display-md text-2xl text-primary-container mt-1">R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <div className="w-full h-1.5 bg-surface-container rounded-full mt-3 overflow-hidden">
-            <div className="h-full bg-primary-container neon-glow transition-all" style={{ width: `${paidPct}%` }} />
+
+        <div className="vollon-card rounded-3xl p-5 sm:p-6 space-y-2">
+          <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-wider">Recebido</p>
+          <p className="font-display text-2xl sm:text-3xl font-black text-[#FF3B4A]">
+            R$ {summary.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+          <div className="w-full h-1.5 bg-[#0A0A0A] rounded-full overflow-hidden border border-[#2A2A2A]">
+            <div className="h-full bg-gradient-to-r from-[#E11D2E] to-[#FF3B4A] transition-all duration-700" style={{ width: `${paidPct}%` }} />
           </div>
         </div>
-        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
-          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Pendentes</p>
-          <p className="font-display-md text-2xl text-warning mt-1">{summary.pending}</p>
+
+        <div className="vollon-card rounded-3xl p-5 sm:p-6 space-y-1">
+          <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-wider">Pendentes</p>
+          <p className="font-display text-2xl sm:text-3xl font-black text-white">
+            {summary.pending}
+          </p>
         </div>
-        <div className="glass-panel border border-outline-variant/30 rounded-3xl p-6">
-          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Inadimplentes</p>
-          <p className="font-display-md text-2xl text-error mt-1">{summary.overdue}</p>
+
+        <div className="vollon-card rounded-3xl p-5 sm:p-6 space-y-1">
+          <p className="text-[10px] text-[#A3A3A3] font-bold uppercase tracking-wider">Inadimplentes</p>
+          <p className="font-display text-2xl sm:text-3xl font-black text-[#FF3B4A]">
+            {summary.overdue}
+          </p>
         </div>
+
       </div>
 
-      {/* Tabela */}
-      <div className="glass-panel border border-outline-variant/30 rounded-3xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left min-w-[640px]">
-            <thead className="bg-surface-container-highest/50 border-b border-outline-variant/30">
+      {/* Tabela de Faturamento */}
+      <div className="vollon-card rounded-3xl overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[700px]">
+            <thead className="bg-[#1A1A1A] border-b border-[#2A2A2A]">
               <tr>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">Professor</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Alunos</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Valor Unit.</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Total</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Vencimento</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-center">Status</th>
-                <th className="px-6 py-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest text-right">Ações</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest">Treinador / Unidade</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Alunos</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-right">Valor Unit.</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-right">Total</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Vencimento</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-center">Status</th>
+                <th className="px-6 py-4 text-[10px] text-[#A3A3A3] font-bold uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-[#2A2A2A]/60">
               {loading ? (
-                <tr><td colSpan="7" className="px-6 py-12 text-center text-on-surface-variant"><span className="material-symbols-outlined w-6 h-6 animate-spin mx-auto block">sync</span></td></tr>
+                <tr>
+                  <td colSpan="7" className="px-6 py-16 text-center text-[#A3A3A3]">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#FF3B4A]" />
+                  </td>
+                </tr>
               ) : records.length === 0 ? (
-                <tr><td colSpan="7" className="px-6 py-12 text-center text-on-surface-variant font-body-md text-sm">Nenhuma cobrança para {formatMonth(selectedMonth)}.</td></tr>
+                <tr>
+                  <td colSpan="7" className="px-6 py-16 text-center text-[#A3A3A3] text-xs font-bold uppercase tracking-wider">
+                    Nenhuma cobrança registrada para {formatMonth(selectedMonth)}.
+                  </td>
+                </tr>
               ) : records.map(r => (
-                <tr key={r.id} className="hover:bg-surface-container/50 transition-colors">
+                <tr key={r.id} className="hover:bg-[#1A1A1A]/40 transition-colors">
                   <td className="px-6 py-4">
                     {r.academy_id ? (
-                      <>
-                        <p className="font-headline-sm text-primary-container text-sm flex items-center gap-1.5 mb-0.5">
-                          <span className="material-symbols-outlined text-[14px]">domain</span> {r.gym_academies?.name || 'Academia'}
+                      <div>
+                        <p className="font-bold text-sm text-[#FF3B4A] flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5" /> {r.gym_academies?.name || 'Academia B2B'}
                         </p>
-                        <p className="font-label-caps text-[9px] text-on-surface-variant uppercase tracking-widest">Plano Enterprise</p>
-                      </>
+                        <p className="text-[10px] text-[#A3A3A3] font-bold uppercase">Plano Enterprise</p>
+                      </div>
                     ) : (
-                      <>
-                        <p className="font-headline-sm text-on-surface text-sm mb-0.5">{r.gym_teachers?.name || '-'}</p>
-                        <p className="font-body-md text-xs text-on-surface-variant">{r.gym_teachers?.email}</p>
-                      </>
+                      <div>
+                        <p className="font-bold text-sm text-white">{r.gym_teachers?.name || '—'}</p>
+                        <p className="text-xs text-[#A3A3A3]">{r.gym_teachers?.email}</p>
+                      </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center font-headline-sm text-sm text-on-surface">{r.student_count}</td>
-                  <td className="px-6 py-4 text-right font-body-md text-sm text-on-surface-variant">R$ {Number(r.price_per_student).toFixed(2)}</td>
-                  <td className="px-6 py-4 text-right font-display-sm text-sm text-on-surface">R$ {Number(r.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4 text-center font-body-md text-sm text-on-surface-variant">{r.due_date ? new Date(r.due_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
+                  <td className="px-6 py-4 text-center font-display text-base font-black text-white">
+                    {r.student_count}
+                  </td>
+                  <td className="px-6 py-4 text-right text-xs text-[#A3A3A3] font-semibold">
+                    R$ {Number(r.price_per_student).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 text-right font-display text-base font-black text-white">
+                    R$ {Number(r.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4 text-center text-xs text-[#A3A3A3] font-medium">
+                    {r.due_date ? new Date(r.due_date + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                  </td>
                   <td className="px-6 py-4 text-center">
-                    <span className={`font-label-caps text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border ${
-                      r.status === 'paid' ? 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20' :
-                      r.status === 'overdue' ? 'bg-error/10 text-error border-error/20' : 'bg-warning/10 text-warning border-warning/20'
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                      r.status === 'paid' ? 'bg-[#E11D2E]/15 text-[#FF3B4A] border-[#E11D2E]/30' :
+                      r.status === 'overdue' ? 'bg-[#2A2A2A] text-white border-[#3A3A3A]' : 
+                      'bg-white/10 text-white border-white/20'
                     }`}>
                       {r.status === 'paid' ? 'Pago' : r.status === 'overdue' ? 'Inadimplente' : 'Pendente'}
                     </span>
@@ -224,14 +279,26 @@ export default function MasterBilling({ showToast }) {
                   <td className="px-6 py-4 text-right">
                     {r.status !== 'paid' && (
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => markAs(r.id, 'paid')} className="font-label-caps text-[9px] text-[#4ade80] bg-[#4ade80]/10 hover:bg-[#4ade80]/20 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-colors border border-[#4ade80]/20">Pago</button>
+                        <button 
+                          onClick={() => markAs(r.id, 'paid')} 
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#E11D2E]/15 text-[#FF3B4A] border border-[#E11D2E]/30 hover:bg-[#E11D2E]/25 transition-colors cursor-pointer"
+                        >
+                          Pago
+                        </button>
                         {r.status !== 'overdue' && (
-                          <button onClick={() => markAs(r.id, 'overdue')} className="font-label-caps text-[9px] text-error bg-error/10 hover:bg-error/20 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-colors border border-error/20">Inadimpl.</button>
+                          <button 
+                            onClick={() => markAs(r.id, 'overdue')} 
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#1A1A1A] text-[#A3A3A3] border border-[#2A2A2A] hover:text-white transition-colors cursor-pointer"
+                          >
+                            Inadimpl.
+                          </button>
                         )}
                       </div>
                     )}
                     {r.status === 'paid' && r.paid_at && (
-                      <p className="font-body-md text-[10px] text-on-surface-variant mt-2">Pago em {new Date(r.paid_at).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-[10px] text-[#A3A3A3]">
+                        Pago em {new Date(r.paid_at).toLocaleDateString('pt-BR')}
+                      </p>
                     )}
                   </td>
                 </tr>
@@ -240,6 +307,7 @@ export default function MasterBilling({ showToast }) {
           </table>
         </div>
       </div>
+
     </div>
   )
 }
